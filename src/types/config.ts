@@ -236,11 +236,21 @@ export interface ConfigOptions {
     };
     topBar: {
       focus: string;
+      enabledModules: string[];
     };
   };
   bar: {
     modes: BarMode[];
     default: BarMode;
+    modules: {
+      left: string[];
+      center: {
+        left: string[];
+        middle: string[];
+        right: string[];
+      };
+      right: string[];
+    };
   };
   launcher: {
     maxResults: number;

@@ -18,6 +18,18 @@ export interface RgbaColor {
   alpha: number;
 }
 
+export enum BarModule {
+  Workspaces = "workspaces",
+  Clock = "clock",
+  Tray = "tray",
+  Music = "music",
+  Utilities = "utilities",
+  Weather = "weather",
+  Battery = "battery",
+  Indicators = "indicators",
+  System = "system",
+}
+
 const mainBoxClasses = {
   [BarMode.Normal]: "bar-group-margin",
   [BarMode.Focus]: "",
@@ -35,8 +47,8 @@ export interface BaseBarContentProps extends Widget.BoxProps {
   gdkmonitor?: Gdk.Monitor;
 }
 
-export interface FocusBarContentProps extends BaseBarContentProps {}
-export interface NothingBarContentProps extends BaseBarContentProps {}
+export interface FocusBarContentProps extends BaseBarContentProps { }
+export interface NothingBarContentProps extends BaseBarContentProps { }
 
 export default {
   ...WorkspaceTypes,

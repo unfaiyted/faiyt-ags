@@ -9,6 +9,7 @@ import { evaluatorManager, type EvaluatorResult } from "../../utils/evaluators";
 import ColorPreview from "./components/color-preview";
 import { RoundedImageReactive } from "../utils/rounded-image";
 import launcherState from "../../services/launcher-state";
+import { clearKillCache } from "./components/kill-results";
 
 export interface LauncherProps extends PopupWindowProps {
   monitorIndex: number;
@@ -163,6 +164,10 @@ export default function LauncherBar(launcherProps: LauncherProps) {
           // When launcher is shown, ensure selectedIndex starts at -1 (entry focused)
           if (win.visible) {
             selectedIndex.set(-1);
+          } else {
+            // Clear the kill cache when launcher is hidden
+            // This ensures fresh data when the launcher is reopened
+            clearKillCache();
           }
 
           // Don't clear searchText to preserve equations/conversions
@@ -379,8 +384,12 @@ export default function LauncherBar(launcherProps: LauncherProps) {
                     {/* Right side - General shortcuts */}
                     <box halign={Gtk.Align.END} spacing={16}>
                       <box spacing={8}>
-                        <KeyboardShortcut keys={["Tab"]} compact />
-                        <label label="Autocomplete" cssClasses={["action-label"]} />
+                        <KeyboardShortcut keys={["Ctrl", "J"]} compact />
+                        <label label="Next" cssClasses={["action-label"]} />
+                      </box>
+                      <box spacing={8}>
+                        <KeyboardShortcut keys={["Ctrl", "K"]} compact />
+                        <label label="Previous" cssClasses={["action-label"]} />
                       </box>
                       <box spacing={8}>
                         <KeyboardShortcut keys={["Esc"]} compact />

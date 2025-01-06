@@ -53,6 +53,10 @@ export const SEARCH_PREFIXES: Record<string, SearchType> = {
   "window:": SearchType.HYPRLAND,
   "list:": SearchType.LIST_PREFIXES,
   "ls:": SearchType.LIST_PREFIXES,
+  "kill:": SearchType.KILL,
+  "k:": SearchType.KILL,
+  "killall:": SearchType.KILL,
+  "pkill:": SearchType.KILL,
 };
 
 export interface ParsedSearch {

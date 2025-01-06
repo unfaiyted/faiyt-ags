@@ -271,7 +271,8 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
       try {
         await execAsync(["pgrep", "swww-daemon"]);
         // If swww is running, use it (it's more modern and feature-rich)
-        await execAsync(["swww", "img", wallpaperPath, "-o", monitorName, "--transition-type", "fade", "--transition-duration", "0.5"]);
+        // Use --resize crop to ensure the image fills the screen
+        await execAsync(["swww", "img", wallpaperPath, "-o", monitorName, "--transition-type", "fade", "--transition-duration", "0.5", "--resize", "crop"]);
         log.info(`Set wallpaper using swww: ${wallpaperPath} on ${monitorName}`);
         return;
       } catch (e) {
@@ -280,7 +281,7 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
           await execAsync(["swww", "init"]);
           // Wait a bit for daemon to start
           await new Promise(resolve => setTimeout(resolve, 500));
-          await execAsync(["swww", "img", wallpaperPath, "-o", monitorName, "--transition-type", "fade", "--transition-duration", "0.5"]);
+          await execAsync(["swww", "img", wallpaperPath, "-o", monitorName, "--transition-type", "fade", "--transition-duration", "0.5", "--resize", "crop"]);
           log.info(`Initialized swww and set wallpaper: ${wallpaperPath} on ${monitorName}`);
           return;
         } catch (e2) {
@@ -297,7 +298,8 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
       }
 
       // Start swaybg with the new wallpaper for specific output
-      execAsync(["swaybg", "-o", monitorName, "-i", wallpaperPath, "-m", "fill"]).catch(err => {
+      // Use "stretch" mode to ensure the image fills the entire screen
+      execAsync(["swaybg", "-o", monitorName, "-i", wallpaperPath, "-m", "stretch"]).catch(err => {
         log.error("Failed to start swaybg", err);
       });
 

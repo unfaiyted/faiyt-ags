@@ -10,6 +10,7 @@ import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
 import { theme } from "../../../../utils/color";
 import { createLogger } from "../../../../utils/logger";
 import configManager from "../../../../services/config-manager";
+import batteryDetector from "../../../../services/battery-detector";
 
 const log = createLogger('BatteryModule');
 
@@ -36,6 +37,13 @@ function getBatteryIconName(level: number, charging: boolean): PhosphorIcons {
 }
 
 export default function BatteryModule(props: BatteryModuleProps) {
+  // Check if system has a battery
+  if (!batteryDetector.systemHasBattery()) {
+    log.debug('No battery detected, hiding battery module');
+    // Return an empty box instead of null to avoid rendering issues
+    return <box visible={false} />;
+  }
+
   const battery = Battery.get_default();
 
   // Variables to track battery state

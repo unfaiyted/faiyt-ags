@@ -232,7 +232,7 @@ const BluetoothDeviceItem = ({ device }: { device: BluetoothDevice }) => {
             </box>
           </box>
           {bind(connecting).as(c =>
-            c ? <Gtk.Spinner cssName="bluetooth-connecting" /> : null
+            c ? <Gtk.Spinner cssName="bluetooth-connecting" /> : <box />
           )}
         </box>
       </button>
@@ -422,7 +422,7 @@ const BluetoothDeviceList = () => {
             );
           })}
           {/* Force re-render when scanning state changes */}
-          {bind(scanner.scanning).as(() => null)}
+          {bind(scanner.scanning).as(() => <box />)}
         </box>
       </Gtk.ScrolledWindow>
     </box>

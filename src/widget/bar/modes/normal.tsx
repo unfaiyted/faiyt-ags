@@ -1,19 +1,13 @@
 import config from "../../../utils/config";
 import { BaseBarContentProps } from "./index";
 import { Gtk } from "astal/gtk4";
-import WindowTitle from "../modules/window-title";
 import SideModule from "../modules/side";
-import System from "../modules/system";
-import Music from "../modules/music/index";
-import Workspaces from "../modules/workspaces";
-import Clock from "../modules/clock";
-import Tray from "../modules/tray";
 import LeftModule from "../modules/left";
 import RightModule from "../modules/right";
-import Battery from "../modules/battery";
-import Utilities from "../modules/utilities";
-import Weather from "../modules/weather";
-import StatusIndicators from "../modules/indicators";
+import { createModule, createModules } from "../utils/module-factory";
+import { createLogger } from "../../../utils/logger";
+
+const log = createLogger('NormalBarMode');
 
 export interface NormalBarContentProps extends BaseBarContentProps {
   monitorIndex?: number;
@@ -21,6 +15,14 @@ export interface NormalBarContentProps extends BaseBarContentProps {
 
 export default function NormalBarMode(barModeProps: NormalBarContentProps) {
   const { setup, child, ...props } = barModeProps;
+  
+  // Get module configuration
+  const moduleConfig = config.bar.modules;
+  const moduleProps = {
+    monitorIndex: props.monitorIndex,
+    gdkmonitor: props.gdkmonitor,
+    mode: props.mode
+  };
 
   return (
     <centerbox
@@ -31,7 +33,7 @@ export default function NormalBarMode(barModeProps: NormalBarContentProps) {
       heightRequest={40}
       startWidget={
         <LeftModule>
-          <WindowTitle />
+          {createModules(moduleConfig.left, moduleProps).filter(m => m !== null)}
         </LeftModule>
       }
       centerWidget={
@@ -41,19 +43,11 @@ export default function NormalBarMode(barModeProps: NormalBarContentProps) {
           halign={Gtk.Align.CENTER}
         >
           <SideModule>
-            <System />
-            <Music
-              monitorIndex={props.monitorIndex}
-            />
+            {createModules(moduleConfig.center.left, moduleProps).filter(m => m !== null)}
           </SideModule>
-          <Workspaces
-            mode={props.mode}
-            shown={config.workspaces.shown}
-            initilized={false}
-            gdkmonitor={props.gdkmonitor}
-          />
+          {createModules(moduleConfig.center.middle, moduleProps).filter(m => m !== null)}
           <SideModule>
-            <Utilities />
+            {createModules(moduleConfig.center.right, moduleProps).filter(m => m !== null)}
           </SideModule>
         </box>
       }
@@ -64,17 +58,7 @@ export default function NormalBarMode(barModeProps: NormalBarContentProps) {
             vexpand={false}
             halign={Gtk.Align.START}
             valign={Gtk.Align.CENTER}>
-            <Battery />
-            <Clock />
-            <Weather />
-            <box
-              marginStart={40}
-              halign={Gtk.Align.END}
-              hexpand
-            >
-              {/* <StatusIndicators /> */}
-              {/* <Tray /> */}
-            </box>
+            {createModules(moduleConfig.right, moduleProps).filter(m => m !== null)}
           </box>
         </RightModule>
       }

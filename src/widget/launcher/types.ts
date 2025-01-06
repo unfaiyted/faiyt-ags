@@ -9,6 +9,7 @@ export enum SearchType {
   DIRECTORY = "directory",
   HYPRLAND = "hyprland",
   LIST_PREFIXES = "list_prefixes",
+  KILL = "kill",
 }
 
 // Keywords that trigger screen capture options

@@ -21,6 +21,15 @@ import getDirectoryResults, { DirectoryButtonResult, createDirectoryButton } fro
 import getHyprlandResults, { HyprlandWindowResult, createHyprlandButton } from "./hyprland-results";
 import getListPrefixesResults, { ListPrefixesResult, createListPrefixesButton } from "./list-prefixes-results";
 import { HyprlandClient } from "../components/hyprland-results";
+import getKillResults, { KillButtonResult } from "./kill-results";
+import KillButton from "../buttons/kill-button";
+
+// TODO: Add in new types for emojis/icons. 
+// TODO: memes/gifs. Maybe use a custom widget for this?
+// For one I want to be able to quickly type in some keyworkds and find different memes and
+// copy them to the clipboard. Custom button type widget. Also, for displaying the gifs.
+// That might be a bit tricky though. (Gtk.PixbufAnimation?)
+
 
 export interface UnifiedResultsRef {
   selectNext: () => void;
@@ -61,6 +70,7 @@ interface UnifiedResults {
   directories: DirectoryButtonResult[];
   hyprland: HyprlandWindowResult[];
   listPrefixes: ListPrefixesResult[];
+  kill: KillButtonResult[];
   total: number;
 }
 
@@ -86,6 +96,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     directories: [],
     hyprland: [],
     listPrefixes: [],
+    kill: [],
     total: 0
   });
   const MIN_SEARCH_LENGTH = 2;
@@ -140,6 +151,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         directories: [],
         hyprland: [],
         listPrefixes: [],
+        kill: [],
         total: 0
       });
       activeResultType.set(SearchType.ALL);
@@ -201,6 +213,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       let directoryList: DirectoryButtonResult[] = [];
       let hyprlandList: HyprlandWindowResult[] = [];
       let listPrefixesList: ListPrefixesResult[] = [];
+      let killList: KillButtonResult[] = [];
 
       switch (parsed.type) {
         case SearchType.APPS:
@@ -239,6 +252,10 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
           log.debug("Listing search prefixes", { query: parsed.query });
           listPrefixesList = getListPrefixesResults(parsed.query, maxResults);
           break;
+        case SearchType.KILL:
+          log.debug("Searching processes to kill", { query: parsed.query });
+          killList = await getKillResults(parsed.query, true);
+          break;
         case SearchType.ALL:
         default:
           log.debug("Searching all types", { query: parsed.query });
@@ -249,7 +266,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       }
 
       const total = appList.length + screenList.length + commandList.length +
-        systemList.length + clipboardList.length + externalSearchList.length + directoryList.length + hyprlandList.length + listPrefixesList.length;
+        systemList.length + clipboardList.length + externalSearchList.length + directoryList.length + hyprlandList.length + listPrefixesList.length + killList.length;
 
       log.debug("Search results", {
         appCount: appList.length,
@@ -261,6 +278,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         directoryCount: directoryList.length,
         hyprlandCount: hyprlandList.length,
         listPrefixesCount: listPrefixesList.length,
+        killCount: killList.length,
         total
       });
 
@@ -274,6 +292,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         directories: directoryList,
         hyprland: hyprlandList,
         listPrefixes: listPrefixesList,
+        kill: killList,
         total
       });
     }, DEBOUNCE_DELAY);
@@ -683,6 +702,28 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
                           },
                           entryRef: entryRef
                         });
+                      })}
+                    </ResultGroupWrapper>
+
+                    <ResultGroupWrapper
+                      groupName="Kill Processes"
+                      revealed={(results.kill.length > 0 && (type === SearchType.ALL || type === SearchType.KILL))}
+                    >
+                      {results.kill.map((killResult, index) => {
+                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                          results.commands.length + results.system.length + results.clipboard.length +
+                          results.externalSearch.length + results.directories.length + results.hyprland.length +
+                          results.listPrefixes.length + index;
+                        return (
+                          <KillButton
+                            action={killResult.action}
+                            index={adjustedIndex}
+                            selected={bind(selectedIndex).as(i => i === adjustedIndex)}
+                            ref={(button: Gtk.Button) => {
+                              buttonRefs.set(adjustedIndex, button);
+                            }}
+                          />
+                        );
                       })}
                     </ResultGroupWrapper>
                   </box>

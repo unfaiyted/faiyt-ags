@@ -229,6 +229,15 @@ export const defaultConfigOptions: ConfigOptions = {
     // These are the modes you will be able to cycle between. If you remove a mode, it will be hidden.
     modes: [BarMode.Normal, BarMode.Focus, BarMode.Nothing],
     default: BarMode.Normal,
+    modules: {
+      left: ["windowTitle"],
+      center: {
+        left: ["system", "music"],
+        middle: ["workspaces"],
+        right: ["utilities"]
+      },
+      right: ["battery", "clock", "weather", "statusIndicators", "tray"]
+    }
   },
   dir: {
     scripts: `/home/${USERNAME}/.config/ags/scripts`,
