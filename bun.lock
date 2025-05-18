@@ -1,0 +1,17 @@
+{
+  "lockfileVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "faiyt-astal-shell",
+      "dependencies": {
+        "astal": "/usr/share/astal/gjs",
+        "csstype": "^3.1.3",
+      },
+    },
+  },
+  "packages": {
+    "astal": ["astal@file:../../../../usr/share/astal/gjs", {}],
+
+    "csstype": ["csstype@3.1.3", "", {}, "sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw=="],
+  }
+}
