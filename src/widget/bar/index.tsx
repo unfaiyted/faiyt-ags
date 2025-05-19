@@ -1,6 +1,8 @@
-import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk4";
+import Astal from "gi://Astal";
 import Battery from "gi://AstalBattery";
-import { Variable, bind, Binding } from "astal";
+import Gtk from "gi://Gtk?version=4.0";
+import Gdk from "gi://Gdk?version=4.0";
+const { Widget, App, Variable, bind, Binding } = Astal;
 import config from "../../utils/config";
 import { shellMode } from "./utils";
 import { BarMode } from "./types";

@@ -1,4 +1,7 @@
-import { App } from "astal/gtk4";
+import Astal from "gi://Astal";
+import Gtk from "gi://Gtk?version=4.0";
+import Gdk from "gi://Gdk?version=4.0";
+const { App } = Astal;
 // import { cycleMode, initialMonitorShellModes } from "./widget/bar/utils";
 import "../style.scss";
 // import iconStyles from "./node_modules/@phosphor-icons/web/src/regular/style.css";

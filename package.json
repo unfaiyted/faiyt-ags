@@ -7,9 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:app": "vite build",
     "build": "bun build:app",
-    "start:app": "gjs -m dist/app.js",
-    "debug:app": "GTK_DEBUG=interactive bun start:app",
+    "start:app": "ags run dist/app.js",
+    "debug:app": "GTK_DEBUG=interactive ags run dist/app.js",
     "start": "bun build && bun start:app",
+    "dev": "ags run",
     "validate": "bun validate:types",
     "validate:types": "tsc --noEmit",
     "clear": "rm -rf dist @types"
