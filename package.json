@@ -10,7 +10,9 @@
     "start:app": "ags run dist/app.js",
     "debug:app": "GTK_DEBUG=interactive ags run dist/app.js",
     "start": "bun build && bun start:app",
-    "dev": "ags run",
+    "dev": "ags run src/app.ts",
+    "dev:watch": "nodemon",
+    "dev:debug": "nodemon --exec './watch.sh debug'",
     "validate": "bun validate:types",
     "validate:types": "tsc --noEmit",
     "clear": "rm -rf dist @types"
@@ -23,6 +25,7 @@
   "author": "Dane L Miller",
   "devDependencies": {
     "bun-types": "^1.2.13",
+    "nodemon": "^3.1.10",
     "sass": "^1.89.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
