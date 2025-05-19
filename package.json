@@ -2,15 +2,15 @@
   "name": "faiyt-astal-shell",
   "version": "1.0.0",
   "description": "UI Recreation for AGS/Hyprland",
-  "main": "app.ts",
+  "main": "src/app.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:app": "vite build",
     "build": "bun build:app",
-    "start:app": "gjs -m dist/main.js",
-    "debug:app": "GTK_DEBUG=interactive yarn start:app",
-    "start": "yarn build && yarn start:app",
-    "validate": "yarn validate:types",
+    "start:app": "gjs -m dist/app.js",
+    "debug:app": "GTK_DEBUG=interactive bun start:app",
+    "start": "bun build && bun start:app",
+    "validate": "bun validate:types",
     "validate:types": "tsc --noEmit",
     "clear": "rm -rf dist @types"
   },
@@ -20,6 +20,12 @@
     "gtk"
   ],
   "author": "Dane L Miller",
+  "devDependencies": {
+    "bun-types": "^1.2.13",
+    "sass": "^1.89.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
   "dependencies": {
     "@girs/gjs": "^4.0.0-beta.23",
     "@girs/gtk-4.0": "^4.18.3-4.0.0-beta.23",
