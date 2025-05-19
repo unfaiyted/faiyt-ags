@@ -1,5 +1,6 @@
 import { Widget } from "astal/gtk4";
-import { Binding } from "astal";
+import { Variable, Binding } from "astal";
+
 import * as WorkspaceTypes from "./modules/workspaces/types";
 import * as TrayTypes from "./modules/tray/types";
 import * as ClockTypes from "./modules/clock/types";

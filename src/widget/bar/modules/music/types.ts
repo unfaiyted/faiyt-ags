@@ -1,8 +1,9 @@
-import { Widget } from "astal/gtk3";
+import { Widget } from "astal/gtk4";
 import Mpris from "gi://AstalMpris";
 import { Binding } from "astal";
+import { CircularProgressProps } from "../../../utils/circular-progress";
 
-export interface TrackProgressProps extends Widget.CircularProgressProps {
+export interface TrackProgressProps extends CircularProgressProps {
   value: Binding<number>;
   startAt: Binding<number>;
   endAt: Binding<number>;

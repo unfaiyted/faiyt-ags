@@ -1,6 +1,6 @@
 import { Widget, Gtk, Gdk } from "astal/gtk4";
 
-export function setupCursorHover(button: Widget.Button) {
+export function setupCursorHover(button: Gtk.Button) {
   // Hand pointing cursor on hover
   const display = Gdk.Display.get_default();
   button.connect("enter-notify-event", () => {
@@ -22,7 +22,7 @@ export function setupCursorHover(button: Widget.Button) {
   });
 }
 
-export function setupCursorHoverAim(button: Widget.Button) {
+export function setupCursorHoverAim(button: Gtk.Button) {
   // Crosshair cursor on hover
   const display = Gdk.Display.get_default();
   button.connect("enter-notify-event", () => {

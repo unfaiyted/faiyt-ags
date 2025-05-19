@@ -1,4 +1,4 @@
-import { Gtk } from "astal/gtk4";
+import { Widget, Gtk } from "astal/gtk4";
 import Mpris from "gi://AstalMpris";
 import { PlayingStateProps } from "./types";
 
@@ -7,7 +7,7 @@ export default function PlayingState(props: PlayingStateProps) {
     <label
       valign={Gtk.Align.CENTER}
       cssName="bar-music-playstate-txt"
-      label={props.status.as((v) => {
+      label={props.status.as((v: Mpris.PlaybackStatus) => {
         switch (v) {
           case Mpris.PlaybackStatus.PLAYING:
             return "play_arrow";

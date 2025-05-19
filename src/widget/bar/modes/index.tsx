@@ -1,9 +1,9 @@
-import { Variable } from "astal";
+import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk4";
+import { Variable, Binding, bind } from "astal";
 import { BaseBarContentProps, BarMode } from "../types";
 import NormalBarContent from "./normal";
 import FocusBarContent from "./focus";
 import NothingBarContent from "./nothing";
-import { bind } from "astal";
 
 export default function BarModeContent(baseBarProps: BaseBarContentProps) {
   const { setup, child, ...props } = baseBarProps;
@@ -19,7 +19,7 @@ export default function BarModeContent(baseBarProps: BaseBarContentProps) {
         return <NothingBarContent {...props} />;
     }
   };
-  const barContent = Variable(getModeContent());
+  const barContent = new Variable(getModeContent());
 
   props.mode.subscribe(() => {
     barContent.set(getModeContent());

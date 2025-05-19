@@ -1,7 +1,6 @@
-import { Widget, App, Gtk, Gdk, Astal } from "astal/gtk3";
-const { Box, Window } = Widget;
-import { bind } from "astal";
-import { Variable } from "astal";
+import { Widget, App, Gtk, Gdk, Astal } from "astal/gtk4";
+// import { Variable, Binding } from "astal"
+// const { Box, Window } = Widget;
 
 export interface PopupWindowProps extends Widget.WindowProps {
   hideClassName?: string;
@@ -28,7 +27,7 @@ export default ({
 
   // print("Popup window name:", name);
 
-  const boxSetup = (self: Widget.Box) => {
+  const boxSetup = (self: Gtk.Box) => {
     // setup?.(self);
     // if (showClassName != "" && hideClassName !== "") {
     // self.hook(App, (self, currentName, visible) => {
@@ -38,26 +37,26 @@ export default ({
     // });
 
     if (showClassName !== "" && hideClassName !== "")
-      self.className = `${showClassName} ${hideClassName}`;
+      self.set_css_classes([showClassName, hideClassName]);
   };
   //
 
-  const handleDraw = (self: Widget.Window) => {
+  const handleDraw = (self: Gtk.Window) => {
     if (self.visible) {
       // print("popup window is Visible");
-      self.className = showClassName;
+      self.set_css_classes([showClassName]);
     } else {
       // print("popup window is Not visible");
-      self.className = hideClassName;
+      self.set_css_classes([hideClassName]);
     }
   };
 
-  const handleKeyPress = (self: Widget.Window, event: Gdk.Event) => {
+  const handleKeyPress = (self: Gtk.Window, event: Gdk.KeyEvent) => {
     // print("Key press event.keyval:", event.get_keyval());
     // print("Key press event.keycode:", event.get_keycode());
     // print("Gdk.Key.Escape:", Gdk.KEY_Escape);
 
-    if (event.get_keyval()[1] === Gdk.KEY_Escape) {
+    if (event.get_keycode() === Gdk.KEY_Escape) {
       // print("Closing popup-window, event.keycode[1]:", event.get_keycode()[1]);
       self.hide();
       self.visible = false;
@@ -77,7 +76,7 @@ export default ({
       layer={Astal.Layer.TOP}
       onDraw={handleDraw}
       onKeyPressEvent={handleKeyPress}
-      className={props.className}
+      cssName={props.cssName}
       {...props}
     >
       <box setup={boxSetup}>{child}</box>

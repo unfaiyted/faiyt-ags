@@ -1,5 +1,5 @@
-import { Variable } from "astal";
-import { bind } from "astal";
+import { Widget, Gtk } from "astal/gtk4";
+import { Variable, Binding, bind } from "astal";
 import { TrackTitleProps } from "./types";
 
 export const TrackTitle = (props: TrackTitleProps) => {
@@ -13,10 +13,10 @@ export const TrackTitle = (props: TrackTitleProps) => {
     return title;
   }
 
-  const trimmedTitle = Variable(trimTrackTitle(props.title.get()));
-  const artist = Variable(props.artist.get());
+  const trimmedTitle = new Variable(trimTrackTitle(props.title.get()));
+  const artist = new Variable(props.artist.get());
 
-  props.title.subscribe((title) => {
+  props.title.subscribe((title: string) => {
     print("Track title:", title);
     trimmedTitle.set(trimTrackTitle(title));
     artist.set(props.artist.get());

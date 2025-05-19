@@ -1,4 +1,4 @@
-import { Widget, Gtk, Gdk } from "astal/gtk4";
+import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
 import { getScrollDirection } from "../../../utils";
 // import { ClickButtonPressed } from "../../../types";
 
@@ -40,7 +40,7 @@ export default function SideModule(sideModuleProps: SideModuleProps) {
   };
 
   return (
-    <box onScroll={handleScroll} onClick={handleClick}>
+    <box onScroll={handleScroll} >
       {/* <box homogeneous={false}> */}
       <box cssName="bar-sidemodule" hexpand={true}>
         {/* <box className="bar-corner-spacing" /> */}

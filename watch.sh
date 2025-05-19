@@ -10,9 +10,15 @@ ags quit &>/dev/null || true
 # Check if debug mode is requested
 if [ "$1" == "debug" ]; then
     echo "Starting AGS in debug mode..."
-    GTK_DEBUG=interactive ags run src/app.ts
+    GJS_DEBUG_OUTPUT=stderr GTK_DEBUG=interactive ags run src/app.ts
+elif [ "$1" == "smart" ]; then
+    echo "Starting AGS with smart error tracing..."
+    # First update the source map
+    node ./scripts/source-mapper.js > /dev/null
+    # Then run with error tracing
+    ags run src/app.ts 2>&1 | node ./scripts/error-tracer.js
 else
     # Start AGS with the app in normal mode
     echo "Starting AGS in normal mode..."
-    ags run src/app.ts
+    GJS_DEBUG_OUTPUT=stderr GJS_ENABLE_TRACING=1 ags run src/app.ts
 fi

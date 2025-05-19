@@ -1,7 +1,6 @@
-// import { App, Astal, Gtk, Gdk } from "astal/gtk3";
-import { Widget } from "astal/gtk4";
+import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk3";
 import SystemTray from "gi://AstalTray";
-// import { Variable } from "astal";
+// import Astal from "gi://Astal";
 import PhosphorIcon from "../../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../../utils/icons/types";
 
@@ -15,7 +14,7 @@ export interface TrayItemProps extends Widget.ButtonProps {
 export default function TrayItem(trayItemProps: TrayItemProps) {
   const { item } = trayItemProps;
 
-  // const trayItem = Variable(item);
+  // const trayItem = new Variable(item);
 
   const handleItemClick = () => {
     // print("TrayItem clicked.");

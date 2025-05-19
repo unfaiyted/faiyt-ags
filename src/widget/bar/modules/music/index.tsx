@@ -1,7 +1,6 @@
-import { Gtk } from "astal/gtk4";
+import { Widget, Gtk, Gdk } from "astal/gtk4";
+import { Variable, bind } from "astal";
 import Mpris from "gi://AstalMpris";
-import { Variable } from "astal";
-import { bind } from "astal";
 import BarGroup from "../../utils/bar-group";
 import PlayingState from "./playing-state";
 import TrackTitle from "./track-title";
@@ -18,7 +17,7 @@ export default function Music() {
 
   let lastPlayer: Mpris.Player | null = mpris.get_players()[0];
 
-  const player = Variable(mpris.get_players()[0]).poll(1000, () => {
+  const player = new Variable(mpris.get_players()[0]).poll(1000, () => {
     const currentPlayer = mpris.get_players()[0];
 
     if (!currentPlayer) return lastPlayer;
@@ -31,12 +30,12 @@ export default function Music() {
     return mpris.get_players()[0];
   });
 
-  const playerCount = Variable(mpris.get_players().length);
+  const playerCount = new Variable(mpris.get_players().length);
 
-  const value = Variable(0);
-  const title = Variable("");
-  const artist = Variable("");
-  const album = Variable("");
+  const value = new Variable(0);
+  const title = new Variable("");
+  const artist = new Variable("");
+  const album = new Variable("");
   const playbackStatus = Variable<Mpris.PlaybackStatus | string>("unknown");
 
   if (mpris) {

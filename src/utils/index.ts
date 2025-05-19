@@ -1,5 +1,6 @@
+import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
+import { Variable } from "astal";
 import Cairo from "gi://cairo";
-import { Astal, Gdk } from "astal/gtk4";
 import GLib from "gi://GLib";
 import config from "./config";
 

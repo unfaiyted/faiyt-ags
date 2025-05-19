@@ -1,5 +1,5 @@
-
-import { Gdk, Gtk } from "astal/gtk4";
+import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
+import { Variable, Binding } from "astal";
 import { BaseWorkspacesProps } from "./types";
 import WorkspaceContent from "./modes";
 import { handleHyprResponse } from "../../../../utils/handlers";
@@ -14,18 +14,25 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
 
   const hypr = Hypr.get_default();
 
-  const handleScroll = () => {
-    // self: Widget.Box, event: Astal.ScrollEvent
-    // const scrollDirection = getScrollDirection(event);
-    //
-    // // todo: add config option to reverse scroll direction
-    // if (scrollDirection === Gdk.ScrollDirection.UP) {
-    //   // print("scroll up");
-    //   hypr.message_async(`dispatch workspace +1`, handleHyprResponse);
-    // } else if (scrollDirection === Gdk.ScrollDirection.DOWN) {
-    //   // print("scroll down");
-    //   hypr.message_async(`dispatch workspace -1`, handleHyprResponse);
-    // }
+  const handleScroll = (self: Gtk.Box) => {
+    // In GTK4, we need to use a scroll controller 
+    const scrollController = new Gtk.EventControllerScroll();
+    scrollController.set_flags(Gtk.EventControllerScrollFlags.BOTH_AXES);
+    self.add_controller(scrollController);
+    
+    scrollController.connect("scroll", (controller, dx, dy) => {
+      // todo: add config option to reverse scroll direction
+      if (dy < 0) {
+        // scroll up
+        hypr.message_async(`dispatch workspace +1`, handleHyprResponse);
+      } else if (dy > 0) {
+        // scroll down
+        hypr.message_async(`dispatch workspace -1`, handleHyprResponse);
+      }
+      
+      // Return true to mark the event as handled
+      return true;
+    });
   };
 
   const handleClick = () => {
@@ -47,41 +54,29 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
 
     let clicked = false;
 
-    // self.add_events(Gdk.EventMask.POINTER_MOTION_MASK);
-
-    self.connect("motion-notify-event", (self, event: Gdk.MotionEvent) => {
+    // In GTK4, we need to use a gesture controller for motion and click events
+    const motionController = new Gtk.EventControllerMotion();
+    self.add_controller(motionController);
+    
+    const clickController = new Gtk.GestureClick();
+    self.add_controller(clickController);
+    
+    // Handle motion events
+    motionController.connect("motion", (controller, x, y) => {
       if (!clicked) return;
 
-      let [_, axes] = event.get_axes();
-
       const widgetWidth = self.get_allocation().width;
-      const wsId = Math.ceil((axes[0] * config.workspaces.shown) / widgetWidth);
+      const wsId = Math.ceil((x * config.workspaces.shown) / widgetWidth);
 
       hypr.message_async(`dispatch workspace ${wsId}`, handleHyprResponse);
-      // Utils.execAsync([
-      // `${App.configDir}/scripts/hyprland/workspace_action.sh`,
-      // "workspace",
-      // `${wsId}`,
-      // ]).catch(print);
     });
 
-    self.connect("button-press-event", (_self, event: Gdk.ButtonEvent) => {
-
-      const button = event.get_button();
-
-
+    // Handle click press events
+    clickController.connect("pressed", (controller, n_press, x, y) => {
+      const button = clickController.get_current_button();
+      
       if (button === ClickButtonPressed.LEFT.valueOf()) {
         clicked = true;
-
-        // const widgetWidth = self.get_allocation().width;
-        // const wsId = Math.ceil(
-        // (event.x * config.workspaces.shown) / widgetWidth,
-        // );
-        //   Utils.execAsync([
-        //     `${App.configDir}/scripts/hyprland/workspace_action.sh`,
-        //     "workspace",
-        //     `${wsId}`,
-        //   ]).catch(print);
       } else if (button === 8) {
         hypr.message_async(
           `dispatch togglespecialworkspace`,
@@ -89,15 +84,21 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
         );
       }
     });
-    self.connect("button-release-event", () => (clicked = false));
+    
+    // Handle click release events
+    clickController.connect("released", () => {
+      clicked = false;
+    });
   };
 
   return (
     <box homogeneous={true}>
       <box
-        onScroll={handleScroll}
-        onClick={handleClick}
-        setup={eventBoxSetup}
+        setup={(self) => {
+          // Apply both event handlers
+          handleScroll(self);
+          eventBoxSetup(self);
+        }}
       >
         <box homogeneous={true} cssName="bar-group-margin">
           <box

@@ -1,10 +1,9 @@
-import { Gtk } from "astal/gtk4";
-import { Widget } from "astal/gtk4";
+import { Widget, Gtk } from "astal/gtk4";
+import { Variable, bind } from "astal";
+
 import BarGroup from "../utils/bar-group";
 import { CircularProgress } from "../../utils/circular-progress";
 import { MaterialIcon } from "../../utils/icons/material";
-import { Variable } from "astal";
-import { bind } from "astal";
 import { execAsync } from "astal/process";
 import config from "../../../utils/config";
 
@@ -43,9 +42,9 @@ function getResourceClassNames(type: BarResourceType) {
 
 //name, icon, command, circprogClassName = 'bar-batt-circprog', textClassName = 'txt-onSurfaceVariant', iconClassName = 'bar-batt'
 const BarResource = (props: BarResourceProps) => {
-  const commandResult = Variable(0).poll(5000, ["bash", "-c", props.command]);
-  const resourceLabel = Variable("");
-  const tooltipText = Variable("");
+  const commandResult = new Variable(0).poll(5000, ["bash", "-c", props.command]);
+  const resourceLabel = new Variable("");
+  const tooltipText = new Variable("");
 
   const [circprogClassName, textClassName, iconClassName] =
     getResourceClassNames(props.type);
@@ -87,7 +86,7 @@ const BarResource = (props: BarResourceProps) => {
     execAsync(["bash", "-c", `${config.apps.taskManager}`]).catch(print);
 
   return (
-    <button onClick={handleClick} tooltipText={bind(tooltipText)}>
+    <button onClicked={handleClick} tooltipText={bind(tooltipText)}>
       <box cssName={`spacing-h-4 ${textClassName}`}>
         <ResourceProgress />
         <ResourceLabel label={bind(resourceLabel).as((v) => v)} />

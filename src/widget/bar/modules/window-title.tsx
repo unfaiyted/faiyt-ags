@@ -1,6 +1,7 @@
-import { Widget } from "astal/gtk4";
-import Hypr from "gi://AstalHyprland";
+import { Widget, Gtk } from "astal/gtk4";
 import { Variable } from "astal";
+import Hypr from "gi://AstalHyprland";
+import Astal from "gi://Astal";
 
 export interface WindowTitleProps extends Widget.BoxProps { }
 
@@ -8,8 +9,8 @@ export default function WindowTitle() {
   // const { setup, child } = windowTitleProps;
 
   const hypr = Hypr.get_default();
-  const client = Variable(hypr.get_focused_client());
-  const workspace = Variable(hypr.get_focused_workspace());
+  const client = new Variable(hypr.get_focused_client());
+  const workspace = new Variable(hypr.get_focused_workspace());
 
 
   hypr.connect("event", (_source, event, _args) => {
@@ -42,6 +43,10 @@ export default function WindowTitle() {
         setup={(self) => {
 
           const labelVar = Variable.derive([client, workspace], (client, workspace) => {
+            // Add null check for client or client.title
+            if (!client || !client.title) {
+              return `Workspace ${workspace.id}`;
+            }
             return client.title.length === 0
               ? `Workspace ${workspace.id}`
               : client.title;
@@ -67,6 +72,10 @@ export default function WindowTitle() {
         setup={(self) => {
 
           const labelVar = Variable.derive([client, workspace], (client, workspace) => {
+            // Add null check for client or client.title
+            if (!client || !client.title) {
+              return `Workspace ${workspace.id}`;
+            }
             return client.title.length === 0
               ? `Workspace ${workspace.id}`
               : client.title;

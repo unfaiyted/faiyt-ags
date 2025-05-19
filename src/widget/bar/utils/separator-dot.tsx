@@ -1,4 +1,3 @@
-import { Gtk } from "astal/gtk4";
 import { Widget } from "astal/gtk3";
 import { Variable } from "astal";
 import SystemTray from "gi://AstalTray";
@@ -27,7 +26,7 @@ export interface SeperatorDotProps extends Widget.BoxProps { }
 
 export default function SeperatorDot() {
 
-  const count = Variable(0);
+  const count = new Variable(0);
 
   const tray = SystemTray.get_default();
 

@@ -1,10 +1,7 @@
 import { FocusModeWorkspacesProps } from "../types";
+import { Widget, Gtk } from "astal/gtk4";
 
-import { Gtk } from "astal/gtk4";
-import { Widget } from "astal/gtk4";
 // import { getFontWeightName } from "../../../../../utils/font";
-// import PangoCairo from "gi://PangoCairo";
-// import Pango from "gi://Pango";
 import Cairo from "cairo";
 import config from "../../../../../utils/config";
 // import { mix } from "../../../../../utils/color";

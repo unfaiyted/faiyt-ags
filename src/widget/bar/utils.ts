@@ -1,4 +1,4 @@
-import { Gdk } from "astal/gtk4";
+import Gdk from "gi://Gdk?version=4.0";
 import { Variable } from "astal";
 import Hypr from "gi://AstalHyprland";
 import { BarMode } from "./types";
@@ -10,7 +10,7 @@ type ShellMode = {
   modes: BarMode[];
 };
 
-export const shellMode = Variable<ShellMode>({ modes: [] }); // normal, focus
+export const shellMode = new Variable<ShellMode>({ modes: [] }); // normal, focus
 
 // Global vars for external control (through keybinds)
 export const initialMonitorShellModes = () => {

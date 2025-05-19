@@ -46,14 +46,12 @@ export default function CloseRegion(props: CloseRegionProps) {
   }
 
   return (
-    <eventbox onClick={props.handleClose}>
+    <box onClick={props.handleClose}>
       <box
-        expand={props.expand || true}
-        css={`
-          min-width: ${props.hexpand ? monitor.width : width}px;
-          min-height: ${props.vexpand ? monitor.height : height}px;
-        `}
+        vexpand={props.vexpand || true}
+        heightRequest={props.hexpand ? monitor.height : height}
+        widthRequest={props.hexpand ? monitor.width : width}
       ></box>
-    </eventbox>
+    </box>
   );
 }

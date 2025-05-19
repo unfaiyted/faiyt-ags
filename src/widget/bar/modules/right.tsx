@@ -19,7 +19,7 @@ export default function RightSideModule(
       <box cssName="bar-corner-spacing" />
       <overlay>
         <box hexpand={true}>
-          <SideModule {...props}>
+          <SideModule>
             <box vertical cssName="bar-space-button">
               {child}
             </box>

@@ -1,9 +1,6 @@
-import Astal from "gi://Astal";
-import Gtk from "gi://Gtk?version=4.0";
-import Gdk from "gi://Gdk?version=4.0";
-const { App } = Astal;
+import { App } from "astal/gtk4";
 // import { cycleMode, initialMonitorShellModes } from "./widget/bar/utils";
-import "../style.scss";
+import "./app.scss";
 // import iconStyles from "./node_modules/@phosphor-icons/web/src/regular/style.css";
 import Bar from "./widget/bar";
 import { BarMode } from "./widget/bar/types";
@@ -21,7 +18,6 @@ import { BarMode } from "./widget/bar/types";
 // initialMonitorShellModes();
 
 App.start({
-  css: "", // Styles are imported directly
   main() {
     // Windows
     App.get_monitors().map((gdkmonitor, index) =>

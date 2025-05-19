@@ -1,5 +1,3 @@
-import { Widget, Gtk, Gdk, Astal } from "astal/gtk3";
-
 export enum PhosphorWeight {
   LIGHT = "ph-light",
   REGULAR = "ph",
@@ -9,15 +7,6 @@ export enum PhosphorWeight {
   THIN = "ph-thin",
 }
 
-export interface PhosphorIconProps extends Widget.LabelProps {
-  className?: string;
-  icon: PhosphorIcons | PhosphorIconName;
-  size?: number; // pixel font size?
-  weight?: PhosphorWeight;
-}
-
-// bun --bun run ./scripts/css-icon-parser.ts
-// this was generated using the scrips/css--icon-paser.ts
 export enum PhosphorIcons {
   "acorn" = "\ueb9a",
   "activity" = "\ue000",

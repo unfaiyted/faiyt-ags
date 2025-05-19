@@ -1,4 +1,13 @@
-import { PhosphorIcons, PhosphorWeight, PhosphorIconProps } from "./types";
+import { Widget } from "astal/gtk4";
+import { PhosphorIcons, PhosphorWeight, PhosphorIconName } from "./types";
+
+
+export interface PhosphorIconProps extends Widget.LabelProps {
+  className?: string;
+  icon: PhosphorIcons | PhosphorIconName;
+  size?: number; // pixel font size?
+  weight?: PhosphorWeight;
+}
 
 export default function PhosphorIcon(phosphorIconProps: PhosphorIconProps) {
   const { setup, icon, ...props } = phosphorIconProps;
@@ -17,10 +26,11 @@ export default function PhosphorIcon(phosphorIconProps: PhosphorIconProps) {
 
   return (
     <label
-      className={`${className} ${weight}`}
-      css={`
-        font-size: ${props.size || 100}px;
-      `}
+      cssName={`${className} ${weight}`}
+      style={{ fontSize: props.size || 100 }}
+      // css={`
+      //   font-size: ${props.size || 100}px;
+      // `}
       label={iconValue}
       {...props}
     ></label>

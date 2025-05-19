@@ -1,7 +1,7 @@
-import { Widget, Gtk } from "astal/gtk4";
 import Network from "gi://AstalNetwork";
 // import GLib from "gi://GLib";
 import config from "../../../../utils/config";
+import { Widget, Gtk } from "astal/gtk4";
 import { Variable, bind } from "astal";
 
 const network = Network.get_default();
@@ -9,7 +9,7 @@ const network = Network.get_default();
 const NetworkWiredIndicator = (props: Widget.StackProps) => {
   if (!network.wired) return <box></box>;
 
-  const shown = Variable(Network.Internet.DISCONNECTED);
+  const shown = new Variable(Network.Internet.DISCONNECTED);
   const { internet } = network.wired;
 
   if (
@@ -53,8 +53,8 @@ export interface SimpleNetworkIndicatorProps extends Widget.ImageProps {
 }
 
 export const SimpleNetworkIndicator = (props: SimpleNetworkIndicatorProps) => {
-  const icon = Variable("");
-  const visible = Variable(false);
+  const icon = new Variable("");
+  const visible = new Variable(false);
 
   network.connect("notify", (source: Network.Network, _pspec) => {
     const primary = source.primary as Network.Primary;
@@ -77,7 +77,7 @@ export interface NetworkWifiIndicatorProps extends Widget.StackProps { }
 export const NetworkWifiIndicator = (props: NetworkWifiIndicatorProps) => {
   if (!network.wifi) return <box></box>;
 
-  const shown = Variable(Network.Internet.DISCONNECTED.toString());
+  const shown = new Variable(Network.Internet.DISCONNECTED.toString());
   const { internet } = network.wifi;
 
   if (network.wifi.internet == Network.Internet.CONNECTED) {
@@ -140,7 +140,7 @@ export const NetworkWifiIndicator = (props: NetworkWifiIndicatorProps) => {
 };
 
 export default function NetworkIndicator(props: Widget.StackProps) {
-  const visible = Variable("simple");
+  const visible = new Variable("simple");
 
   network.connect("notify", (source: Network.Network, pspec) => {
     if (network.primary == Network.Primary.WIRED) visible.set("wired");

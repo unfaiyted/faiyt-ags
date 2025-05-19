@@ -1,5 +1,5 @@
-import { Astal, Gtk, Widget } from "astal/gtk4";
 import { DrawingAreaProps, DrawingArea } from "../../utils/containers/drawing-area";
+import { Widget, Gtk, Astal } from "astal/gtk4";
 import { enableClickthrough } from "../../../utils";
 import { timeout } from "astal/time";
 import cairo from "cairo";
@@ -34,7 +34,7 @@ export const RoundedCorner = (props: RoundedCornerProps) => {
       );
 
       self.set_size_request(r, r);
-      self.connect("draw", (widget: Gtk.DrawingArea, cr: cairo.Context) => {
+      self.set_draw_func((widget, cr, width, height) => {
         const c = widget
           .get_style_context()
           .get_property("background-color", Gtk.StateFlags.NORMAL) as RgbaColor;

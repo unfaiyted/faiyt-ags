@@ -1,7 +1,6 @@
-import { Widget } from "astal/gtk3";
+import { Widget } from "astal/gtk4";
 import GLib from "gi://GLib";
 import config from "./config";
-import { Time } from "../types/config";
 
 export const timeBefore = (time1: Time, time2: Time) => {
   // Arrays of [hour, minute]

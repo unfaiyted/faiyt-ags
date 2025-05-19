@@ -1,5 +1,5 @@
-import { Widget } from "astal/gtk4";
 import NetworkIndicator from "./network";
+import { Widget } from "astal/gtk4";
 
 export interface StatusIndicatorsProps extends Widget.BoxProps { }
 

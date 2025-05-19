@@ -1,5 +1,6 @@
 import config from "../../../utils/config";
 import { NormalBarContentProps } from "../types";
+import { Gtk } from "astal/gtk4";
 import WindowTitle from "../modules/window-title";
 import SideModule from "../modules/side";
 import System from "../modules/system";
@@ -19,13 +20,22 @@ export default function NormalBarMode(barModeProps: NormalBarContentProps) {
 
   return (
     <centerbox
+      hexpand={true}
+      vexpand={false} 
+      halign={Gtk.Align.FILL}
+      valign={Gtk.Align.START}
       startWidget={
         <LeftModule>
           <WindowTitle />
         </LeftModule>
       }
       centerWidget={
-        <box className="spacing-h-4">
+        <box 
+          cssName="spacing-h-4"
+          hexpand={true}
+          vexpand={false}
+          halign={Gtk.Align.CENTER}
+        >
           <SideModule>
             <System />
             <Music />
@@ -49,7 +59,7 @@ export default function NormalBarMode(barModeProps: NormalBarContentProps) {
           <Tray />
         </RightModule>
       }
-      className="bar-bg"
+      cssName="bar-bg"
     ></centerbox>
   );
 }

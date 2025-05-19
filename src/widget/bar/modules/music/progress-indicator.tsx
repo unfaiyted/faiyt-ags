@@ -1,6 +1,6 @@
 import { Widget, Gtk } from "astal/gtk4";
-import { CircularProgressProps, CircularProgress } from "../../../utils/circular-progress"
 import { Binding } from "astal";
+import { CircularProgressProps, CircularProgress } from "../../../utils/circular-progress"
 
 
 export interface TrackProgressProps extends CircularProgressProps {

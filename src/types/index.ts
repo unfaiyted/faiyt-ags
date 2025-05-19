@@ -4,6 +4,8 @@ export enum UIWindows {
   TOP_BAR = "bar",
 }
 
+export type Time = [hour: number, minute: number];
+
 export interface RgbaColor {
   red: number;
   green: number;

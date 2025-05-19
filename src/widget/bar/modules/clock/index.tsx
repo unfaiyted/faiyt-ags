@@ -1,7 +1,7 @@
 import { Gtk } from "astal/gtk4";
+import { Variable, bind } from "astal";
 import config from "../../../../utils/config";
 // import { ClockModuleProps } from "./types";
-import { Variable, bind } from "astal";
 import GLib from "gi://GLib";
 import BarGroup from "../../utils/bar-group";
 
@@ -9,12 +9,12 @@ import BarGroup from "../../utils/bar-group";
 // export interface ClockModuleProps extends Widget.BoxProps {}
 
 export default function ClockModule() {
-  const time = Variable("").poll(
+  const time = new Variable("").poll(
     config.time.interval,
     () => GLib.DateTime.new_now_local().format(config.time.format) || "",
   );
 
-  const date = Variable("").poll(
+  const date = new Variable("").poll(
     config.time.dateInterval,
     () =>
       GLib.DateTime.new_now_local().format(config.time.dateFormatLong) || "",

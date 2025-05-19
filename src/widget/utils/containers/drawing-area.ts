@@ -1,4 +1,4 @@
-import { astalify, ConstructProps, Gtk } from "astal/gtk4";
+import { astalify, ConstructProps, Gtk, Gdk } from "astal/gtk4";
 
 // DrawingArea
 type DrawingAreaSignals = {

@@ -1,6 +1,7 @@
+import { Widget, Gtk } from "astal/gtk4";
+import { Variable } from "astal";
 import { exec, execAsync } from "astal/process";
 import GLib from "gi://GLib";
-import { Variable } from "astal";
 import { actions } from "./actions";
 
 const distroID = actions.system.distroID();
@@ -21,7 +22,7 @@ export const hasFlatpak = actions.system.has("flatpak");
 
 // const LIGHTDARK_FILE_LOCATION = `${GLib.get_user_state_dir()}/ags/user/colormode.txt`;
 //
-// export const darkMode = Variable(
+// export const darkMode = new Variable(
 //   !(readFile(LIGHTDARK_FILE_LOCATION).split("\n")[0].trim() == "light"),
 // );
 

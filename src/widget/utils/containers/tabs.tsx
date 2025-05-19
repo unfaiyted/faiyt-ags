@@ -1,4 +1,4 @@
-import { Widget, Gtk, Gdk, Astal } from "astal/gtk3";
+import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
 import { Variable, Binding, bind } from "astal";
 import { getScrollDirection } from "../../../utils";
 import PhosphorIcon from "../../utils/icons/phosphor";
@@ -37,10 +37,10 @@ export interface TabContentProps extends Widget.BoxProps {
 export const TabContainer = (tabContainerProps: TabContainerProps) => {
   const { setup, child, children, className, ...props } = tabContainerProps;
 
-  const active = Variable(props.active);
-  const activeTab = Variable(props.tabs[props.active]);
-  const orientation = Variable(props.orientation || Gtk.Orientation.HORIZONTAL);
-  let lastActive = Variable(props.active);
+  const active = new Variable(props.active);
+  const activeTab = new Variable(props.tabs[props.active]);
+  const orientation = new Variable(props.orientation || Gtk.Orientation.HORIZONTAL);
+  let lastActive = new Variable(props.active);
   // const count = Math.min(icons.length, names.length);
 
   // print("Tabs length:", props.tabs.length);
@@ -57,7 +57,7 @@ export const TabContainer = (tabContainerProps: TabContainerProps) => {
   return (
     <box
       vertical={orientation.get() == Gtk.Orientation.HORIZONTAL}
-      className={`spacing-v-5 ${className}`}
+      cssName={`spacing-v-5 ${className}`}
     >
       <TabHeader {...props}>
         {props.tabs.map((tab, i) => (
@@ -77,11 +77,11 @@ export const TabContainer = (tabContainerProps: TabContainerProps) => {
 };
 
 export const TabHeader = (tabHeaderProps: TabHeaderProps) => {
-  const { setup, child, children, className, ...props } = tabHeaderProps;
+  const { setup, child, children, cssName, ...props } = tabHeaderProps;
 
-  const active = Variable(0);
+  const active = new Variable(0);
 
-  const handleScroll = (self: Widget.EventBox, event: Astal.ScrollEvent) => {
+  const handleScroll = (self: Gtk.EventBox, event: Astal.ScrollEvent) => {
     const scrollDirection = getScrollDirection(event);
 
     if (scrollDirection === Gdk.ScrollDirection.UP) {

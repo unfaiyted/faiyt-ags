@@ -1,13 +1,13 @@
-import { Gtk } from "astal/gtk4";
+import { Widget, Gtk, Gdk } from "astal/gtk4";
+import { Variable, bind } from "astal";
 import SystemTray from "gi://AstalTray";
-import { Variable } from "astal";
 import TrayItem from "./item";
-import { TrayModuleProps } from "./types";
 import config from "../../../../utils/config";
-import { bind } from "astal";
+
+export interface TrayModuleProps extends Widget.BoxProps { }
 
 export default function Tray(trayModuleProps: TrayModuleProps) {
-  const { setup, child, ...props } = trayModuleProps;
+  // const { ...props } = trayModuleProps;
 
   const tray = SystemTray.get_default();
 
@@ -24,7 +24,7 @@ export default function Tray(trayModuleProps: TrayModuleProps) {
   });
 
   return (
-    <box {...props}>
+    <box>
       <revealer
         reveal-child={true}
         transition-type={Gtk.RevealerTransitionType.SLIDE_DOWN}

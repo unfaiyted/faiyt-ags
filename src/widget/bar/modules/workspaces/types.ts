@@ -1,9 +1,9 @@
-import Astal from "gi://Astal";
-import Gtk from "gi://Gtk?version=4.0";
+import { Gtk } from "astal/gtk4";
+import { Variable, Binding } from "astal";
+
+import Hypr from "gi://AstalHyprland";
 import { DrawingAreaProps } from "../../../utils/containers/drawing-area";
 import { BarMode } from "../../types";
-const { Variable, Binding } = Astal;
-import Hypr from "gi://AstalHyprland";
 
 export interface BaseWorkspacesProps extends DrawingAreaProps {
   mode: Binding<BarMode>;

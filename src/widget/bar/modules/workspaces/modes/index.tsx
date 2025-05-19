@@ -1,7 +1,8 @@
-import { Gtk } from "astal/gtk4";
+import { Widget, Gtk } from "astal/gtk4";
+import { Variable, bind } from "astal";
+
 import config from "../../../../../utils/config";
 import Hypr from "gi://AstalHyprland";
-import { Variable, bind } from "astal";
 import { BarMode } from "../../../types";
 import NormalContent from "./normal";
 import FocusContent from "./focus";
@@ -15,8 +16,8 @@ export default function WorkspacesModeContent(
 
   const hypr = Hypr.get_default();
 
-  const workspaceMask = Variable(0);
-  const workspaceGroup = Variable(0);
+  const workspaceMask = new Variable(0);
+  const workspaceGroup = new Variable(0);
 
   const updateMask = (self: Gtk.DrawingArea) => {
     const offset =
@@ -47,7 +48,7 @@ export default function WorkspacesModeContent(
     self.queue_draw();
   };
 
-  const workspace = Variable(hypr.get_focused_workspace());
+  const workspace = new Variable(hypr.get_focused_workspace());
 
   hypr.connect("event", (_source, event, _args) => {
     // print("Hyprland event:", event);
@@ -90,7 +91,7 @@ export default function WorkspacesModeContent(
     }
   };
 
-  const displayWorkspace = Variable(getWorkspacebyMode());
+  const displayWorkspace = new Variable(getWorkspacebyMode());
 
   props.mode.subscribe((_mode) => {
     displayWorkspace.set(getWorkspacebyMode());
