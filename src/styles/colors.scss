@@ -1,0 +1,94 @@
+$darkmode: True;
+$transparent: False;
+
+// Rose Pine Theme Colors
+// Based on https://rosepinetheme.com/palette/ingredients/
+
+// Main palette colors
+$primary_paletteKeyColor: #ebbcba; // Rose
+$secondary_paletteKeyColor: #31748f; // Pine
+$tertiary_paletteKeyColor: #c4a7e7; // Iris
+$neutral_paletteKeyColor: #908caa; // Subtle
+$neutral_variant_paletteKeyColor: #6e6a86; // Muted
+
+// Base colors
+$background: #191724; // Base
+$onBackground: #e0def4; // Text
+$surface: #1f1d2e; // Surface
+$surfaceDim: #191724; // Base
+$surfaceBright: #26233a; // Overlay
+$surfaceContainerLowest: #191724; // Base
+$surfaceContainerLow: #1f1d2e; // Surface
+$surfaceContainer: #21202e; // Highlight Low
+$surfaceContainerHigh: #403d52; // Highlight Med
+$surfaceContainerHighest: #524f67; // Highlight High
+$onSurface: #e0def4; // Text
+$surfaceVariant: #26233a; // Overlay
+$onSurfaceVariant: #908caa; // Subtle
+$inverseSurface: #e0def4; // Text
+$inverseOnSurface: #191724; // Base
+$outline: #6e6a86; // Muted
+$outlineVariant: #403d52; // Highlight Med
+$shadow: #000000;
+$scrim: #000000;
+
+// Main color scheme
+$surfaceTint: #ebbcba; // Rose
+$primary: #ebbcba; // Rose
+$onPrimary: #191724; // Base
+$primaryContainer: #31748f; // Pine
+$onPrimaryContainer: #e0def4; // Text
+$inversePrimary: #31748f; // Pine
+
+$secondary: #31748f; // Pine
+$onSecondary: #e0def4; // Text
+$secondaryContainer: #9ccfd8; // Foam
+$onSecondaryContainer: #191724; // Base
+
+$tertiary: #c4a7e7; // Iris
+$onTertiary: #191724; // Base
+$tertiaryContainer: #403d52; // Highlight Med
+$onTertiaryContainer: #e0def4; // Text
+
+$error: #eb6f92; // Love
+$onError: #191724; // Base
+$errorContainer: #26233a; // Overlay
+$onErrorContainer: #eb6f92; // Love
+
+$primaryFixed: #ebbcba; // Rose
+$primaryFixedDim: #d7827e; // Rose Dawn
+$onPrimaryFixed: #191724; // Base
+$onPrimaryFixedVariant: #31748f; // Pine
+
+$secondaryFixed: #31748f; // Pine
+$secondaryFixedDim: #286983; // Pine Dawn
+$onSecondaryFixed: #e0def4; // Text
+$onSecondaryFixedVariant: #9ccfd8; // Foam
+
+$tertiaryFixed: #c4a7e7; // Iris
+$tertiaryFixedDim: #907aa9; // Iris Dawn
+$onTertiaryFixed: #191724; // Base
+$onTertiaryFixedVariant: #26233a; // Overlay
+
+$success: #9ccfd8; // Foam
+$onSuccess: #191724; // Base
+$successContainer: #31748f; // Pine
+$onSuccessContainer: #e0def4; // Text
+
+// Terminal colors
+$term0: #191724; // Base
+$term1: #eb6f92; // Love
+$term2: #9ccfd8; // Foam
+$term3: #f6c177; // Gold
+$term4: #31748f; // Pine
+$term5: #c4a7e7; // Iris
+$term6: #ebbcba; // Rose
+$term7: #e0def4; // Text
+$term8: #6e6a86; // Muted
+$term9: #eb6f92; // Love
+$term10: #9ccfd8; // Foam
+$term11: #f6c177; // Gold
+$term12: #31748f; // Pine
+$term13: #c4a7e7; // Iris
+$term14: #ebbcba; // Rose
+$term15: #e0def4; // Text

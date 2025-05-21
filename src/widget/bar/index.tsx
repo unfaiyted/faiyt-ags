@@ -1,8 +1,8 @@
-import Astal from "gi://Astal";
-// import Battery from "gi://AstalBattery";
 import Gtk from "gi://Gtk?version=4.0";
 import Gdk from "gi://Gdk?version=4.0";
-import { Widget, App, } from "astal/gtk4";
+// import Battery from "gi://AstalBattery";
+import "./bar.scss";
+import { Widget, App, Astal } from "astal/gtk4";
 import { Variable, Binding, bind } from "astal";
 import config from "../../utils/config";
 import { shellMode } from "./utils";
@@ -29,42 +29,57 @@ export default function Bar(barProps: BarProps) {
   });
 
   // Handle setup of the bar window
-  const setupWindow = (self: Gtk.Window) => {
+  const setupWindow = (self: Astal.Window) => {
     // Set window properties for proper bar behavior
-    self.set_resizable(true);
-    self.set_decorated(false);
-    self.set_default_size(gdkmonitor.get_geometry().width, -1); // Full width, but natural height
-    
-    // Position window at the top of the screen
-    self.move(0, 0);
-    
-    // Make it always stay on top
-    self.set_keep_above(true);
-    
-    // Set a nice dark background color if not using layer shell
-    const style = self.get_style_context();
-    style.add_class('top-bar');
-    
-    // Make sure the window can expand horizontally but only take needed vertical space
-    self.set_vexpand(false);
-    self.set_hexpand(true);
-    
-    // Stick to all workspaces
-    self.stick();
+    // Note: Astal.Window handles most of these properties via attributes in JSX
+
+    // For Astal.Window:
+    // - Positioning is handled by the anchor property
+    // - Always-on-top behavior is handled by Astal.Window's layer management
+    // - Decoration is controlled by the decorated attribute
+
+    // Set a nice dark background color
+    if (self.get_style_context) {
+      const style = self.get_style_context();
+      style.add_class('top-bar');
+    }
+
+    // If layer shell fails, position the window manually at the top of the screen
+    try {
+      // Try to position the window at the top of the screen
+      const monitor = gdkmonitor.get_geometry();
+      if (self.set_default_size) {
+        self.set_default_size(monitor.width, 36); // Bar height of 36px
+      }
+      // Keep window on top of others if possible
+      if (self.set_keep_above) {
+        self.set_keep_above(true);
+      }
+    } catch (e) {
+      console.error("Error setting up window:", e);
+    }
   };
-  
+
+  // Create a bar window
+  // First try to use layer shell properties, but they will be ignored if layer shell is not available
+  // In that case, we'll fall back to regular GTK window with styling to make it look like a bar
   return (
     <window
       cssName="Bar"
       name={`bar${index}`}
       gdkmonitor={gdkmonitor}
+      // Layer shell properties
       exclusivity={Astal.Exclusivity.EXCLUSIVE}
       visible={true}
+      decorated={false}
+      resizable={true}
       anchor={
         Astal.WindowAnchor.TOP |
         Astal.WindowAnchor.LEFT |
         Astal.WindowAnchor.RIGHT
       }
+      // Regular GTK window properties (will be used if layer shell is not available)
+      title="Bar"
       application={App}
       setup={setupWindow}
     >
@@ -74,7 +89,7 @@ export default function Bar(barProps: BarProps) {
         transitionType={Gtk.StackTransitionType.SLIDE_UP_DOWN}
         transitionDuration={config.animations.durationLarge}
       >
-        <BarModeContent mode={bind(barShellMode)} />
+        <BarModeContent name="bar-content" mode={bind(barShellMode)} />
       </stack>
     </window>
   );

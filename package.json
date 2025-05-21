@@ -7,17 +7,18 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:app": "vite build",
     "build": "bun build:app",
-    "start:app": "ags run dist/app.js",
-    "debug:app": "GTK_DEBUG=interactive ags run dist/app.js",
+    "start:app": "ags run --gtk4 dist/app.js",
+    "debug:app": "GTK_DEBUG=interactive ags run --gtk4 dist/app.js",
     "start": "bun build && bun start:app",
-    "dev": "ags run src/app.ts",
+    "dev": "GSK_RENDERER=gl ags run --gtk4 src/app.ts",
     "dev:watch": "nodemon",
     "dev:watch:pretty": "nodemon --exec './watch.sh' | node logcat.js",
     "dev:watch:smart": "nodemon --exec './watch.sh smart'",
+    "dev:layer": "./run-ags.sh",
     "dev:debug": "nodemon --exec './watch.sh debug'",
     "dev:logs": "./logs.sh",
-    "dev:trace": "GJS_DEBUG=all GJS_ENABLE_TRACING=1 ags run src/app.ts",
-    "dev:smart": "node source-mapper.js && GJS_DEBUG=all ags run src/app.ts 2>&1 | node error-tracer.js",
+    "dev:trace": "GJS_DEBUG=all GJS_ENABLE_TRACING=1 ags run --gtk4 src/app.ts",
+    "dev:smart": "node source-mapper.js && GJS_DEBUG=all ags run --gtk4 src/app.ts 2>&1 | node error-tracer.js",
     "source-map": "node source-mapper.js",
     "trace-error": "node error-tracer.js",
     "analyze:error": "echo 'Use dev:smart to run with enhanced error reporting'",
@@ -39,8 +40,7 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
-    "@girs/gjs": "^4.0.0-beta.23",
-    "@girs/gtk-4.0": "^4.18.3-4.0.0-beta.23",
+    "@phosphor-icons/core": "^2.1.1",
     "astal": "/usr/share/astal/gjs",
     "csstype": "^3.1.3"
   }

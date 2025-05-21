@@ -1,8 +1,6 @@
-@use "styles/colors";
-
-/* Base styles for the bar and windows */
+/* Base styles for the bar */
 .top-bar {
-  background-color: colors.$background;
+  background-color: rgba(30, 30, 30, 0.95);
   color: #ffffff;
   border-bottom: 1px solid rgba(60, 60, 60, 0.8);
 }
@@ -27,7 +25,7 @@
 }
 
 .bar-group-standalone {
-  background-color: colors.$surface;
+  background-color: rgba(40, 40, 40, 0.7);
 }
 
 .bar-group-margin {
@@ -58,20 +56,34 @@
   background-color: #555555;
   color: #eeeeee;
 }
-
-/* Fonts */
-.txt {
-  font-family: "Sans";
+/* Corner elements */
+.corner {
+  background-color: rgba(30, 30, 30, 0.95);
+  border-radius: 24px;
 }
 
-.txt-smaller {
-  font-size: 9px;
+/* CSS-based corner styles */
+.corner-top-left {
+  background-color: rgba(30, 30, 30, 0.95);
+  border-bottom-right-radius: 24px;
 }
 
-.txt-smallie {
-  font-size: 10px;
+.corner-top-right {
+  background-color: rgba(30, 30, 30, 0.95);
+  border-bottom-left-radius: 24px;
 }
 
-.txt-onSurfaceVariant {
-  color: #eeeeee;
+.corner-bottom-left {
+  background-color: rgba(30, 30, 30, 0.95);
+  border-top-right-radius: 24px;
+}
+
+.corner-bottom-right {
+  background-color: rgba(30, 30, 30, 0.95);
+  border-top-left-radius: 24px;
+}
+
+/* Window styling for corner windows */
+.corner-window {
+  background-color: transparent;
 }

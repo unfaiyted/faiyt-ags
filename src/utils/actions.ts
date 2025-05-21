@@ -1,4 +1,4 @@
-import { App, Gdk } from "astal/gtk3";
+import { App, Gdk } from "astal/gtk4";
 import { exec, execAsync } from "astal/process";
 import config from "./config";
 import Wp from "gi://AstalWp";

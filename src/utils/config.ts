@@ -39,11 +39,11 @@ let defaultConfigOptions: ConfigOptions = {
   },
   apps: {
     bluetooth: "blueberry",
-    imageViewer: "loupe",
-    network: 'XDG_CURRENT_DESKTOP="gnome" gnome-control-center wifi',
-    settings: 'XDG_CURRENT_DESKTOP="gnome" gnome-control-center',
-    taskManager: "gnome-usage",
-    terminal: "foot", // This is only for shell actions
+    imageViewer: "imv",
+    network: "nm-connection-editor",
+    settings: "xfce4-settings-manager",
+    taskManager: "htop",
+    terminal: "kitty", // This is only for shell actions
   },
   battery: {
     low: 20,

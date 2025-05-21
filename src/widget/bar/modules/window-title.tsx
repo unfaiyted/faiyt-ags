@@ -1,7 +1,6 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { Variable } from "astal";
 import Hypr from "gi://AstalHyprland";
-import Astal from "gi://Astal";
 
 export interface WindowTitleProps extends Widget.BoxProps { }
 

@@ -21,7 +21,7 @@ export default function NormalBarMode(barModeProps: NormalBarContentProps) {
   return (
     <centerbox
       hexpand={true}
-      vexpand={false} 
+      vexpand={false}
       halign={Gtk.Align.FILL}
       valign={Gtk.Align.START}
       startWidget={
@@ -30,7 +30,7 @@ export default function NormalBarMode(barModeProps: NormalBarContentProps) {
         </LeftModule>
       }
       centerWidget={
-        <box 
+        <box
           cssName="spacing-h-4"
           hexpand={true}
           vexpand={false}
@@ -47,16 +47,16 @@ export default function NormalBarMode(barModeProps: NormalBarContentProps) {
           />
           <SideModule>
             <Clock />
-            <Battery />
-            <Utilities />
-            <Weather />
           </SideModule>
         </box>
       }
       endWidget={
         <RightModule>
-          <StatusIndicators />
-          <Tray />
+          <Battery />
+          {/* <Utilities /> */}
+          {/* <Weather /> */}
+          {/* <StatusIndicators /> */}
+          {/* <Tray /> */}
         </RightModule>
       }
       cssName="bar-bg"

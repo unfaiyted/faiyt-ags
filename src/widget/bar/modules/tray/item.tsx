@@ -1,4 +1,4 @@
-import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk3";
+import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk4";
 import SystemTray from "gi://AstalTray";
 // import Astal from "gi://Astal";
 import PhosphorIcon from "../../../utils/icons/phosphor";

@@ -1,4 +1,4 @@
-import { Widget } from "astal/gtk3";
+import { Widget, Gtk } from "astal/gtk4";
 import { Variable } from "astal";
 import SystemTray from "gi://AstalTray";
 

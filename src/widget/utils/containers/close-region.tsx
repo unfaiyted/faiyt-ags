@@ -1,4 +1,4 @@
-import { Widget, Gtk, Gdk, Astal } from "astal/gtk3";
+import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
 import { Variable, Binding, bind } from "astal";
 import { getScrollDirection } from "../../../utils";
 import PhosphorIcon from "../../utils/icons/phosphor";
@@ -11,7 +11,7 @@ const calulatePixelFromPercent = (percent: number, dimension: number) => {
   return Math.round((percent * dimension) / 100);
 };
 
-export interface CloseRegionProps extends Widget.EventBoxProps {
+export interface CloseRegionProps extends Widget.BoxProps {
   multimonitor: boolean;
   monitor: number;
   handleClose: () => void;

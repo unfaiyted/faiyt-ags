@@ -1,11 +1,14 @@
-import { Widget } from "astal/gtk4";
+import { Widget, Gtk } from "astal/gtk4";
 import BarGroup from "../../utils/bar-group";
+import { BatteryIcon } from "../../../utils/icons/phosphor-svg";
 
-
-export interface BatteryModuleProps extends Widget.BoxProps { }
+export interface BatteryModuleProps extends Widget.BoxProps {
+  level?: number;
+  charging?: boolean;
+}
 
 export default function BatteryModule(batteryModuleProps: BatteryModuleProps) {
-  const { setup, child, ...props } = batteryModuleProps;
+  const { setup, level = 80, charging = false, ...props } = batteryModuleProps;
 
   return (
     <BarGroup>
@@ -15,7 +18,14 @@ export default function BatteryModule(batteryModuleProps: BatteryModuleProps) {
           setup?.(self);
         }}
       >
-        BATTERY!
+        <BatteryIcon
+          level={level}
+          charging={charging}
+          style="duotone"
+          size={24}
+          color="#ffffff"
+        />
+        {level}%
       </box>
     </BarGroup>
   );
