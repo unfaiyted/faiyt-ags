@@ -1,11 +1,14 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { Variable, bind } from "astal";
+import { Fixed } from "../../utils/containers/drawing-area";
+import "../bar.scss";
 
 import BarGroup from "../utils/bar-group";
-import { CircularProgress } from "../../utils/circular-progress";
-import { MaterialIcon } from "../../utils/icons/material";
+import CircularProgress from "../../utils/circular-progress";
+import { PhosphorSvgIcon } from "../../utils/icons/phosphor-svg";
 import { execAsync } from "astal/process";
 import config from "../../../utils/config";
+import { theme } from "../../../utils/color";
 
 export enum BarResourceType {
   RAM = "ram",
@@ -25,6 +28,7 @@ export interface BarResourceProps extends Widget.BoxProps {
   type: BarResourceType;
   icon: string;
   command: string;
+  iconColor?: string;
 }
 
 function getResourceClassNames(type: BarResourceType) {
@@ -49,26 +53,63 @@ const BarResource = (props: BarResourceProps) => {
   const [circprogClassName, textClassName, iconClassName] =
     getResourceClassNames(props.type);
 
+  // Convert command result to percentage
+  const percentValue = bind(commandResult).as((v) => {
+    const numVal = Number(v) || 0;
+    return numVal / 100; // Convert to 0-1 range
+  });
+
   const ResourceCircProgress = () => (
     <CircularProgress
       cssName={circprogClassName}
-      opacity={0.7}
-      percentage={bind(commandResult).as((v) => v / 100)}
+      percentage={percentValue}
+      size={24}
+      lineWidth={2}
+      backgroundColor={`${props.iconColor}40`} // 25% opacity version of the icon color
+      foregroundColor={props.iconColor || theme.foreground}
       valign={Gtk.Align.CENTER}
       halign={Gtk.Align.CENTER}
     />
   );
 
-  const ResourceProgress = () => (
-    <box homogeneous={true}>
-      <overlay>
-        <MaterialIcon icon={props.icon} size={"small"} />
-        <box homogeneous cssName={`${iconClassName}`}>
-          <ResourceCircProgress />
+  const ResourceProgress = () => {
+    // We need to reference both widgets to position them properly
+    let circleWidget: Gtk.DrawingArea;
+    let iconWidget: Gtk.Box;
+
+    return (
+      <Fixed widthRequest={24} heightRequest={24}>
+        {/* First add the circular progress */}
+        <CircularProgress
+          cssName={circprogClassName}
+          percentage={percentValue}
+          size={24}
+          lineWidth={2}
+          backgroundColor={`${props.iconColor}40`} // 25% opacity version of the icon color
+          foregroundColor={props.iconColor || theme.foreground}
+        />
+
+        {/* Then add the icon centered on top */}
+        <box
+          widthRequest={24}
+          heightRequest={24}
+          baselinePosition={Gtk.BaselinePosition.CENTER}
+          baselineChild={11}
+
+        >
+          <box
+            widthRequest={4}
+          ></box>
+          <PhosphorSvgIcon
+            iconName={props.icon}
+            size={16}
+            style="duotone"
+            color={props.iconColor || theme.foreground}
+          />
         </box>
-      </overlay>
-    </box>
-  );
+      </Fixed>
+    );
+  };
 
   commandResult.subscribe((result) => {
     // print("Command result:", result);
@@ -86,7 +127,16 @@ const BarResource = (props: BarResourceProps) => {
     execAsync(["bash", "-c", `${config.apps.taskManager}`]).catch(print);
 
   return (
-    <button onClicked={handleClick} tooltipText={bind(tooltipText)}>
+    <button
+
+      cssName="sys-resources-btn"
+      heightRequest={24}
+      widthRequest={24}
+      valign={Gtk.Align.CENTER}
+      halign={Gtk.Align.CENTER}
+      marginStart={6}
+      marginEnd={6}
+      onClicked={handleClick} tooltipText={bind(tooltipText)}>
       <box cssName={`spacing-h-4 ${textClassName}`}>
         <ResourceProgress />
         <ResourceLabel label={bind(resourceLabel).as((v) => v)} />
@@ -103,24 +153,27 @@ export default function SystemResources() {
       <box>
         <BarResource
           type={BarResourceType.RAM}
-          icon="memory"
+          icon="cpu"
           command={RESOURCE_COMMAND.RAM}
+          iconColor={theme.info}
         />
         <revealer
           revealChild={true}
           transitionType={Gtk.RevealerTransitionType.SLIDE_LEFT}
           transitionDuration={config.animations.durationLarge}
         >
-          <box cssName="spacing-h-10 margin-left-10">
+          <box>
             <BarResource
               type={BarResourceType.SWAP}
-              icon="swap_horiz"
+              icon="arrows-left-right"
               command={RESOURCE_COMMAND.SWAP}
+              iconColor={theme.success}
             />
             <BarResource
               type={BarResourceType.CPU}
-              icon="settings_motion_mode"
+              icon="gauge"
               command={RESOURCE_COMMAND.CPU}
+              iconColor={theme.warning}
             />
           </box>
         </revealer>

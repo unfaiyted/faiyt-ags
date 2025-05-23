@@ -1,4 +1,4 @@
-import { Widget } from "astal/gtk4";
+import { Widget, Gdk } from "astal/gtk4";
 import { Variable, Binding } from "astal";
 
 import * as WorkspaceTypes from "./modules/workspaces/types";
@@ -32,6 +32,7 @@ const nestedBoxClasses = {
 
 export interface BaseBarContentProps extends Widget.BoxProps {
   mode: Binding<BarMode>;
+  gdkmonitor?: Gdk.Monitor;
 }
 
 export interface NormalBarContentProps extends BaseBarContentProps {}

@@ -1,89 +1,91 @@
 import { Widget, Gtk, Gdk } from "astal/gtk4";
 
 export function setupCursorHover(button: Gtk.Button) {
+  const motionController = new Gtk.EventControllerMotion();
   // Hand pointing cursor on hover
   const display = Gdk.Display.get_default();
-  button.connect("enter-notify-event", () => {
+
+  motionController.connect("enter", () => {
     if (display) {
-      const cursor = Gdk.Cursor.new_from_name(display, "pointer");
-      const win = button.get_window();
-      if (win) win.set_cursor(cursor);
+      const cursor = Gdk.Cursor.new_from_name("pointer", null);
+      button.set_cursor(cursor);
     } else {
       throw new Error("Could not get display");
     }
   });
 
-  button.connect("leave-notify-event", () => {
+  motionController.connect("leave", () => {
     if (display) {
-      const cursor = Gdk.Cursor.new_from_name(display, "default");
-      const win = button.get_window();
-      if (win) win.set_cursor(cursor);
+      const cursor = Gdk.Cursor.new_from_name("default", null);
+      button.set_cursor(cursor);
     }
   });
+
+  button.add_controller(motionController);
 }
 
 export function setupCursorHoverAim(button: Gtk.Button) {
+  const motionController = new Gtk.EventControllerMotion();
+  // Hand pointing cursor on hover
+  const display = Gdk.Display.get_default();
   // Crosshair cursor on hover
-  const display = Gdk.Display.get_default();
-  button.connect("enter-notify-event", () => {
+  motionController.connect("enter", () => {
     if (display) {
-      const cursor = Gdk.Cursor.new_from_name(display, "crosshair");
-      const win = button.get_window();
-      if (win) win.set_cursor(cursor);
+      const cursor = Gdk.Cursor.new_from_name("crosshair");
+      button.set_cursor(cursor);
     } else {
       throw new Error("Could not get display");
     }
   });
 
-  button.connect("leave-notify-event", () => {
+  motionController.connect("leave", () => {
     if (display) {
-      const cursor = Gdk.Cursor.new_from_name(display, "default");
-      const win = button.get_window();
-      if (win) win.set_cursor(cursor);
+      const cursor = Gdk.Cursor.new_from_name("default");
+      button.set_cursor(cursor);
     }
   });
 }
 
-export function setupCursorHoverGrab(button: Widget.Button) {
-  // Hand ready to grab on hover
+export function setupCursorHoverGrab(button: Gtk.Button) {
+  const motionController = new Gtk.EventControllerMotion();
+  // Hand pointing cursor on hover
   const display = Gdk.Display.get_default();
-  button.connect("enter-notify-event", () => {
+
+  motionController.connect("enter", () => {
     if (display) {
-      const cursor = Gdk.Cursor.new_from_name(display, "grab");
-      const win = button.get_window();
-      if (win) win.set_cursor(cursor);
+      const cursor = Gdk.Cursor.new_from_name("grab");
+      button.set_cursor(cursor);
     } else {
       throw new Error("Could not get display");
     }
   });
 
-  button.connect("leave-notify-event", () => {
+  motionController.connect("leave", () => {
     if (display) {
-      const cursor = Gdk.Cursor.new_from_name(display, "default");
-      const win = button.get_window();
-      if (win) win.set_cursor(cursor);
+      const cursor = Gdk.Cursor.new_from_name("default");
+      button.set_cursor(cursor);
     }
   });
 }
 
-export function setupCursorHoverInfo(button: Widget.Button) {
+export function setupCursorHoverInfo(button: Gtk.Button) {
   // "?" mark cursor on hover
+  const motionController = new Gtk.EventControllerMotion();
+  // Hand pointing cursor on hover
   const display = Gdk.Display.get_default();
-  button.connect("enter-notify-event", () => {
+  motionController.connect("enter", () => {
     if (display) {
-      const cursor = Gdk.Cursor.new_from_name(display, "help");
-      const win = button.get_window();
-      if (win) win.set_cursor(cursor);
+      const cursor = Gdk.Cursor.new_from_name("help");
+      button.set_cursor(cursor);
     } else {
       throw new Error("Could not get display");
     }
   });
 
-  button.connect("leave-notify-event", () => {
+  motionController.connect("leave", () => {
     if (display) {
-      const cursor = Gdk.Cursor.new_from_name(display, "default");
-      const win = button.get_window();
-      if (win) win.set_cursor(cursor);
+      const cursor = Gdk.Cursor.new_from_name("default");
+      button.set_cursor(cursor);
     }
   });
 }

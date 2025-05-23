@@ -1,6 +1,6 @@
 import { Widget, Gtk } from "astal/gtk4";
 
-import UtilitiesButton from "./button";
+import UtilitiesButton from "./utilities-button";
 import { actions } from "../../../../utils/actions";
 import BarGroup from "../../utils/bar-group";
 
@@ -15,12 +15,12 @@ export interface Utility {
 const utilities: Utility[] = [
   {
     name: "Screen Snip",
-    icon: "screenshot_region",
+    icon: "scissors",
     onClicked: actions.app.screenSnip,
   },
   {
     name: "Color Picker",
-    icon: "colorize",
+    icon: "eyedropper",
     onClicked: actions.app.colorPicker,
   },
   {

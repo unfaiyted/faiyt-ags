@@ -100,7 +100,7 @@ export default function Music() {
 
 
   return (
-    <button onClicked={handleClick}>
+    <button cssName="bar-music-btn" onClicked={handleClick}>
       <BarGroup>
         <box homogeneous={true}>
           <overlay>

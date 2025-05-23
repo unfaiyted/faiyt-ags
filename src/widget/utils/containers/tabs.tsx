@@ -1,12 +1,12 @@
-import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
+import { Widget, Gtk, } from "astal/gtk4";
 import { Variable, Binding, bind } from "astal";
-import { getScrollDirection } from "../../../utils";
+// import { getScrollDirection } from "../../../utils";
 import PhosphorIcon from "../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../utils/icons/types";
 
 export interface TabContent {
   name: string;
-  content: (props: Widget.BoxProps) => Gtk.Widget;
+  content: Gtk.Widget;
   icon: PhosphorIcons;
 }
 
@@ -35,7 +35,7 @@ export interface TabContentProps extends Widget.BoxProps {
 }
 
 export const TabContainer = (tabContainerProps: TabContainerProps) => {
-  const { setup, child, children, className, ...props } = tabContainerProps;
+  const { setup, child, children, cssName, ...props } = tabContainerProps;
 
   const active = new Variable(props.active);
   const activeTab = new Variable(props.tabs[props.active]);
@@ -57,7 +57,7 @@ export const TabContainer = (tabContainerProps: TabContainerProps) => {
   return (
     <box
       vertical={orientation.get() == Gtk.Orientation.HORIZONTAL}
-      cssName={`spacing-v-5 ${className}`}
+      cssName={`spacing-v-5 ${cssName}`}
     >
       <TabHeader {...props}>
         {props.tabs.map((tab, i) => (
@@ -81,14 +81,14 @@ export const TabHeader = (tabHeaderProps: TabHeaderProps) => {
 
   const active = new Variable(0);
 
-  const handleScroll = (self: Gtk.EventBox, event: Astal.ScrollEvent) => {
-    const scrollDirection = getScrollDirection(event);
-
-    if (scrollDirection === Gdk.ScrollDirection.UP) {
-      active.set(active.get() + 1);
-    } else if (scrollDirection === Gdk.ScrollDirection.DOWN) {
-      active.set(active.get() - 1);
-    }
+  const handleScroll = () => {
+    // const scrollDirection = getScrollDirection(event);
+    //
+    // if (scrollDirection === Gdk.ScrollDirection.UP) {
+    //   active.set(active.get() + 1);
+    // } else if (scrollDirection === Gdk.ScrollDirection.DOWN) {
+    //   active.set(active.get() - 1);
+    // }
   };
 
   return (
@@ -103,28 +103,28 @@ export const TabHeader = (tabHeaderProps: TabHeaderProps) => {
 };
 
 export const TabHeaderItem = (tabHeaderItemProps: TabHeaderItemProps) => {
-  const { child, children, className, index, active, ...props } =
+  const { child, children, cssName, index, active, ...props } =
     tabHeaderItemProps;
 
-  const handleClick = (self: Widget.Button, event: Astal.ClickEvent) => {
+  const handleClick = () => {
     print("TabHeaderItem clicked");
     print("Active tab:", index);
     print("hideLables:", props.hideLabels);
     props.setActive();
   };
 
-  const setup = (self: Widget.Button) => {
+  const setup = (self: Gtk.Button) => {
     setup?.(self);
 
     if (typeof active === "number") {
-      self.toggleClassName("tab-btn-active", active === index);
+      self.set_css_classes(self.get_css_classes().concat(["tab-btn-active"]));
     } else {
       active.subscribe((currIndex) => {
         print("Active tab:", currIndex);
         if (index === currIndex) {
-          self.toggleClassName("tab-btn-active", true);
+          self.set_css_classes(self.get_css_classes().concat(["tab-btn-active"]));
         } else {
-          self.toggleClassName("tab-btn-active", false);
+          self.remove_css_class("tab-btn-active");
         }
       });
     }
@@ -132,11 +132,11 @@ export const TabHeaderItem = (tabHeaderItemProps: TabHeaderItemProps) => {
 
   // print("TabHeaderItem:", props.tab.name);
   return (
-    <button className="tab-btn" onClick={handleClick}>
+    <button cssName="tab-btn" onClick={handleClick}>
       <box
         halign={Gtk.Align.CENTER}
         valign={Gtk.Align.CENTER}
-        className={`spacing-v-5 txt-small`}
+        cssName={`spacing-v-5 txt-small`}
       >
         <PhosphorIcon icon={props.tab.icon} size={24} />
         {!props.hideLabels ? <label label={props.tab.name} /> : <box />}
@@ -146,11 +146,11 @@ export const TabHeaderItem = (tabHeaderItemProps: TabHeaderItemProps) => {
 };
 
 const TabContent = (tabContentProps: TabContentProps) => {
-  const { setup, child, children, className, ...props } = tabContentProps;
+  const { setup, child, children, cssName, ...props } = tabContentProps;
 
   return (
     <stack transitionType={Gtk.StackTransitionType.SLIDE_LEFT_RIGHT}>
-      {bind(props.tab).as((v) => v.content({ className, ...props }))}
+      {bind(props.tab).as((v) => v.content({ cssName, ...props }))}
     </stack>
   );
 };

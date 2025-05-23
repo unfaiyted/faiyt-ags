@@ -10,7 +10,10 @@ export const getNotifd = () => {
     try {
       notifdInstance = Notifd.get_default();
     } catch (e) {
-      console.error("Failed to initialize notification daemon. It may already be running:", e);
+      console.error(
+        "Failed to initialize notification daemon. It may already be running:",
+        e,
+      );
       // Return a dummy object that will no-op all operations
       notifdInstance = {
         connect: () => 0, // Return a dummy signal ID
@@ -26,3 +29,4 @@ export const getNotifd = () => {
 };
 
 export default getNotifd;
+

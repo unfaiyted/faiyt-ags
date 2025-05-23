@@ -1,4 +1,4 @@
-import { Gtk } from "astal/gtk4";
+import { Gtk, Gdk } from "astal/gtk4";
 import { Variable, Binding } from "astal";
 
 import Hypr from "gi://AstalHyprland";
@@ -9,6 +9,7 @@ export interface BaseWorkspacesProps extends DrawingAreaProps {
   mode: Binding<BarMode>;
   shown: number;
   initilized: Boolean;
+  gdkmonitor?: Gdk.Monitor;
 }
 
 export interface NormalModeWorkspacesProps extends BaseWorkspacesProps {

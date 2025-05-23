@@ -2,6 +2,8 @@ import { Widget, Gtk } from "astal/gtk4";
 import GLib from "gi://GLib?version=2.0";
 import Gio from "gi://Gio?version=2.0";
 import GdkPixbuf from "gi://GdkPixbuf?version=2.0";
+import { Binding, Variable, bind } from "astal";
+import { theme } from "../../../utils/color";
 
 // Type for icon styles
 export type PhosphorIconStyle = "regular" | "bold" | "duotone" | "fill" | "light" | "thin";
@@ -9,13 +11,13 @@ export type PhosphorIconStyle = "regular" | "bold" | "duotone" | "fill" | "light
 // Props for the PhosphorSvgIcon component
 export interface PhosphorSvgIconProps extends Widget.ImageProps {
   // The name of the icon without extension or style suffix
-  iconName: string;
+  iconName: string | Binding<string>;
   // The style of the icon (e.g., "regular", "bold", "duotone")
   style?: PhosphorIconStyle;
   // Size of the icon in pixels (width and height)
   size?: number;
   // Color of the icon (CSS color string)
-  color?: string;
+  color?: string | Binding<string>;
 }
 
 /**
@@ -99,20 +101,20 @@ function loadAndColorizeIcon(path: string, color?: string): string | null {
  * PhosphorSvgIcon component that displays an SVG icon from the Phosphor Icons library
  */
 export function PhosphorSvgIcon(props: PhosphorSvgIconProps) {
-  const { iconName, style = "regular", size = 16, color, setup, ...rest } = props;
+  const { iconName: propIconName, style = "regular", size = 16, color: propColor, setup, ...rest } = props;
 
-  // Convert camelCase to kebab-case if needed (e.g., batteryFull -> battery-full)
-  const normalizedIconName = iconName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-
-  // Get the path to the icon file
-  const iconPath = getIconPath(normalizedIconName, style);
-
-  // Create the setup function to load the SVG
-  const imageSetup = (image: Gtk.Image) => {
+  // Function to load the icon
+  const loadIcon = (image: Gtk.Image, iconNameValue: string, colorValue: string) => {
     try {
-      if (color) {
+      // Convert camelCase to kebab-case if needed (e.g., batteryFull -> battery-full)
+      const normalizedIconName = iconNameValue.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+      
+      // Get the path to the icon file
+      const iconPath = getIconPath(normalizedIconName, style);
+      
+      if (colorValue && colorValue !== '') {
         // Load and modify the SVG content to include color
-        const svgContent = loadAndColorizeIcon(iconPath, color);
+        const svgContent = loadAndColorizeIcon(iconPath, colorValue);
 
         if (svgContent) {
           // Create a new GdkPixbuf from the SVG content
@@ -138,20 +140,58 @@ export function PhosphorSvgIcon(props: PhosphorSvgIconProps) {
 
       // Set icon size
       image.set_pixel_size(size);
-
-      // If a custom setup function was provided, call it
-      setup?.(image);
     } catch (error) {
-      print(`Failed to load icon: ${iconPath}`);
-
-      // Fall back to standard loading if colorizing fails
+      print(`Failed to load icon: ${iconNameValue} at ${getIconPath(iconNameValue, style)}`);
+      // Try fallback to a basic icon
       try {
-        image.set_from_file(iconPath);
+        const fallbackPath = getIconPath("circle", style);
+        image.set_from_file(fallbackPath);
         image.set_pixel_size(size);
       } catch (e) {
-        // Nothing else we can do
+        print("Failed to load fallback icon");
       }
     }
+  };
+
+  // Create the setup function to handle dynamic updates
+  const imageSetup = (image: Gtk.Image) => {
+    // Get initial values
+    const getIconName = () => {
+      if (typeof propIconName === "string") {
+        return propIconName;
+      } else if (propIconName && typeof propIconName.get === "function") {
+        return propIconName.get();
+      }
+      return "thermometer"; // default
+    };
+
+    const getColor = () => {
+      if (typeof propColor === "string") {
+        return propColor;
+      } else if (propColor && typeof propColor.get === "function") {
+        return propColor.get();
+      }
+      return theme.foreground; // default
+    };
+
+    // Load icon initially
+    loadIcon(image, getIconName(), getColor());
+
+    // Subscribe to changes if props are Variables/Bindings
+    if (propIconName && typeof propIconName.subscribe === "function") {
+      propIconName.subscribe((newIconName) => {
+        loadIcon(image, newIconName, getColor());
+      });
+    }
+
+    if (propColor && typeof propColor.subscribe === "function") {
+      propColor.subscribe((newColor) => {
+        loadIcon(image, getIconName(), newColor);
+      });
+    }
+
+    // If a custom setup function was provided, call it
+    setup?.(image);
   };
 
   // Return the image component

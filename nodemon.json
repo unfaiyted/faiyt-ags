@@ -11,5 +11,5 @@
     "style.scss"
   ],
   "ext": "js,ts,tsx,scss",
-  "exec": "./watch.sh"
+  "exec": "./dev.sh"
 }

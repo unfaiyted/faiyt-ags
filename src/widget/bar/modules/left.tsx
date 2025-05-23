@@ -18,7 +18,7 @@ export default function LeftSideModule(
     <box homogeneous={false}>
       <box cssName="bar-corner-spacing" />
       <overlay>
-        <box hexpand={true}>
+        <box hexpand={true} >
           <SideModule>
             <box vertical cssName="bar-space-button">
               {child}

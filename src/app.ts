@@ -1,11 +1,11 @@
 import { App } from "astal/gtk4";
 import { cycleMode, initialMonitorShellModes } from "./widget/bar/utils";
-import "./app.scss";
+import appCSS from "./app.scss";
 // import iconStyles from "./node_modules/@phosphor-icons/web/src/regular/style.css";
 import Bar from "./widget/bar";
 import { BarMode } from "./widget/bar/types";
 // import SideLeft from "./widget/sidebar/views/left";
-// import SideRight from "./widget/sidebar/views/right";
+import SideRight from "./widget/sidebar/views/right";
 // import SystemOverlays from "./widget/overlays";
 import cliRequestHandler from "./handlers/cli";
 // import LauncherBar from "./widget/launcher";
@@ -18,6 +18,7 @@ import {
 initialMonitorShellModes();
 
 App.start({
+  css: appCSS,
   main() {
     // Windows
     App.get_monitors().map((gdkmonitor, index) =>
@@ -31,7 +32,10 @@ App.start({
     // LauncherBar({ gdkmonitor: App.get_monitors()[0], monitor: 0 });
 
     // SideLeft({ gdkmonitor: App.get_monitors()[0] });
-    // SideRight({ gdkmonitor: App.get_monitors()[0] });
+
+    App.get_monitors().map((gdkmonitor, index) =>
+      SideRight({ gdkmonitor: gdkmonitor, monitorIndex: index }),
+    );
 
     //Draws edges on corners
     // BarCornerTopLeft({ gdkmonitor: App.get_monitors()[0], index: 0 });

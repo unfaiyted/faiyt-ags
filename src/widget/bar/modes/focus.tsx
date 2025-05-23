@@ -26,6 +26,7 @@ export default function FocusBarMode(focusBarModeProps: FocusBarContentProps) {
             mode={props.mode}
             initilized={false}
             shown={config.workspaces.shown}
+            gdkmonitor={props.gdkmonitor}
           />
           <SideModule></SideModule>
         </box>

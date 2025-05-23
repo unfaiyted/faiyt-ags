@@ -1,4 +1,4 @@
-import { Widget } from "astal/gtk4";
+import { Widget, Gtk } from "astal/gtk4";
 import SideModule from "./side";
 import { actions } from "../../../utils/actions";
 import { UIWindows } from "../../../types";
@@ -16,9 +16,16 @@ export default function RightSideModule(
 
   return (
     <box homogeneous={false}>
-      <box cssName="bar-corner-spacing" />
+      <box
+        valign={Gtk.Align.CENTER}
+        halign={Gtk.Align.CENTER}
+        cssName="bar-corner-spacing" />
       <overlay>
-        <box hexpand={true}>
+        <box
+          valign={Gtk.Align.CENTER}
+          halign={Gtk.Align.CENTER}
+          hexpand={true}>
+
           <SideModule>
             <box vertical cssName="bar-space-button">
               {child}

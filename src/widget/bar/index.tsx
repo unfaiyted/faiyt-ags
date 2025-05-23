@@ -45,20 +45,7 @@ export default function Bar(barProps: BarProps) {
     }
 
     // If layer shell fails, position the window manually at the top of the screen
-    try {
-      // Try to position the window at the top of the screen
-      const monitor = gdkmonitor.get_geometry();
-      if (self.set_default_size) {
-        self.set_default_size(monitor.width, 36); // Bar height of 36px
-      }
-      // Keep window on top of others if possible
-      if (self.set_keep_above) {
-        self.set_keep_above(true);
-      }
-    } catch (e) {
-      console.error("Error setting up window:", e);
-    }
-  };
+  }
 
   // Create a bar window
   // First try to use layer shell properties, but they will be ignored if layer shell is not available
@@ -89,7 +76,7 @@ export default function Bar(barProps: BarProps) {
         transitionType={Gtk.StackTransitionType.SLIDE_UP_DOWN}
         transitionDuration={config.animations.durationLarge}
       >
-        <BarModeContent name="bar-content" mode={bind(barShellMode)} />
+        <BarModeContent name="bar-content" mode={bind(barShellMode)} gdkmonitor={gdkmonitor} />
       </stack>
     </window>
   );

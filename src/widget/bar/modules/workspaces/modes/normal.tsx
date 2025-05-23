@@ -1,5 +1,6 @@
-import { NormalModeWorkspacesProps } from "../types";
+import { BaseWorkspacesProps } from "../types";
 import { Widget, Gtk } from "astal/gtk4";
+import { Variable } from "astal";
 
 import { getFontWeightName } from "../../../../../utils/font";
 import { DrawingArea } from "../../../../utils/containers/drawing-area";
@@ -8,39 +9,102 @@ import Pango from "gi://Pango";
 // import Cairo from "gi://cairo";
 import cairo from "cairo";
 import config from "../../../../../utils/config";
-import { mix } from "../../../../../utils/color";
+import { mix, theme } from "../../../../../utils/color";
 import { RgbaColor } from "../../../types";
+import Hypr from "gi://AstalHyprland";
 
 const dummyWs = Widget.Box({ cssName: "bar-ws" }); // Not shown. Only for getting size props
 const dummyActiveWs = Widget.Box({ cssName: "bar-ws bar-ws-active" }); // Not shown. Only for getting size props
 const dummyOccupiedWs = Widget.Box({ cssName: "bar-ws bar-ws-occupied" }); // Not shown. Only for getting size props
+
+
+export interface NormalModeWorkspacesProps extends BaseWorkspacesProps {
+  // Normal mode specific props
+  workspace: Variable<Hypr.Workspace>;
+  workspaceMask: Variable<number>;
+  workspaceGroup: Variable<number>;
+  updateMask: (self: Gtk.DrawingArea) => void;
+  toggleMask: (self: Gtk.DrawingArea, occupied: boolean, name: string) => void;
+}
 
 export default function NormalModeWorkspaces(
   normalModeProps: NormalModeWorkspacesProps,
 ) {
   const { shown, workspace, } = normalModeProps;
 
-  let workspaceMask = 0;
-  // let workspaceGroup = 0;
+  const hypr = Hypr.get_default();
+  const workspaceMask = new Variable(0);
+  const workspaceGroup = new Variable(0);
+
+  // Function to update workspace mask based on occupied workspaces
+  const updateMask = () => {
+    const workspaces = hypr.get_workspaces();
+    let mask = 0;
+
+    // Set bits for occupied workspaces
+    workspaces.forEach((ws) => {
+      if (ws.id > 0 && ws.id <= shown * 10) { // Reasonable limit
+        mask |= (1 << ws.id);
+      }
+    });
+
+    workspaceMask.set(mask);
+  };
+
+  // Function to update workspace group when switching workspace groups
+  const updateWorkspaceGroup = () => {
+    const currentWs = workspace.get();
+    if (!currentWs) return;
+
+    const previousGroup = workspaceGroup.get();
+    const currentGroup = Math.floor((currentWs.id - 1) / shown);
+
+    if (currentGroup !== previousGroup) {
+      workspaceGroup.set(currentGroup);
+      updateMask(); // Update mask when group changes
+    }
+  };
 
   const contentSetup = (self: Gtk.DrawingArea) => {
-    // setup?.(self);
+    // Initial setup
+    updateMask();
+    updateWorkspaceGroup();
 
-    // self
-    //   .hook(workspace, (self) => {
-    //     self.set_css(`font-size: ${((workspace.get().id - 1) % shown) + 1}px;`);
-    //     const previousGroup = workspaceGroup;
-    //     const currentGroup = Math.floor((workspace.get().id - 1) / shown);
-    //     if (currentGroup !== previousGroup) {
-    //       props.updateMask(self);
-    //       workspaceGroup = currentGroup;
-    //     }
-    // })
-    // .hook(
-    //   Hyprland,
-    //   (self) => self.attribute.updateMask(self),
-    //   "notify::workspaces",
-    // )
+    // Subscribe to workspace changes
+    workspace.subscribe((currentWs) => {
+      if (!currentWs) return;
+
+      // Note: CSS animations handled by the parent DrawingArea component
+
+      // Update workspace group
+      updateWorkspaceGroup();
+
+      // Trigger redraw
+      self.queue_draw();
+    });
+
+    // Subscribe to Hyprland workspace changes
+    hypr.connect("notify::workspaces", () => {
+      updateMask();
+      self.queue_draw();
+    });
+
+    // Subscribe to workspace mask changes to trigger redraws
+    workspaceMask.subscribe(() => {
+      self.queue_draw();
+    });
+
+    workspaceGroup.subscribe(() => {
+      self.queue_draw();
+    });
+
+    // Cleanup function for when the widget is destroyed
+    self.connect('destroy', () => {
+      // The Variable subscriptions will be automatically cleaned up
+      // when the Variables go out of scope, but we can be explicit
+      workspaceMask.drop?.();
+      workspaceGroup.drop?.();
+    });
     self.set_draw_func((area, cr, width, height) => {
       // print("Drawing workspaces");
       const offset =
@@ -65,20 +129,27 @@ export default function NormalModeWorkspaces(
       const workspaceFontFamily = ["Sans"];
       const workspaceFontWeight = Pango.Weight.NORMAL;
 
-      // Define default colors for workspaces since get_property doesn't work
-      // the same way in GTK4 for these CSS properties
-      const wsfg: RgbaColor = { red: 0.7, green: 0.7, blue: 0.7, alpha: 1.0 };
-      
+      // Helper function to convert hex color to RgbaColor
+      const hexToRgba = (hex: string): RgbaColor => {
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+        return { red: r, green: g, blue: b, alpha: 1.0 };
+      };
+
+      // Define workspace colors using Rosé Pine theme
+      const wsfg: RgbaColor = hexToRgba(theme.subtle); // subtle for inactive workspaces
+
       // Occupied workspace colors
-      const occupiedbg: RgbaColor = { red: 0.3, green: 0.3, blue: 0.3, alpha: 1.0 };
-      const occupiedfg: RgbaColor = { red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0 };
-      
+      const occupiedbg: RgbaColor = hexToRgba(theme.surface); // surface for occupied background
+      const occupiedfg: RgbaColor = hexToRgba(theme.text); // text for occupied foreground
+
       // Active workspace colors
-      const activebg: RgbaColor = { red: 0.2, green: 0.6, blue: 0.9, alpha: 1.0 };
-      const activefg: RgbaColor = { red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0 };
+      const activebg: RgbaColor = hexToRgba(theme.rose); // iris for active background
+      const activefg: RgbaColor = hexToRgba(theme.base); // base for active foreground (contrast)
 
       area.set_size_request(workspaceDiameter * shown, -1);
-      
+
       // Get the active workspace - in GTK4 we need to get this a different way
       // Using the workspace ID from the Variable
       const activeWs = workspace.get().id;
@@ -102,7 +173,7 @@ export default function NormalModeWorkspaces(
       const indicatorGap = workspaceRadius - indicatorRadius;
 
       for (let i = 1; i <= shown; i++) {
-        if (workspaceMask & (1 << i)) {
+        if (workspaceMask.get() & (1 << i)) {
           // Draw bg highlight
           cr.setSourceRGBA(
             occupiedbg.red,
@@ -112,7 +183,7 @@ export default function NormalModeWorkspaces(
           );
           const wsCenterX = -workspaceRadius + workspaceDiameter * i;
           const wsCenterY = areaHeight / 2;
-          if (!(workspaceMask & (1 << (i - 1)))) {
+          if (!(workspaceMask.get() & (1 << (i - 1)))) {
             // Left
             cr.arc(
               wsCenterX,
@@ -131,7 +202,7 @@ export default function NormalModeWorkspaces(
             );
             cr.fill();
           }
-          if (!(workspaceMask & (1 << (i + 1)))) {
+          if (!(workspaceMask.get() & (1 << (i + 1)))) {
             // Right
             cr.arc(
               wsCenterX,
@@ -172,7 +243,7 @@ export default function NormalModeWorkspaces(
 
       // Draw workspace numbers
       for (let i = 1; i <= shown; i++) {
-        const inactivecolors = workspaceMask & (1 << i) ? occupiedfg : wsfg;
+        const inactivecolors = workspaceMask.get() & (1 << i) ? occupiedfg : wsfg;
         if (i == activeWs) {
           cr.setSourceRGBA(
             activefg.red,

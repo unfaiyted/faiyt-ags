@@ -5,6 +5,7 @@ import { timeout } from "astal/time";
 import "../bar.scss"
 import cairo from "cairo";
 import { RgbaColor } from "../types";
+import { theme } from "../../../utils/color";
 
 export interface BarCornerTopProps extends Widget.WindowProps {
   index?: number;
@@ -53,10 +54,18 @@ export const RoundedCorner = (props: RoundedCornerProps) => {
       print(`Timeout triggered for ${props.place}`);
 
       // Since we can't directly access CSS properties in GTK4's style context,
-      // we'll use hardcoded values that match our CSS
+      // we'll use theme values that match our CSS
 
-      // Get the standard background color from our SCSS (.corner class)
-      const c = { red: 30 / 255, green: 30 / 255, blue: 30 / 255, alpha: 0.95 };
+      // Helper function to convert hex color to RgbaColor
+      const hexToRgba = (hex: string, alpha: number = 1.0): RgbaColor => {
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+        return { red: r, green: g, blue: b, alpha };
+      };
+
+      // Get the standard background color from our Rosé Pine theme (matching top-bar bg)
+      const c = hexToRgba(theme.background, 0.95); // Using surface color with transparency
       const r = 24; // Standard corner radius
 
       print(`Theme values - Corner radius: ${r}px`);

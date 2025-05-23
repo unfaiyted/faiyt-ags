@@ -19,7 +19,7 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
     const scrollController = new Gtk.EventControllerScroll();
     scrollController.set_flags(Gtk.EventControllerScrollFlags.BOTH_AXES);
     self.add_controller(scrollController);
-    
+
     scrollController.connect("scroll", (controller, dx, dy) => {
       // todo: add config option to reverse scroll direction
       if (dy < 0) {
@@ -29,7 +29,7 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
         // scroll down
         hypr.message_async(`dispatch workspace -1`, handleHyprResponse);
       }
-      
+
       // Return true to mark the event as handled
       return true;
     });
@@ -57,10 +57,10 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
     // In GTK4, we need to use a gesture controller for motion and click events
     const motionController = new Gtk.EventControllerMotion();
     self.add_controller(motionController);
-    
+
     const clickController = new Gtk.GestureClick();
     self.add_controller(clickController);
-    
+
     // Handle motion events
     motionController.connect("motion", (controller, x, y) => {
       if (!clicked) return;
@@ -74,7 +74,7 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
     // Handle click press events
     clickController.connect("pressed", (controller, n_press, x, y) => {
       const button = clickController.get_current_button();
-      
+
       if (button === ClickButtonPressed.LEFT.valueOf()) {
         clicked = true;
       } else if (button === 8) {
@@ -84,7 +84,7 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
         );
       }
     });
-    
+
     // Handle click release events
     clickController.connect("released", () => {
       clicked = false;
@@ -102,7 +102,7 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
       >
         <box homogeneous={true} cssName="bar-group-margin">
           <box
-            cssName="bar-group bar-group-standalone bar-group-pad"
+            cssName="bar-group-standalone"
             widthRequest={2}
           >
             <WorkspaceContent
@@ -119,5 +119,4 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
 
 
 export * from "./types";
-export * from "./modes/normal";
 export * from "./modes/focus";

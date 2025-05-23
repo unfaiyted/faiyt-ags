@@ -1,94 +1,146 @@
-$darkmode: True;
-$transparent: False;
+/* Rosé Pine Theme Colors */
+$current-theme: rose-pine;
 
-// Rose Pine Theme Colors
-// Based on https://rosepinetheme.com/palette/ingredients/
+$themes: (
+  rose-pine: ( // Base Colors
+    base: #191724,
+    surface: #1f1d2e,
+    overlay: #26233a,
 
-// Main palette colors
-$primary_paletteKeyColor: #ebbcba; // Rose
-$secondary_paletteKeyColor: #31748f; // Pine
-$tertiary_paletteKeyColor: #c4a7e7; // Iris
-$neutral_paletteKeyColor: #908caa; // Subtle
-$neutral_variant_paletteKeyColor: #6e6a86; // Muted
+    // Text Colors
+    muted: #6e6a86,
+    subtle: #908caa,
+    text: #e0def4,
 
-// Base colors
-$background: #191724; // Base
-$onBackground: #e0def4; // Text
-$surface: #1f1d2e; // Surface
-$surfaceDim: #191724; // Base
-$surfaceBright: #26233a; // Overlay
-$surfaceContainerLowest: #191724; // Base
-$surfaceContainerLow: #1f1d2e; // Surface
-$surfaceContainer: #21202e; // Highlight Low
-$surfaceContainerHigh: #403d52; // Highlight Med
-$surfaceContainerHighest: #524f67; // Highlight High
-$onSurface: #e0def4; // Text
-$surfaceVariant: #26233a; // Overlay
-$onSurfaceVariant: #908caa; // Subtle
-$inverseSurface: #e0def4; // Text
-$inverseOnSurface: #191724; // Base
-$outline: #6e6a86; // Muted
-$outlineVariant: #403d52; // Highlight Med
-$shadow: #000000;
-$scrim: #000000;
+    // Accent Colors
+    love: #eb6f92, // Pink/Red accent
+    gold: #f6c177, // Yellow/Orange accent
+    rose: #ebbcba, // Light pink accent
+    pine: #31748f, // Blue/Teal accent
+    foam: #9ccfd8, // Light blue/cyan accent
+    iris: #c4a7e7, // Purple accent
 
-// Main color scheme
-$surfaceTint: #ebbcba; // Rose
-$primary: #ebbcba; // Rose
-$onPrimary: #191724; // Base
-$primaryContainer: #31748f; // Pine
-$onPrimaryContainer: #e0def4; // Text
-$inversePrimary: #31748f; // Pine
+    // Semantic Color Roles
+    primary: #c4a7e7, // iris - primary brand color
+    secondary: #31748f, // pine - secondary accent
+    accent: #eb6f92, // love - attention/highlight
+    success: #9ccfd8, // foam - success states
+    warning: #f6c177, // gold - warnings
+    error: #eb6f92, // love - errors
+    info: #31748f, // pine - information
 
-$secondary: #31748f; // Pine
-$onSecondary: #e0def4; // Text
-$secondaryContainer: #9ccfd8; // Foam
-$onSecondaryContainer: #191724; // Base
+    // UI Component Colors
+    background: #191724, // base - main background
+    background-alt: #1f1d2e, // surface - cards, modals
+    background-elevated: #26233a, // overlay - elevated surfaces
 
-$tertiary: #c4a7e7; // Iris
-$onTertiary: #191724; // Base
-$tertiaryContainer: #403d52; // Highlight Med
-$onTertiaryContainer: #e0def4; // Text
+    foreground: #e0def4, // text - primary text
+    foreground-alt: #908caa, // subtle - secondary text
+    foreground-muted: #6e6a86, // muted - disabled/placeholder text
 
-$error: #eb6f92; // Love
-$onError: #191724; // Base
-$errorContainer: #26233a; // Overlay
-$onErrorContainer: #eb6f92; // Love
+    border: #26233a, // overlay - borders
+    border-alt: #6e6a86, // muted - subtle borders
 
-$primaryFixed: #ebbcba; // Rose
-$primaryFixedDim: #d7827e; // Rose Dawn
-$onPrimaryFixed: #191724; // Base
-$onPrimaryFixedVariant: #31748f; // Pine
+    // State Colors
+    hover: #26233a, // overlay - hover states
+    active: #393552, // slightly lighter overlay
+    focus: #c4a7e7, // iris - focus rings
+    disabled: #6e6a86, // muted - disabled elements
+  ),
 
-$secondaryFixed: #31748f; // Pine
-$secondaryFixedDim: #286983; // Pine Dawn
-$onSecondaryFixed: #e0def4; // Text
-$onSecondaryFixedVariant: #9ccfd8; // Foam
+  rose-pine-moon: ( // Base Colors
+    base: #232136,
+    surface: #2a273f,
+    overlay: #393552,
 
-$tertiaryFixed: #c4a7e7; // Iris
-$tertiaryFixedDim: #907aa9; // Iris Dawn
-$onTertiaryFixed: #191724; // Base
-$onTertiaryFixedVariant: #26233a; // Overlay
+    // Text Colors
+    muted: #6e6a86,
+    subtle: #908caa,
+    text: #e0def4,
 
-$success: #9ccfd8; // Foam
-$onSuccess: #191724; // Base
-$successContainer: #31748f; // Pine
-$onSuccessContainer: #e0def4; // Text
+    // Accent Colors
+    love: #eb6f92,
+    gold: #f6c177,
+    rose: #ea9a97, // Slightly different from base rose-pine
+    pine: #3e8fb0, // Slightly different from base rose-pine
+    foam: #9ccfd8,
+    iris: #c4a7e7,
 
-// Terminal colors
-$term0: #191724; // Base
-$term1: #eb6f92; // Love
-$term2: #9ccfd8; // Foam
-$term3: #f6c177; // Gold
-$term4: #31748f; // Pine
-$term5: #c4a7e7; // Iris
-$term6: #ebbcba; // Rose
-$term7: #e0def4; // Text
-$term8: #6e6a86; // Muted
-$term9: #eb6f92; // Love
-$term10: #9ccfd8; // Foam
-$term11: #f6c177; // Gold
-$term12: #31748f; // Pine
-$term13: #c4a7e7; // Iris
-$term14: #ebbcba; // Rose
-$term15: #e0def4; // Text
+    // Semantic Color Roles
+    primary: #c4a7e7, // iris
+    secondary: #3e8fb0, // pine
+    accent: #eb6f92, // love
+    success: #9ccfd8, // foam
+    warning: #f6c177, // gold
+    error: #eb6f92, // love
+    info: #3e8fb0, // pine
+
+    // UI Component Colors
+    background: #232136, // base
+    background-alt: #2a273f, // surface
+    background-elevated: #393552, // overlay
+
+    foreground: #e0def4, // text
+    foreground-alt: #908caa, // subtle
+    foreground-muted: #6e6a86, // muted
+
+    border: #393552, // overlay
+    border-alt: #6e6a86, // muted
+
+    // State Colors
+    hover: #393552, // overlay
+    active: #44415a, // slightly lighter overlay
+    focus: #c4a7e7, // iris
+    disabled: #6e6a86, // muted
+  ),
+
+  rose-pine-dawn: ( // Base Colors
+    base: #faf4ed,
+    surface: #fffaf3,
+    overlay: #f2e9e1,
+
+    // Text Colors
+    muted: #9893a5,
+    subtle: #797593,
+    text: #575279,
+
+    // Accent Colors
+    love: #b4637a, // Darker for light theme
+    gold: #ea9d34, // Darker for light theme
+    rose: #d7827e, // Darker for light theme
+    pine: #286983, // Darker for light theme
+    foam: #56949f, // Darker for light theme
+    iris: #907aa9, // Darker for light theme
+
+    // Semantic Color Roles
+    primary: #907aa9, // iris
+    secondary: #286983, // pine
+    accent: #b4637a, // love
+    success: #56949f, // foam
+    warning: #ea9d34, // gold
+    error: #b4637a, // love
+    info: #286983, // pine
+
+    // UI Component Colors
+    background: #faf4ed, // base
+    background-alt: #fffaf3, // surface
+    background-elevated: #f2e9e1, // overlay
+
+    foreground: #575279, // text
+    foreground-alt: #797593, // subtle
+    foreground-muted: #9893a5, // muted
+
+    border: #f2e9e1, // overlay
+    border-alt: #9893a5, // muted
+
+    // State Colors
+    hover: #f2e9e1, // overlay
+    active: #ede4d3, // slightly darker overlay
+    focus: #907aa9, // iris
+    disabled: #9893a5, // muted
+  ),
+);
+
+@function c($color) {
+  @return map-get(map-get($themes, $current-theme), $color);
+}
