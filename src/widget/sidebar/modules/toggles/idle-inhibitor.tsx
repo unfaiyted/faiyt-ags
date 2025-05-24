@@ -26,8 +26,9 @@ export const IdleInhibitorToggle = (props: IdleInhibitorProps) => {
         }
       }}
       handleRightClick={actions.app.settings}
-      indicator={() => <PhosphorIcon iconName={PhosphorIcons.Coffee} />}
+      indicator={() => <PhosphorIcon iconName={PhosphorIcons.Coffee} size={20} cssName="indicator-icon" />}
       active={bind(isEnabled)}
+      label="Caffeine"
     />
   );
 };

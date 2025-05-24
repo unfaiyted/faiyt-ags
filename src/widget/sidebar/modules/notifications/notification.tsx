@@ -7,6 +7,8 @@ import { getFriendlyTimeString } from "../../../../utils";
 import { setupCursorHover } from "../../../utils/buttons";
 import Notifd from "gi://AstalNotifd?version=0.1";
 import getNotifd from "../../../../utils/notification-helper";
+import { PhosphorIcon } from "../../../utils/icons/phosphor";
+import { PhosphorIcons } from "../../../utils/icons/types";
 
 export interface NotificationProps extends Widget.RevealerProps {
   notification: Notifd.Notification;
@@ -28,15 +30,24 @@ export interface NotificationExpandProps extends Widget.BoxProps {
 }
 
 export const NotificationIcon = (props: NotificationIconProps) => {
+  // Choose icon based on urgency or app
+  const getIcon = () => {
+    switch (props.notification.urgency) {
+      case "critical":
+        return PhosphorIcons.Warning;
+      case "low":
+        return PhosphorIcons.Info;
+      default:
+        return PhosphorIcons.Bell;
+    }
+  };
+  
   return (
-    <box valign={Gtk.Align.START} homogeneous>
-      <overlay>
-        <box
-          valign={Gtk.Align.CENTER}
-          hexpand
-          cssName={`notif-icon notif-icon-material-${props.notification.urgency}`}
-        ></box>
-      </overlay>
+    <box 
+      cssClasses={["notification-icon-wrapper", `urgency-${props.notification.urgency}`]}
+      valign={Gtk.Align.CENTER}
+    >
+      <PhosphorIcon iconName={getIcon()} />
     </box>
   );
 };
@@ -54,7 +65,7 @@ export const NotificationText = (props: NotificationTextProps) => {
     return (
       <label
         xalign={0}
-        cssName="txt-small txt-semibold titlefont"
+        cssClasses={["notification-title"]}
         justify={Gtk.Justification.LEFT}
         hexpand
         maxWidthChars={1}
@@ -69,7 +80,7 @@ export const NotificationText = (props: NotificationTextProps) => {
       <label
         valign={Gtk.Align.CENTER}
         justify={Gtk.Justification.RIGHT}
-        cssName="txt-smaller txt-semibold"
+        cssClasses={["notification-time"]}
         label={time ? time : ""}
       />
     );
@@ -84,7 +95,7 @@ export const NotificationText = (props: NotificationTextProps) => {
       >
         <label
           xalign={0}
-          cssName={`txt-smallie notif-body-${urgency}`}
+          cssClasses={["notification-body"]}
           useMarkup
           maxWidthChars={1}
           wrap
@@ -99,24 +110,24 @@ export const NotificationText = (props: NotificationTextProps) => {
     return (
       <revealer
         revealChild={bind(isExpanded)}
-        transitionType={Gtk.RevealerTransitionType.SLIDE_UP}
+        transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
         transitionDuration={config.animations.durationSmall}
       >
-        <box>
+        <box cssClasses={["notification-actions"]}>
           <button
             hexpand
-            cssName={`notif-action notif-action-${urgency}`}
-            onClicked={() => { }}
+            cssClasses={["notification-action"]}
+            onClicked={() => props.notification.dismiss()}
             setup={setupCursorHover}
           >
-            <label>Close</label>
+            <label>Dismiss</label>
           </button>
 
           {props.notification.actions.map((action) => {
             return (
               <button
                 hexpand
-                cssName={`notif-action notif-action-${urgency}`}
+                cssClasses={["notification-action"]}
                 onClicked={() => props.notification.invoke(action.id)}
                 setup={setupCursorHover}
               >
@@ -130,8 +141,8 @@ export const NotificationText = (props: NotificationTextProps) => {
   };
 
   return (
-    <box valign={Gtk.Align.CENTER} vertical hexpand>
-      <box>
+    <box valign={Gtk.Align.CENTER} vertical hexpand cssClasses={["notification-content"]}>
+      <box cssClasses={["notification-header"]}>
         <NotifyTextSummary />
         <NotifyTime />
       </box>
@@ -142,22 +153,14 @@ export const NotificationText = (props: NotificationTextProps) => {
 };
 
 export const NotificationExpandButton = (props: NotificationExpandProps) => {
-  // onClicked={() => props.notification.expand()}
-  //
   return (
     <button
       valign={Gtk.Align.START}
-      cssName="notif-expand-btn"
+      cssClasses={["notification-expand-btn"]}
       setup={setupCursorHover}
       onClicked={props.toggleExpand}
     >
-      <box cssName="spacing-h-5">
-        {/* <MaterialIcon */}
-        {/*   icon="expand_more" */}
-        {/*   size="normal" */}
-        {/*   valign={Gtk.Align.CENTER} */}
-        {/* /> */}
-      </box>
+      <PhosphorIcon iconName={PhosphorIcons.DotsThreeVertical} size={16} />
     </button>
   );
 };
@@ -174,7 +177,6 @@ export default function Notification(props: NotificationProps) {
   const toggleExpand = () => {
     isExpanded.set(!isExpanded.get());
   };
-  // notification.dismiss();
 
   return (
     <revealer
@@ -183,24 +185,16 @@ export default function Notification(props: NotificationProps) {
       transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
       {...props}
     >
-      <box homogeneous>
-        <box homogeneous>
-          <box
-            cssName={`${props.isPopup ? "popup-" : ""}notif-${props.notification.urgency} spacing-h-10`}
-          >
-            <NotificationIcon notification={props.notification} />
-            <box cssName="spacing-h-5">
-              <NotificationText
-                notification={props.notification}
-                isExpanded={bind(isExpanded)}
-              />
-              <NotificationExpandButton
-                notification={props.notification}
-                toggleExpand={toggleExpand}
-              />
-            </box>
-          </box>
-        </box>
+      <box cssClasses={["notification-container"]}>
+        <NotificationIcon notification={props.notification} />
+        <NotificationText
+          notification={props.notification}
+          isExpanded={bind(isExpanded)}
+        />
+        <NotificationExpandButton
+          notification={props.notification}
+          toggleExpand={toggleExpand}
+        />
       </box>
     </revealer>
   );

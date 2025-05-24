@@ -12,21 +12,20 @@ import { PhosphorIcons } from "../../../utils/icons/types";
 const notifd = getNotifd();
 
 export interface ListActionButtonProps extends Widget.ButtonProps {
-  icon: PhosphorIcons;
+  icon: PhosphorIcons | Binding<PhosphorIcons>;
   action: (self: Gtk.Button) => void;
 }
 
 export const ListActionButton = (props: ListActionButtonProps) => {
   return (
     <button
-      cssName="sidebar-centermodules-bottombar-button"
+      cssClasses={["notification-control-btn"]}
       onClicked={props.action}
       setup={setupCursorHover}
     >
-      <box halign={Gtk.Align.CENTER} cssName="spacing-h-5">
+      <box halign={Gtk.Align.CENTER} cssClasses={["spacing-h-5"]}>
         <PhosphorIcon iconName={props.icon} />
-        {/* <MaterialIcon icon={props.icon} size="normal" /> */}
-        <label cssName="txt-small" label={props.name} />
+        <label label={props.name} />
       </box>
     </button>
   );
@@ -34,11 +33,12 @@ export const ListActionButton = (props: ListActionButtonProps) => {
 
 export const NotificationSilenceButton = (props: Widget.BoxProps) => (
   <ListActionButton
-    icon={PhosphorIcons.BellSlash}
+    icon={bind(notifd, "dontDisturb").as(dnd => dnd ? PhosphorIcons.BellSlash : PhosphorIcons.Bell)}
     name="Silence"
     action={(self) => {
       notifd.dontDisturb = !notifd.dontDisturb;
-      self.set_css_classes(notifd.dontDisturb ? ["notif-listaction-btn-enabled"] : []);
+      print("NotificationSilenceButton:", notifd.dontDisturb);
+      self.set_css_classes(notifd.dontDisturb ? ["notification-control-btn", "active"] : ["notification-control-btn"]);
     }}
   />
 );

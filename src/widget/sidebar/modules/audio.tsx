@@ -20,13 +20,14 @@ export const StreamList = (props: Widget.BoxProps) => {
 
 
 export default function AudioModules(props: Widget.BoxProps) {
+  const { cssName, ...restProps } = props;
+  
   return (
-    <box cssName={`spacing-v-5`} vertical {...props}>
-      <stack visibleChildName={"empty"}></stack>
-      <box vertical cssName={`spacing-v-5`}>
+    <box cssName={`spacing-v-5 ${cssName || ''}`} vertical {...restProps}>
+      <stack visibleChildName={"empty"}>
         <EmptyContent name="empty" />
         <StreamList name="list" />
-      </box>
+      </stack>
     </box>
   );
 }

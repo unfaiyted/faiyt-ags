@@ -1,5 +1,6 @@
 import { Widget, Gtk, Astal } from "astal/gtk4";
 import { BrightnessIndicator } from "./indicators/brightness";
+import { KBBacklightBrightnessIndicator } from "./indicators/kb-backlight-brightness";
 import { VolumeIndicator } from "./indicators/volume";
 import Indicators from "./indicators/index";
 import PopupNotifications from "./popup-notifications";
@@ -16,18 +17,20 @@ export const SystemOverlays = (props: SystemOverlayProps) => {
       name={`system-overlays-${props.monitor}`}
       gdkmonitor={props.gdkmonitor}
       layer={Astal.Layer.OVERLAY}
+      cssName="system-overlays"
       visible
       anchor={Astal.WindowAnchor.TOP}
     >
-      <box >
+      <box>
         <box vertical>
           <Indicators>
             <BrightnessIndicator />
+            <KBBacklightBrightnessIndicator />
             <VolumeIndicator />
           </Indicators>
 
           {/* <MusicControls /> */}
-          {/* <PopupNotifications /> */}
+          <PopupNotifications />
           {/* <ColorSchemeSwitcher /> */}
         </box>
       </box>

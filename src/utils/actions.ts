@@ -1,10 +1,11 @@
-import { App, Gdk } from "astal/gtk4";
 import { exec, execAsync } from "astal/process";
 import config from "./config";
 import Wp from "gi://AstalWp";
 import Network from "gi://AstalNetwork";
+import Bluetooth from "gi://AstalBluetooth";
 
 const network = Network.get_default();
+const bluetooth = Bluetooth.get_default();
 
 const wp = Wp.get_default();
 
@@ -40,6 +41,7 @@ export const actions = {
       ),
   },
   bluetooth: {
+    toggle: () => bluetooth.toggle(),
     disable: () => execAsync("rfkill block bluetooth").catch(print),
     enable: () => execAsync("rfkill unblock bluetooth").catch(print),
   },

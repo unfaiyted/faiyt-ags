@@ -1,13 +1,20 @@
 import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk4";
 import { Variable, Binding, bind } from "astal";
-import { BaseBarContentProps, BarMode } from "../types";
+import { BarMode } from "../types";
 import NormalBarContent from "./normal";
 import FocusBarContent from "./focus";
 import NothingBarContent from "./nothing";
 
+export interface BaseBarContentProps extends Widget.BoxProps {
+  mode: Binding<BarMode>;
+  monitorIndex?: number;
+  gdkmonitor?: Gdk.Monitor;
+}
+
 export default function BarModeContent(baseBarProps: BaseBarContentProps) {
   const { setup, child, ...props } = baseBarProps;
 
+  print("BarModeContent - Monitor Index:", props.monitorIndex);
   const getModeContent = () => {
     switch (props.mode.get()) {
       case BarMode.Normal:

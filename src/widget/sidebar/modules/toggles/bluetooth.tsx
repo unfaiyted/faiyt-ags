@@ -23,6 +23,7 @@ export const BluetoothToggle = (props: BluetoothToggleProps) => {
       handleRightClick={actions.app.bluetooth}
       indicator={BluetoothIndicator}
       active={bind(isEnabled)}
+      label="Bluetooth"
     />
   );
 };

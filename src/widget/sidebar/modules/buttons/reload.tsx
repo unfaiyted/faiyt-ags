@@ -1,16 +1,19 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { actions } from "../../../../utils/actions";
 import { setupCursorHover } from "../../../utils/buttons";
+import { PhosphorIcon } from "../../../utils/icons/phosphor";
+import { PhosphorIcons } from "../../../utils/icons/types";
 
 export const ReloadIconButton = (props: Widget.ButtonProps) => {
   return (
     <button
-      cssName="txt-small sidebar-iconbutton"
+      cssName="header-button"
       tooltipText="Reload Environment config"
       onClicked={actions.system.reload}
       setup={setupCursorHover}
+      {...props}
     >
-      {/* <MaterialIcon icon="refresh" size="normal" /> */}
+      <PhosphorIcon iconName={PhosphorIcons.ArrowClockwise} size={24} />
     </button>
   );
 }

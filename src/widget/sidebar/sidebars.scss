@@ -1,0 +1,707 @@
+@use "styles/colors";
+
+
+
+sidebar {
+  background-color: colors.c(background-alt);
+  border: 2px solid colors.c(border);
+  margin-right: 8px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  border-radius: 24px;
+  padding: 10px 20px;
+  // drop shadow
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+sidebar-right {}
+
+
+sidebar-left {}
+
+// Notification Styles
+.notification-container {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  margin: 4px 0;
+  padding: 16px;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.notification-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  margin-right: 12px;
+
+  &.urgency-low {
+    background: linear-gradient(135deg, rgba(100, 200, 100, 0.2) 0%, rgba(100, 200, 100, 0.1) 100%);
+  }
+
+  &.urgency-normal {
+    background: linear-gradient(135deg, rgba(100, 150, 250, 0.2) 0%, rgba(100, 150, 250, 0.1) 100%);
+  }
+
+  &.urgency-critical {
+    background: linear-gradient(135deg, rgba(250, 100, 100, 0.2) 0%, rgba(250, 100, 100, 0.1) 100%);
+  }
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.notification-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.3;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  margin-left: 12px;
+}
+
+.notification-body {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.notification-action {
+  padding: 6px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  transition: all 200ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.notification-expand-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 200ms ease;
+  margin-left: 8px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.notification-list-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 12px;
+}
+
+.notification-count {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.notification-control-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 200ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  &.active {
+    background: rgba(100, 150, 250, 0.2);
+    border-color: rgba(100, 150, 250, 0.3);
+    color: rgba(100, 150, 250, 1);
+  }
+}
+
+.notification-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .empty-text {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+// WiFi Module Styles
+wifi-module {
+  padding: 16px;
+}
+
+
+
+wifi-status {
+  background: linear-gradient(135deg, colors.c(background-elevated), colors.c(background));
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid colors.c(border);
+
+
+  wifi-switch {
+    margin-bottom: 24px;
+
+    .wifi-active {
+      background: colors.c(iris, 0.8);
+      max-height: 12px;
+    }
+
+    .wifi-inactive {
+      background: colors.c(pine, 0.8);
+      max-height: 12px;
+    }
+
+  }
+
+
+
+  wifi-icon-wrapper {
+    min-width: 48px;
+    min-height: 48px;
+    background: colors.c(primary, 0.1);
+    border-radius: 12px;
+
+    wifi-icon {
+      padding-left: 12px;
+
+    }
+
+    image {
+      color: colors.c(primary);
+    }
+  }
+
+  wifi-status-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: colors.c(foreground);
+  }
+
+  wifi-status-subtitle {
+    font-size: 14px;
+    color: colors.c(foreground-alt);
+    margin-top: 2px;
+  }
+
+  switch {
+    margin: 0;
+  }
+
+  wifi-info {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: colors.c(background, 0.5);
+    border-radius: 8px;
+
+    image {
+      color: colors.c(foreground-alt);
+    }
+
+    label {
+      font-size: 12px;
+      color: colors.c(foreground-alt);
+    }
+  }
+}
+
+wifi-list {
+  background: colors.c(background-elevated);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid colors.c(border);
+
+  wifi-list-header {
+    margin-bottom: 12px;
+    padding: 0 4px;
+
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      color: colors.c(foreground);
+    }
+  }
+
+  wifi-refresh-btn {
+    padding: 6px;
+    background: colors.c(background, 0.5);
+    border-radius: 8px;
+    border: none;
+
+    &:hover {
+      background: colors.c(background, 0.8);
+    }
+
+    image {
+      color: colors.c(foreground-alt);
+    }
+
+    .spinning {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  wifi-list-scroll {
+    background: transparent;
+  }
+
+  wifi-empty {
+    padding: 48px 24px;
+
+    image {
+      color: colors.c(foreground-alt, 0.3);
+    }
+
+    label {
+      font-size: 14px;
+      color: colors.c(foreground-alt);
+    }
+  }
+}
+
+wifi-item {
+  background: colors.c(background, 0.5);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: colors.c(background, 0.8);
+    border-color: colors.c(border);
+    transform: translateY(-1px);
+  }
+
+  &.connected {
+    background: colors.c(primary, 0.1);
+    border-color: colors.c(primary, 0.3);
+
+    &:hover {
+      background: colors.c(primary, 0.15);
+      border-color: colors.c(primary, 0.4);
+    }
+
+    wifi-item-status {
+      color: colors.c(primary);
+    }
+  }
+
+  wifi-item-icon {
+    position: relative;
+    min-width: 32px;
+
+    image {
+      color: colors.c(foreground);
+    }
+
+    .wifi-secure-icon {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      background: colors.c(background-elevated);
+      border-radius: 50%;
+      padding: 2px;
+      color: colors.c(foreground-alt);
+    }
+  }
+
+  wifi-item-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: colors.c(foreground);
+  }
+
+  wifi-item-status {
+    font-size: 12px;
+    color: colors.c(foreground-alt);
+    margin-top: 2px;
+  }
+
+  wifi-strength {
+    font-size: 12px;
+    color: colors.c(foreground-alt);
+    min-width: 35px;
+    text-align: right;
+  }
+
+  wifi-connecting {
+    margin-left: 8px;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Header Module Styles
+header-module {
+  margin: 16px;
+  padding: 16px;
+  background: colors.c(background-elevated);
+  border-radius: 12px;
+  border: 1px solid colors.c(border);
+
+  header-info {
+    distro-icon-wrapper {
+      min-width: 42px;
+      min-height: 42px;
+      background: colors.c(primary, 0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      image {
+        color: colors.c(primary);
+      }
+    }
+
+    header-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: colors.c(foreground);
+    }
+
+    header-uptime {
+      font-size: 12px;
+      color: colors.c(foreground-alt);
+      margin-top: 2px;
+    }
+  }
+
+  header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  header-button {
+    min-width: 24px;
+    min-height: 24px;
+    padding: 6px;
+    background: colors.c(background, 0.5);
+    border: 1px solid transparent;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+
+    image {
+      color: colors.c(foreground-alt);
+    }
+
+    &:hover {
+      background: colors.c(background, 0.8);
+      border-color: colors.c(border);
+
+      image {
+        color: colors.c(foreground);
+      }
+    }
+
+    &:active {
+      background: colors.c(background);
+    }
+
+    &.power-button {
+      background: colors.c(error, 0.1);
+
+      image {
+        color: colors.c(error);
+      }
+
+      &:hover {
+        background: colors.c(error, 0.15);
+        border-color: colors.c(error, 0.2);
+      }
+
+      &:active {
+        background: colors.c(error, 0.2);
+      }
+    }
+  }
+}
+
+// Toggle Indicator Styles
+.indicator-icon {
+  color: colors.c(foreground-alt);
+
+  &.active {
+    color: colors.c(primary);
+  }
+}
+
+// Quick Toggles Module
+quick-toggles {
+  padding: 16px;
+  background: colors.c(background-elevated);
+  border-radius: 12px;
+  margin: 0 16px;
+  border: 1px solid colors.c(border);
+}
+
+toggle-container {
+  min-width: 80px;
+}
+
+toggle-button {
+  min-width: 80px;
+  height: 64px;
+  min-height: 64px;
+  padding: 0 16px;
+  background: colors.c(background, 0.5);
+  border: 1px solid colors.c(border);
+  border-radius: 16px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: colors.c(background, 0.7);
+    border-color: colors.c(border-alt);
+  }
+
+  &.active {
+    background: colors.c(primary, 0.1);
+    border-color: colors.c(primary, 0.3);
+
+    &:hover {
+      background: colors.c(primary, 0.15);
+      border-color: colors.c(primary, 0.4);
+    }
+  }
+}
+
+toggle-button-content {
+  display: flex;
+  align-items: center;
+}
+
+toggle-icon-wrapper {
+  padding: 0;
+  min-width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .indicator-icon {
+    color: colors.c(foreground-alt);
+    transition: color 0.2s ease;
+  }
+
+  &.active .indicator-icon {
+    color: colors.c(primary);
+  }
+}
+
+toggle-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: colors.c(foreground-alt);
+  transition: color 0.2s ease;
+
+  &.active {
+    color: colors.c(foreground);
+  }
+}
+
+// Modern toggle switch styling
+toggle-switch-container {
+  padding: 2px 0;
+}
+
+toggle-switch {
+  width: 40px;
+  height: 24px;
+  background: colors.c(background, 0.3);
+  border-radius: 12px;
+  border: 1px solid colors.c(border);
+  padding: 2px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: colors.c(background, 0.5);
+  }
+
+  &.active {
+    background: colors.c(primary, 0.8);
+    border-color: colors.c(primary);
+
+    &:hover {
+      background: colors.c(primary, 0.9);
+    }
+  }
+}
+
+toggle-switch-thumb {
+  width: 18px;
+  height: 18px;
+  background: colors.c(foreground);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+
+  &.active {
+    margin-left: 18px;
+    background: white;
+  }
+}
+
+// Tab Container Styles
+tab-container {
+  margin-top: 16px;
+}
+
+tab-header-wrapper {
+  background: colors.c(background-elevated);
+  border-radius: 12px;
+  border: 1px solid colors.c(border);
+  padding: 4px;
+  margin: 0 16px 8px 16px;
+}
+
+tab-header {
+  background: colors.c(background, 0.3);
+  border-radius: 10px;
+  padding: 2px;
+}
+
+tab-btn {
+  flex: 1;
+  min-height: 44px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover:not(.active) {
+    background: colors.c(background, 0.5);
+    border-color: colors.c(border);
+  }
+
+  &.active {
+    background: colors.c(accent, 0.15);
+    border: 1px solid colors.c(accent, 0.3);
+    box-shadow: 0 2px 8px colors.c(accent, 0.2);
+
+    tab-icon {
+      color: colors.c(primary);
+    }
+
+    tab-label {
+      color: colors.c(primary);
+      font-weight: 600;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: colors.c(primary);
+      border-radius: 2px 2px 0 0;
+    }
+  }
+}
+
+tab-btn-content {
+  padding: 8px 5px;
+}
+
+tab-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+tab-icon {
+  color: colors.c(foreground-alt);
+  transition: color 0.2s ease;
+}
+
+tab-label {
+  font-size: 13px;
+  color: colors.c(foreground-alt);
+  transition: all 0.2s ease;
+}
+
+tab-content-wrapper {
+  padding: 0 10px;
+}

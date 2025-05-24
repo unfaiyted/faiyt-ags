@@ -1,5 +1,5 @@
 import config from "../../../utils/config";
-import { NormalBarContentProps } from "../types";
+import { BaseBarContentProps } from "./index";
 import { Gtk } from "astal/gtk4";
 import WindowTitle from "../modules/window-title";
 import SideModule from "../modules/side";
@@ -14,6 +14,10 @@ import Battery from "../modules/battery";
 import Utilities from "../modules/utilities";
 import Weather from "../modules/weather";
 import StatusIndicators from "../modules/indicators";
+
+export interface NormalBarContentProps extends BaseBarContentProps {
+  monitorIndex?: number;
+}
 
 export default function NormalBarMode(barModeProps: NormalBarContentProps) {
   const { setup, child, ...props } = barModeProps;
@@ -52,7 +56,7 @@ export default function NormalBarMode(barModeProps: NormalBarContentProps) {
         </box>
       }
       endWidget={
-        <RightModule>
+        <RightModule monitorIndex={props.monitorIndex}>
           <box hexpand={true}
             vexpand={false}
             halign={Gtk.Align.CENTER}

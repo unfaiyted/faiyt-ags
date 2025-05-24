@@ -34,7 +34,7 @@ export const SidebarModules: Record<string, TabContent> = {
   [SidebarModule.AUDIO]: {
     name: SidebarModule.AUDIO,
     content: Audio,
-    icon: PhosphorIcons.Bell,
+    icon: PhosphorIcons.SpeakerNone,
   },
   [SidebarModule.TOOLS]: {
     name: SidebarModule.TOOLS,

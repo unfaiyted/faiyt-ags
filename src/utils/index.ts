@@ -1,5 +1,5 @@
 import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
-import { Variable } from "astal";
+import { Variable, Binding } from "astal";
 import Cairo from "gi://cairo";
 import GLib from "gi://GLib";
 import config from "./config";
@@ -63,3 +63,22 @@ export const getFriendlyTimeString = (timeObject: number) => {
     return "Yesterday";
   else return messageTime.format(config.time.dateFormat);
 };
+
+// Helper function to truncate text
+export function truncateText(
+  text: string | undefined | Binding<string>,
+  maxLength: number = 20,
+): string {
+  if (!text) {
+    return "";
+  }
+
+  if (typeof text !== "string") {
+    text = text.get();
+  }
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength - 3) + "...";
+}

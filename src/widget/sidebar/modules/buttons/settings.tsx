@@ -1,17 +1,19 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { actions } from "../../../../utils/actions";
 import { setupCursorHover } from "../../../utils/buttons";
+import { PhosphorIcon } from "../../../utils/icons/phosphor";
+import { PhosphorIcons } from "../../../utils/icons/types";
 
-// TODO: Add settings icon
 export const SettingsIconButton = (props: Widget.ButtonProps) => {
   return (
     <button
-      cssName="txt-small sidebar-iconbutton"
+      cssName="header-button"
       tooltipText="Open Settings"
       onClicked={() => actions.app.settings()}
       setup={setupCursorHover}
+      {...props}
     >
-      {/* <MaterialIcon icon="settings" size="normal" /> */}
+      <PhosphorIcon iconName={PhosphorIcons.Gear} size={24} />
     </button>
   );
 };

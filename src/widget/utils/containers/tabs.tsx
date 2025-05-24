@@ -3,10 +3,11 @@ import { Variable, Binding, bind } from "astal";
 // import { getScrollDirection } from "../../../utils";
 import PhosphorIcon from "../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../utils/icons/types";
+import { c } from "../../../utils/style";
 
 export interface TabContent {
   name: string;
-  content: Gtk.Widget;
+  content: (props: Widget.BoxProps) => Gtk.Widget;
   icon: PhosphorIcons;
 }
 
@@ -21,6 +22,7 @@ export interface TabContainerProps extends Widget.BoxProps {
 export interface TabHeaderProps extends Widget.BoxProps {
   orientation?: Gtk.Orientation;
 }
+
 export interface TabHeaderItemProps extends Widget.BoxProps {
   tab: TabContent;
   hideLabels?: boolean;
@@ -29,49 +31,52 @@ export interface TabHeaderItemProps extends Widget.BoxProps {
   setActive: () => void;
 }
 
-export interface TabContentProps extends Widget.BoxProps {
-  active: Binding<number> | number;
-  tab: Binding<TabContent>;
-}
 
 export const TabContainer = (tabContainerProps: TabContainerProps) => {
   const { setup, child, children, cssName, ...props } = tabContainerProps;
 
   const active = new Variable(props.active);
-  const activeTab = new Variable(props.tabs[props.active]);
   const orientation = new Variable(props.orientation || Gtk.Orientation.HORIZONTAL);
   let lastActive = new Variable(props.active);
-  // const count = Math.min(icons.length, names.length);
-
-  // print("Tabs length:", props.tabs.length);
 
   const handleHeaderClick = (index: number) => {
     lastActive.set(active.get());
     active.set(index);
   };
 
-  active.subscribe((index) => {
-    activeTab.set(props.tabs[index]);
-  });
-
   return (
     <box
       vertical={orientation.get() == Gtk.Orientation.HORIZONTAL}
-      cssName={`spacing-v-5 ${cssName}`}
+      cssName="tab-container"
+      spacing={8}
     >
-      <TabHeader {...props}>
-        {props.tabs.map((tab, i) => (
-          <TabHeaderItem
-            {...props}
-            hideLabels={props.hideLabels}
-            tab={tab}
-            active={bind(active).as((v) => v)}
-            index={i}
-            setActive={() => active.set(i)}
-          />
-        ))}
-      </TabHeader>
-      <TabContent {...props} tab={bind(activeTab).as((v) => v)} />
+      <box cssName="tab-header-wrapper">
+        <TabHeader {...props}>
+          {props.tabs.map((tab, i) => (
+            <TabHeaderItem
+              {...props}
+              hideLabels={props.hideLabels}
+              tab={tab}
+              active={bind(active).as((v) => v)}
+              index={i}
+              setActive={() => active.set(i)}
+            />
+          ))}
+        </TabHeader>
+      </box>
+      <box cssName="tab-content-wrapper">
+        <stack
+          transitionType={Gtk.StackTransitionType.SLIDE_LEFT_RIGHT}
+          transitionDuration={200}
+          visibleChildName={bind(active).as(i => `tab-${i}`)}
+        >
+          {props.tabs.map((tab, i) => (
+            <box name={`tab-${i}`} >
+              {tab.content({ cssName: cssName || '' })}
+            </box>
+          ))}
+        </stack>
+      </box>
     </box>
   );
 };
@@ -79,24 +84,13 @@ export const TabContainer = (tabContainerProps: TabContainerProps) => {
 export const TabHeader = (tabHeaderProps: TabHeaderProps) => {
   const { setup, child, children, cssName, ...props } = tabHeaderProps;
 
-  const active = new Variable(0);
-
-  const handleScroll = () => {
-    // const scrollDirection = getScrollDirection(event);
-    //
-    // if (scrollDirection === Gdk.ScrollDirection.UP) {
-    //   active.set(active.get() + 1);
-    // } else if (scrollDirection === Gdk.ScrollDirection.DOWN) {
-    //   active.set(active.get() - 1);
-    // }
-  };
-
   return (
     <box
+      cssName="tab-header"
       homogeneous={true}
       vertical={props.orientation == Gtk.Orientation.VERTICAL}
+      spacing={4}
     >
-      {/* <eventbox onScroll={handleScroll}>{children}</eventbox> */}
       {children}
     </box>
   );
@@ -107,52 +101,55 @@ export const TabHeaderItem = (tabHeaderItemProps: TabHeaderItemProps) => {
     tabHeaderItemProps;
 
   const handleClick = () => {
-    print("TabHeaderItem clicked");
-    print("Active tab:", index);
-    print("hideLables:", props.hideLabels);
     props.setActive();
   };
 
-  const setup = (self: Gtk.Button) => {
-    setup?.(self);
+  const isActive = Variable(false);
 
-    if (typeof active === "number") {
-      self.set_css_classes(self.get_css_classes().concat(["tab-btn-active"]));
-    } else {
-      active.subscribe((currIndex) => {
-        print("Active tab:", currIndex);
-        if (index === currIndex) {
-          self.set_css_classes(self.get_css_classes().concat(["tab-btn-active"]));
-        } else {
-          self.remove_css_class("tab-btn-active");
-        }
-      });
-    }
-  };
+  if (typeof active !== "number") {
+    active.subscribe((v) => {
+      if (v === index) {
+        print("Active tab:", v);
+        isActive.set(true);
+      } else {
+        isActive.set(false);
+      }
 
-  // print("TabHeaderItem:", props.tab.name);
+    });
+
+  }
+
+
+
   return (
-    <button cssName="tab-btn" onClicked={handleClick}>
+    <button
+      cssName="tab-btn"
+      cssClasses={bind(isActive).as(act => act ? ['active'] : [])}
+      onClicked={handleClick}
+    >
       <box
+        cssName="tab-btn-content"
+        spacing={8}
         halign={Gtk.Align.CENTER}
         valign={Gtk.Align.CENTER}
-        cssName={`spacing-v-5 txt-small`}
       >
-        <PhosphorIcon iconName={props.tab.icon} size={24} />
-        {!props.hideLabels ? <label label={props.tab.name} /> : <box />}
+        <box cssName="tab-icon-wrapper">
+          <PhosphorIcon
+            iconName={props.tab.icon}
+            size={20}
+            cssName="tab-icon"
+          />
+        </box>
+        {!props.hideLabels && (
+          <label
+            cssName="tab-label"
+            label={props.tab.name.charAt(0).toUpperCase() + props.tab.name.slice(1)}
+          />
+        )}
       </box>
     </button>
   );
 };
 
-const TabContent = (tabContentProps: TabContentProps) => {
-  const { setup, child, children, cssName, ...props } = tabContentProps;
-
-  return (
-    <stack transitionType={Gtk.StackTransitionType.SLIDE_LEFT_RIGHT}>
-      {bind(props.tab).as((v) => v.content({ cssName, ...props }))}
-    </stack>
-  );
-};
 
 export default TabContainer;

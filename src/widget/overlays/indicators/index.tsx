@@ -1,6 +1,7 @@
 import { Widget, Gtk, Gdk } from "astal/gtk4";
 import config from "../../../utils/config";
 import { Binding, Variable, bind } from "astal";
+import { c } from "../../../utils/style";
 
 export interface ProgressBarProps extends Widget.BoxProps {
   value: Binding<number>;
@@ -12,16 +13,20 @@ export const ProgressBar = (props: ProgressBarProps) => {
 
   return (
     <box
-      cssName={`osd-progress progress-bar-container ${props.cssName}`}
+      cssName="osd-progress"
+      cssClasses={c`progress-bar-container ${props.cssName}`}
       {...rest}
+      heightRequest={8}
+      widthRequest={100}
     >
       <box
+        hexpand={false}
         cssName="progress-bar-fill"
-      // css={`
-      //   background-color: #4caf50;
-      //   transition: width 0.3s ease-in-out;
-      //   width: ${value.as((v) => Math.min(Math.max(v, 0), 100) + "%")};
-      // `}
+        widthRequest={value.as((v) => {
+          const percent = Math.min(Math.max(v, 0), 100);
+          // Scale to parent width of 200px
+          return Math.round(100 * (percent / 100));
+        })}
       />
     </box>
   );
@@ -29,6 +34,8 @@ export const ProgressBar = (props: ProgressBarProps) => {
 
 export interface IndicatorCardProps extends Widget.BoxProps {
   value: Binding<number>;
+  icon?: Widget.ImageProps;
+  name?: Binding<string>;
 }
 
 export const IndicatorCard = (props: IndicatorCardProps) => {
@@ -39,19 +46,30 @@ export const IndicatorCard = (props: IndicatorCardProps) => {
   };
 
   return (
-    <box vertical hexpand cssName={`osd-bg osd-value ${props.cssName}`}>
+    <box
+      vertical
+      hexpand
+      cssClasses={c`osd-value osd-bg`}
+      cssName={props.cssName}>
+
       <box vexpand>
-        <label
-          xalign={0}
-          yalign={0}
-          hexpand
-          cssName="osd-label"
-          label={props.name}
-        />
+        {props.icon ? (
+          <box hexpand cssName="osd-icon">
+            {props.icon}
+          </box>
+        ) : (
+          <label
+            xalign={0}
+            yalign={0}
+            hexpand
+            cssName="osd-label"
+            label={props.name}
+          />
+        )}
         <label
           hexpand={false}
           cssName="osd-value-txt"
-          label={props.value.as((v) => v.toString())}
+          label={props.value.as((v) => v.toString() + "%")}
         />
       </box>
       <ProgressBar
@@ -71,8 +89,6 @@ export interface IndicatorContainerProps extends Widget.RevealerProps {
 
 export const IndicatorsContainer = (props: IndicatorContainerProps) => {
   const isShow = Variable(true);
-  const showClass = "osd-show";
-  const hideClass = "osd-hide";
 
   return (
     <revealer
@@ -82,7 +98,7 @@ export const IndicatorsContainer = (props: IndicatorContainerProps) => {
       transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
       revealChild={true}
     >
-      <box halign={Gtk.Align.CENTER} vertical={false} cssName="">
+      <box halign={Gtk.Align.CENTER} vertical={false} cssName="indicator-container">
         {props?.children || props?.child}
       </box>
     </revealer>

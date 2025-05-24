@@ -76,7 +76,12 @@ export default function Bar(barProps: BarProps) {
         transitionType={Gtk.StackTransitionType.SLIDE_UP_DOWN}
         transitionDuration={config.animations.durationLarge}
       >
-        <BarModeContent name="bar-content" mode={bind(barShellMode)} gdkmonitor={gdkmonitor} />
+        <BarModeContent
+          name="bar-content"
+          mode={bind(barShellMode)}
+          gdkmonitor={gdkmonitor}
+          monitorIndex={index}
+        />
       </stack>
     </window>
   );

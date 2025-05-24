@@ -6,182 +6,140 @@ import Network from "gi://AstalNetwork";
 import Bluetooth from "gi://AstalBluetooth";
 import { Variable, bind, Binding } from "astal";
 import config from "../../../../utils/config";
+import { PhosphorIcon } from "../../../utils/icons/phosphor";
+import { PhosphorIcons } from "../../../utils/icons/types";
 
 const network = Network.get_default();
 const bt = Bluetooth.get_default();
 
 export const BluetoothIndicator = () => {
-  const shown = Variable("disabled");
+  const iconName = Variable(PhosphorIcons.BluetoothSlash);
 
   bt.connect("notify", (_bt: Bluetooth.Bluetooth) => {
-    shown.set(_bt.isPowered ? "enabled" : "disabled");
+    iconName.set(_bt.isPowered ? PhosphorIcons.Bluetooth : PhosphorIcons.BluetoothSlash);
   });
 
   return (
-    <stack
-      transitionType={Gtk.StackTransitionType.SLIDE_UP_DOWN}
-      transitionDuration={config.animations.durationSmall}
-      visibleChildName={bind(shown)}
-    >
-      <label
-        name="enabled"
-        cssName="txt-norm icon-material"
-        label="bluetooth"
-      />
-      <label
-        name="disabled"
-        cssName="txt-norm icon-material"
-        label="bluetooth_disabled"
-      />
-    </stack>
+    <PhosphorIcon 
+      iconName={bind(iconName)} 
+      size={20}
+      cssName="indicator-icon"
+    />
   );
 };
 
-export const SimpleNetworkIndicator = (props: Widget.LabelProps) => {
-  const icon = network.primary == Network.Primary.WIFI ? "wifi" : "lan";
-  return <image iconName={icon} visible />;
-};
-
-export const NetworkWiredIndicator = (props: Widget.StackProps) => {
-  const shown = Variable("fallback");
-
-  if (!network.wired) return <stack {...props} />;
-
-  switch (network.wifi.internet) {
-    case Network.Internet.CONNECTED:
-      shown.set("connected");
-      break;
-    case Network.Internet.DISCONNECTED:
-      shown.set("disconnected");
-      break;
-    case Network.Internet.CONNECTING:
-      shown.set("connecting");
-    default:
-      shown.set("fallback");
-      break;
-  }
-
-  if (network.connectivity !== Network.Connectivity.FULL)
-    shown.set("disconnected");
-
+export const SimpleNetworkIndicator = () => {
+  const iconName = network.primary == Network.Primary.WIFI 
+    ? PhosphorIcons.WifiHigh 
+    : PhosphorIcons.HardDrives;
+    
   return (
-    <stack
-      {...props}
-      transitionType={Gtk.StackTransitionType.SLIDE_UP_DOWN}
-      transitionDuration={config.animations.durationSmall}
-      visibleChildName={bind(shown)}
-    >
-      <SimpleNetworkIndicator name="fallback" />
-      <label
-        name="unknown"
-        cssName="txt-norm icon-material"
-        label="wifi_off"
-      />
-      <label
-        name="disconnected"
-        cssName="txt-norm icon-material"
-        label="signal_wifi_off"
-      />
-      <label name="connected" cssName="txt-norm icon-material" label="lan" />
-      <label
-        name="connecting"
-        cssName="txt-norm icon-material"
-        label="settings_ethernet"
-      />
-    </stack>
-  );
-};
-export const NetworkWifiIndicator = (props: Widget.StackProps) => {
-  const shown = Variable("disabled");
-
-  if (!network.wifi) return <stack {...props} />;
-
-  switch (network.wifi.internet) {
-    case Network.Internet.CONNECTED:
-      const signalStrength = String(Math.ceil(network.wifi.strength / 25));
-      shown.set(signalStrength);
-      break;
-    case Network.Internet.DISCONNECTED:
-      shown.set("disconnected");
-      break;
-    case Network.Internet.CONNECTING:
-      shown.set("connecting");
-    default:
-      shown.set("disabled");
-      break;
-  }
-
-  return (
-    <stack
-      {...props}
-      transitionType={Gtk.StackTransitionType.SLIDE_UP_DOWN}
-      transitionDuration={config.animations.durationSmall}
-      visibleChildName={bind(shown)}
-    >
-      <label
-        name="disabled"
-        cssName="txt-norm icon-material"
-        label="wifi_off"
-      />
-      <label
-        name="disconnected"
-        cssName="txt-norm icon-material"
-        label="signal_wifi_off"
-      />
-      <label
-        name="connecting"
-        cssName="txt-norm icon-material"
-        label="settings_ethernet"
-      />
-      <label
-        name="0"
-        cssName="txt-norm icon-material"
-        label="signal_wifi_0_bar"
-      />
-      <label
-        name="1"
-        cssName="txt-norm icon-material"
-        label="network_wifi_1_bar"
-      />
-      <label
-        name="2"
-        cssName="txt-norm icon-material"
-        label="network_wifi_2_bar"
-      />
-      <label
-        name="3"
-        cssName="txt-norm icon-material"
-        label="network_wifi_3_bar"
-      />
-      <label
-        name="4"
-        cssName="txt-norm icon-material"
-        label="signal_wifi_4_bar"
-      />
-    </stack>
+    <PhosphorIcon 
+      iconName={iconName} 
+      size={20}
+      cssName="indicator-icon"
+    />
   );
 };
 
-export const NetworkIndicator = (props: Widget.StackProps) => {
-  const shown = Variable("fallback");
+export const NetworkWiredIndicator = () => {
+  const iconName = Variable(PhosphorIcons.WifiSlash);
 
-  if (network.primary == Network.Primary.WIFI) {
-    shown.set("wifi");
-  } else if (network.primary == Network.Primary.WIRED) {
-    shown.set("wired");
-  } else {
-    shown.set("fallback");
-  }
+  if (!network.wired) return <PhosphorIcon iconName={PhosphorIcons.WifiSlash} size={20} cssName="indicator-icon" />;
+
+  const updateIcon = () => {
+    switch (network.wired.internet) {
+      case Network.Internet.CONNECTED:
+        iconName.set(PhosphorIcons.HardDrives);
+        break;
+      case Network.Internet.DISCONNECTED:
+        iconName.set(PhosphorIcons.WifiSlash);
+        break;
+      case Network.Internet.CONNECTING:
+        iconName.set(PhosphorIcons.ArrowsClockwise);
+        break;
+      default:
+        iconName.set(PhosphorIcons.WifiSlash);
+        break;
+    }
+
+    if (network.connectivity !== Network.Connectivity.FULL) {
+      iconName.set(PhosphorIcons.WifiSlash);
+    }
+  };
+
+  network.wired.connect("notify", updateIcon);
+  updateIcon();
 
   return (
-    <stack
-      transitionType={Gtk.StackTransitionType.SLIDE_UP_DOWN}
-      transitionDuration={config.animations.durationSmall}
-      visibleChildName={bind(shown)}
-    >
-      <SimpleNetworkIndicator name="fallback" />
-      <NetworkWifiIndicator name="wifi" />
-      <NetworkWiredIndicator name="wired" />
-    </stack>
+    <PhosphorIcon 
+      iconName={bind(iconName)} 
+      size={20}
+      cssName="indicator-icon"
+    />
+  );
+};
+export const NetworkWifiIndicator = () => {
+  const iconName = Variable(PhosphorIcons.WifiSlash);
+
+  if (!network.wifi) return <PhosphorIcon iconName={PhosphorIcons.WifiSlash} size={20} cssName="indicator-icon" />;
+
+  const updateIcon = () => {
+    switch (network.wifi.internet) {
+      case Network.Internet.CONNECTED:
+        const strength = network.wifi.strength;
+        if (strength >= 80) {
+          iconName.set(PhosphorIcons.WifiHigh);
+        } else if (strength >= 60) {
+          iconName.set(PhosphorIcons.WifiMedium);
+        } else if (strength >= 40) {
+          iconName.set(PhosphorIcons.WifiLow);
+        } else {
+          iconName.set(PhosphorIcons.WifiNone);
+        }
+        break;
+      case Network.Internet.DISCONNECTED:
+        iconName.set(PhosphorIcons.WifiSlash);
+        break;
+      case Network.Internet.CONNECTING:
+        iconName.set(PhosphorIcons.ArrowsClockwise);
+        break;
+      default:
+        iconName.set(PhosphorIcons.WifiSlash);
+        break;
+    }
+  };
+
+  network.wifi.connect("notify", updateIcon);
+  updateIcon();
+
+  return (
+    <PhosphorIcon 
+      iconName={bind(iconName)} 
+      size={20}
+      cssName="indicator-icon"
+    />
+  );
+};
+
+export const NetworkIndicator = () => {
+  const isPrimary = Variable(network.primary);
+
+  network.connect("notify::primary", () => {
+    isPrimary.set(network.primary);
+  });
+
+  return (
+    <box>
+      {bind(isPrimary).as((primary) => {
+        if (primary === Network.Primary.WIFI) {
+          return <NetworkWifiIndicator />;
+        } else if (primary === Network.Primary.WIRED) {
+          return <NetworkWiredIndicator />;
+        } else {
+          return <SimpleNetworkIndicator />;
+        }
+      })}
+    </box>
   );
 };

@@ -142,6 +142,12 @@ $themes: (
   ),
 );
 
-@function c($color) {
-  @return map.get(map.get($themes, $current-theme), $color);
+@function c($color, $opacity: 1) {
+  $color-value: map.get(map.get($themes, $current-theme), $color);
+  
+  @if $opacity == 1 {
+    @return $color-value;
+  } @else {
+    @return rgba($color-value, $opacity);
+  }
 }

@@ -11,7 +11,7 @@ export interface SideBarProps extends PopupWindowProps {
 
 export default function SideBar(sideBarProps: SideBarProps) {
   const { setup, child, screenSide, monitorIndex, ...props } = sideBarProps;
-  
+
   print(`SideBar - screenSide: ${screenSide}, monitorIndex: ${monitorIndex}, gdkmonitor: ${props.gdkmonitor}`);
 
   const keymode: Astal.Keymode = Astal.Keymode.ON_DEMAND;
@@ -52,12 +52,12 @@ export default function SideBar(sideBarProps: SideBarProps) {
   const monitorSuffix = monitorIndex !== undefined ? `-${monitorIndex}` : '';
   const name: string = `sidebar-${screenSide}${monitorSuffix}`;
   const layer: Astal.Layer = Astal.Layer.TOP;
-  print("Sidebar name:", name);
 
   return (
     <PopupWindow
       {...props}
       name={name}
+      cssName={`sidebar`}
       layer={layer}
       visible={bind(isVisible).as((v) => v)}
       keymode={keymode}

@@ -2,11 +2,13 @@ import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk4";
 import { Variable, Binding, bind } from "astal";
 import Hypr from "gi://AstalHyprland";
 import Gio from "gi://Gio";
-import { FocusBarContentProps } from "../types";
+import { BaseBarContentProps } from "./index";
 import Workspaces from "../modules/workspaces";
 import SideModule from "../modules/side";
 import Battery from "gi://AstalBattery";
 import config from "../../../utils/config";
+
+export interface FocusBarContentProps extends BaseBarContentProps { }
 
 export default function FocusBarMode(focusBarModeProps: FocusBarContentProps) {
   const { setup, child, ...props } = focusBarModeProps;

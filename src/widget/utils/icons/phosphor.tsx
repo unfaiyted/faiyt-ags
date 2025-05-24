@@ -137,14 +137,15 @@ export function PhosphorIcon(props: PhosphorIconProps) {
     loadIcon(image, getIconName(), getColor());
 
     // Subscribe to changes if props are Variables/Bindings
-    if (iconName && typeof iconName.subscribe === "function") {
-      iconName.subscribe((newIconName) => {
+    if (propIconName && typeof propIconName.subscribe === "function") {
+      propIconName.subscribe((newIconName) => {
+        print("Icon name changed:", newIconName);
         loadIcon(image, newIconName, getColor());
       });
     }
 
-    if (color && typeof color.subscribe === "function") {
-      color.subscribe((newColor) => {
+    if (propColor && typeof propColor.subscribe === "function") {
+      propColor.subscribe((newColor) => {
         loadIcon(image, getIconName(), newColor);
       });
     }

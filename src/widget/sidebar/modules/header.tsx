@@ -5,6 +5,8 @@ import { SettingsIconButton } from "./buttons/settings";
 import { PowerIconButton } from "./buttons/power";
 import { Variable, bind } from "astal";
 import { getUptime } from "../../../utils/system";
+import { PhosphorIcon } from "../../utils/icons/phosphor";
+import { PhosphorIcons } from "../../utils/icons/types";
 
 export interface HeaderModuleProps extends Widget.BoxProps { }
 
@@ -12,19 +14,29 @@ export default function HeaderModule(props: HeaderModuleProps) {
   const uptime = Variable("").poll(5000, async () => await getUptime());
 
   return (
-    <box
-      cssName="spacing-h-10 sidebar-group-invisible-morehorizpad"
-    >
-      <image iconName={getDistroIcon()} cssName="txt txt-larger" />
-      <label
-        halign={Gtk.Align.START}
-        label={bind(uptime).as((v) => "Uptime: " + v.toString())}
-        cssName="txt txt-small"
-      />
-      <box hexpand />
-      <ReloadIconButton halign={Gtk.Align.END} />
-      <SettingsIconButton halign={Gtk.Align.END} />
-      <PowerIconButton halign={Gtk.Align.END} />
+    <box cssName="header-module" spacing={12} {...props}>
+      <box cssName="header-info" spacing={12} hexpand>
+        <box cssName="distro-icon-wrapper">
+          <image iconName={getDistroIcon()} pixelSize={32} />
+        </box>
+        <box vertical>
+          <label
+            cssName="header-title"
+            xalign={0}
+            label="System"
+          />
+          <label
+            cssName="header-uptime"
+            xalign={0}
+            label={bind(uptime).as((v) => `Uptime: ${v}`)}
+          />
+        </box>
+      </box>
+      <box cssName="header-actions" spacing={4}>
+        <ReloadIconButton />
+        <SettingsIconButton />
+        <PowerIconButton marginStart={4} />
+      </box>
     </box>
   );
 }

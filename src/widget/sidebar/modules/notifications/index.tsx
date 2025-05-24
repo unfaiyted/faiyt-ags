@@ -11,6 +11,8 @@ import {
 } from "./notification-buttons";
 import { NotificationList } from "./notification-list";
 import getNotifd from "../../../../utils/notification-helper";
+import { PhosphorIcon } from "../../../utils/icons/phosphor";
+import { PhosphorIcons } from "../../../utils/icons/types";
 
 const notifd = getNotifd();
 
@@ -18,12 +20,14 @@ const notifd = getNotifd();
 
 export const NotificationListEmpty = (props: Widget.BoxProps) => {
   return (
-    <box homogeneous {...props}>
-      <box vertical valign={Gtk.Align.CENTER} cssName="txt spacing-v-10">
-        <box vertical cssName="spacing-v-5 txt-subtext">
-          {/* <MaterialIcon icon="notifications_active" size="gigantic" /> */}
-          <label label="No notifications" cssName="txt-small" />
-        </box>
+    <box cssClasses={["notification-empty"]} {...props}>
+      <box vertical valign={Gtk.Align.CENTER}>
+        <PhosphorIcon 
+          iconName={PhosphorIcons.BellSlash} 
+          size={48}
+          cssClasses={["empty-icon"]}
+        />
+        <label label="No notifications" cssClasses={["empty-text"]} />
       </box>
     </box>
   );
@@ -44,7 +48,7 @@ export const NotificationCount = (props: NotificationCountProps) => {
     <label
       hexpand
       xalign={0}
-      cssName="txt-small margin-left-10"
+      cssClasses={["notification-count"]}
       label={bind(count).as(
         (v) => v.toString() + (v == 1 ? " notification" : " notifications"),
       )}
@@ -76,8 +80,9 @@ export function NotificationModule(props: Widget.BoxProps) {
   });
 
   return (
-    <box {...props} cssName="spacing-v-5" vertical>
+    <box {...props} vertical>
       <stack
+        vexpand
         transitionDuration={config.animations.durationLarge}
         transitionType={Gtk.StackTransitionType.CROSSFADE}
         visibleChildName={bind(empty).as((v) => (v ? "empty" : "list"))}
@@ -85,10 +90,12 @@ export function NotificationModule(props: Widget.BoxProps) {
         <NotificationListEmpty name="empty" />
         <NotificationList name="list" />
       </stack>
-      <box cssName="txt spacing-h-5" valign={Gtk.Align.START}>
+      <box cssClasses={["notification-list-controls"]} valign={Gtk.Align.END}>
         <NotificationCount count={bind(count)} />
-        <NotificationSilenceButton />
-        <NotificationClearButton />
+        <box cssClasses={["spacing-h-5"]}>
+          <NotificationSilenceButton />
+          <NotificationClearButton />
+        </box>
       </box>
     </box>
   );

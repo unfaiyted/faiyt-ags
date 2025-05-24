@@ -21,8 +21,9 @@ export const NetworkToggle = (props: Widget.ButtonProps) => {
       tooltipText={bind(tooltipText)}
       handleClick={actions.network.toggleWifi}
       handleRightClick={actions.app.wifi}
-      indicator={NetworkIndicator}
+      indicator={() => <NetworkIndicator />}
       active={bind(isEnabled)}
+      label="Wi-Fi"
     />
   );
 };

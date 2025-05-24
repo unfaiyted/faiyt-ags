@@ -50,23 +50,16 @@ export default ({
     }
   };
   const handleKeyPress = (self: Gtk.Window, keyval: number, keycode: number, state: Gdk.ModifierType) => {
-    print("Key press event:", keyval);
-    print("Key press event.keycode:", keycode);
-    print("Gdk.Key.Escape:", Gdk.KEY_Escape);
-
     if (keyval === Gdk.KEY_Escape) {
-      print("Closing popup-window:", keyval);
       self.hide();
       self.visible = false;
       return true;
     }
-
-    // print("Key press event:", event.get_keycode());
-    // if (event.get_keycode()) {
-    // self.hide();
-    // return true;
-    // }
   };
+
+
+  print("PopupWindow - name:", name);
+  print("PopupWindow - cssName:", props.cssName);
 
   return (
     <window
@@ -77,6 +70,7 @@ export default ({
       onKeyPressed={handleKeyPress}
       // setup={handleDraw}
       cssName={props.cssName || "popup-window"}
+
       {...props}
     >
       <box setup={boxSetup}>{child}</box>

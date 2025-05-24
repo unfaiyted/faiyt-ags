@@ -35,7 +35,6 @@ export interface BaseBarContentProps extends Widget.BoxProps {
   gdkmonitor?: Gdk.Monitor;
 }
 
-export interface NormalBarContentProps extends BaseBarContentProps {}
 export interface FocusBarContentProps extends BaseBarContentProps {}
 export interface NothingBarContentProps extends BaseBarContentProps {}
 

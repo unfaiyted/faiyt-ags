@@ -6,8 +6,9 @@ import IdleInhibitorToggle from "./idle-inhibitor";
 export default function QuickToggles(props: Widget.BoxProps) {
   return (
     <box
-      halign={Gtk.Align.CENTER}
-      cssName="sidebar-togglesbox spacing-h-5"
+      cssName="quick-toggles"
+      spacing={16}
+      homogeneous
       {...props}
     >
       <NetworkToggle />
