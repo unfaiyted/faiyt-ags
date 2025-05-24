@@ -2,16 +2,15 @@ import { Widget, Gtk } from "astal/gtk4";
 import GLib from "gi://GLib?version=2.0";
 import Gio from "gi://Gio?version=2.0";
 import GdkPixbuf from "gi://GdkPixbuf?version=2.0";
-import { Binding, Variable, bind } from "astal";
+import { Binding, Variable } from "astal";
+import { PhosphorIcons, PhosphorIconStyle } from "./types";
 import { theme } from "../../../utils/color";
 
-// Type for icon styles
-export type PhosphorIconStyle = "regular" | "bold" | "duotone" | "fill" | "light" | "thin";
 
 // Props for the PhosphorSvgIcon component
-export interface PhosphorSvgIconProps extends Widget.ImageProps {
+export interface PhosphorIconProps extends Widget.ImageProps {
   // The name of the icon without extension or style suffix
-  iconName: string | Binding<string>;
+  iconName: PhosphorIcons | Binding<PhosphorIcons>;
   // The style of the icon (e.g., "regular", "bold", "duotone")
   style?: PhosphorIconStyle;
   // Size of the icon in pixels (width and height)
@@ -47,9 +46,11 @@ function getBaseDir(): string {
 /**
  * Get the path to the icon SVG file in the Phosphor Icons package
  */
-function getIconPath(iconName: string, style: PhosphorIconStyle = "regular"): string {
-  // Format the file name: [icon-name]-[style].svg
-  const fileName = `${iconName}-${style}.svg`;
+function getIconPath(iconName: string, style: PhosphorIconStyle = PhosphorIconStyle.Regular): string {
+  // Format the file name: regular style doesn't have suffix, others do
+  const fileName = style === PhosphorIconStyle.Regular
+    ? `${iconName}.svg`
+    : `${iconName}-${style}.svg`;
 
   // Base directory for the package
   const baseDir = getBaseDir();
@@ -59,10 +60,9 @@ function getIconPath(iconName: string, style: PhosphorIconStyle = "regular"): st
 
   // Verify file exists
   if (!fileExists(iconPath)) {
-    print(`Icon not found: ${iconPath}`);
-    // Fallback to regular style if specified style doesn't exist
-    if (style !== "regular") {
-      return getIconPath(iconName, "regular");
+    print(`Fallback: Icon not found: ${iconPath}`);
+    if (style !== PhosphorIconStyle.Regular) {
+      return getIconPath(iconName, PhosphorIconStyle.Regular);
     }
   }
 
@@ -100,18 +100,69 @@ function loadAndColorizeIcon(path: string, color?: string): string | null {
 /**
  * PhosphorSvgIcon component that displays an SVG icon from the Phosphor Icons library
  */
-export function PhosphorSvgIcon(props: PhosphorSvgIconProps) {
-  const { iconName: propIconName, style = "regular", size = 16, color: propColor, setup, ...rest } = props;
+export function PhosphorIcon(props: PhosphorIconProps) {
+  const { iconName: propIconName, style = PhosphorIconStyle.Regular, size = 16, color: propColor, setup, ...rest } = props;
+
+  const iconName = Variable(PhosphorIcons.QuestionMark);
+  const color = Variable(theme.foreground);
+
+  if (typeof propIconName === "string") {
+    iconName.set(propIconName);
+  } else if (propIconName && typeof propIconName.get === "function") {
+    iconName.set(propIconName.get());
+  }
+  // Create the setup function to handle dynamic updates
+  const imageSetup = (image: Gtk.Image) => {
+
+    // Get initial values
+    const getIconName = () => {
+      if (typeof propIconName === "string") {
+        return propIconName;
+      } else if (propIconName && typeof propIconName.get === "function") {
+        return propIconName.get();
+      }
+      return "thermometer"; // default
+    };
+
+    const getColor = () => {
+      if (typeof propColor === "string") {
+        return propColor;
+      } else if (propColor && typeof propColor.get === "function") {
+        return propColor.get();
+      }
+      return theme.foreground; // default
+    };
+
+    // Load icon initially
+    loadIcon(image, getIconName(), getColor());
+
+    // Subscribe to changes if props are Variables/Bindings
+    if (iconName && typeof iconName.subscribe === "function") {
+      iconName.subscribe((newIconName) => {
+        loadIcon(image, newIconName, getColor());
+      });
+    }
+
+    if (color && typeof color.subscribe === "function") {
+      color.subscribe((newColor) => {
+        loadIcon(image, getIconName(), newColor);
+      });
+    }
+
+
+    // If a custom setup function was provided, call it
+    setup?.(image);
+  };
 
   // Function to load the icon
   const loadIcon = (image: Gtk.Image, iconNameValue: string, colorValue: string) => {
     try {
       // Convert camelCase to kebab-case if needed (e.g., batteryFull -> battery-full)
       const normalizedIconName = iconNameValue.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-      
+
       // Get the path to the icon file
       const iconPath = getIconPath(normalizedIconName, style);
-      
+
       if (colorValue && colorValue !== '') {
         // Load and modify the SVG content to include color
         const svgContent = loadAndColorizeIcon(iconPath, colorValue);
@@ -153,81 +204,43 @@ export function PhosphorSvgIcon(props: PhosphorSvgIconProps) {
     }
   };
 
-  // Create the setup function to handle dynamic updates
-  const imageSetup = (image: Gtk.Image) => {
-    // Get initial values
-    const getIconName = () => {
-      if (typeof propIconName === "string") {
-        return propIconName;
-      } else if (propIconName && typeof propIconName.get === "function") {
-        return propIconName.get();
-      }
-      return "thermometer"; // default
-    };
 
-    const getColor = () => {
-      if (typeof propColor === "string") {
-        return propColor;
-      } else if (propColor && typeof propColor.get === "function") {
-        return propColor.get();
-      }
-      return theme.foreground; // default
-    };
 
-    // Load icon initially
-    loadIcon(image, getIconName(), getColor());
-
-    // Subscribe to changes if props are Variables/Bindings
-    if (propIconName && typeof propIconName.subscribe === "function") {
-      propIconName.subscribe((newIconName) => {
-        loadIcon(image, newIconName, getColor());
-      });
-    }
-
-    if (propColor && typeof propColor.subscribe === "function") {
-      propColor.subscribe((newColor) => {
-        loadIcon(image, getIconName(), newColor);
-      });
-    }
-
-    // If a custom setup function was provided, call it
-    setup?.(image);
-  };
 
   // Return the image component
-  return (
-    <image
-      {...rest}
-      setup={imageSetup}
-    />
-  );
+  return <image
+    {...rest}
+    setup={imageSetup}
+  />
 }
 
 /**
  * Battery icon component with special handling for battery states
  */
-export function BatteryIcon(props: Omit<PhosphorSvgIconProps, "iconName"> & { level?: number, charging?: boolean }) {
+export function BatteryIcon(props: Omit<PhosphorIconProps, "iconName"> & { level?: number, charging?: boolean }) {
   const { level = 100, charging = false, ...rest } = props;
 
   // Determine which battery icon to show based on level and charging state
-  let iconName = "battery";
+  let iconName = PhosphorIcons.BatteryEmpty;
 
   // Handle charging state
   if (charging) {
-    iconName = "battery-charging";
+    iconName = PhosphorIcons.BatteryCharging;
   }
   // Handle different battery levels
   else if (level <= 10) {
-    iconName = "battery-low";
+    iconName = PhosphorIcons.BatteryLow;
   } else if (level <= 30) {
-    iconName = "battery-warning";
+    iconName = PhosphorIcons.BatteryWarning;
   } else if (level <= 60) {
-    iconName = "battery-medium";
+    iconName = PhosphorIcons.BatteryMedium;
   } else if (level <= 90) {
-    iconName = "battery-high";
+    iconName = PhosphorIcons.BatteryHigh;
   } else {
-    iconName = "battery-full";
+    iconName = PhosphorIcons.BatteryFull;
   }
 
-  return <PhosphorSvgIcon iconName={iconName} {...rest} />;
+  return <PhosphorIcon iconName={iconName} {...rest} />;
 }
+
+export default PhosphorIcon;

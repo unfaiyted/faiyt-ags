@@ -1,8 +1,9 @@
-import { Widget, Gtk, Astal } from "astal/gtk3";
+import { Widget, Gtk, Astal } from "astal/gtk4";
 import TabContainer, {
   TabContent,
 } from "../../../utils/containers/tabs";
 import ClaudeAI from "./claude";
+import { PhosphorIcons } from "../../../utils/icons/types";
 
 export enum AIName {
   CLAUDE = "claude",
@@ -18,7 +19,7 @@ export interface AIItem {
   sendCommand: (message: string) => void;
   contentWidget: Widget.BoxProps;
   commandBar: Widget.BoxProps;
-  tabIcon: Widget.IconProps;
+  tabIcon: Widget.ImageProps;
   placeholderText: string;
 }
 
@@ -27,28 +28,28 @@ export const EXPAND_INPUT_THRESHOLD = 30;
 export const AI_TABS: Record<AIName, TabContent> = {
   [AIName.CLAUDE]: {
     name: AIName.CLAUDE,
-    content: ClaudeAI,
-    icon: PhosphorIcons.brain,
+    content: <ClaudeAI />,
+    icon: PhosphorIcons.Brain,
   },
   [AIName.GEMINI]: {
     name: AIName.GEMINI,
-    content: ClaudeAI,
-    icon: "diamond",
+    content: <ClaudeAI />,
+    icon: PhosphorIcons.Diamond,
   },
   [AIName.GPT]: {
     name: AIName.GPT,
-    content: ClaudeAI,
-    icon: PhosphorIcons.chat,
+    content: <ClaudeAI />,
+    icon: PhosphorIcons.Chat,
   },
   [AIName.WAIFU]: {
     name: AIName.WAIFU,
-    content: ClaudeAI,
-    icon: PhosphorIcons.onigiri,
+    content: <ClaudeAI />,
+    icon: PhosphorIcons.Onigiri,
   },
   [AIName.OLLAMA]: {
     name: AIName.OLLAMA,
-    content: ClaudeAI,
-    icon: PhosphorIcons.alien,
+    content: <ClaudeAI />,
+    icon: PhosphorIcons.Alien,
   },
 };
 
@@ -57,9 +58,9 @@ export const ChatSendButton = (props: Widget.ButtonProps) => {
     <button
       valign={Gtk.Align.END}
       tooltipText={props.name}
-      onClick={props.onClick}
+      onClicked={props.onClick}
       label="arrow_upward"
-      className={`sidebar-chat-send txt-norm icon-material ${props.className}`}
+      cssName={`sidebar-chat-send txt-norm icon-material ${props.cssName}`}
     />
   );
 };

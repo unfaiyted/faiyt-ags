@@ -51,9 +51,9 @@ export const hasFlatpak = actions.system.has("flatpak");
 // });
 // globalThis["darkMode"] = darkMode;
 
-export const hasPlasmaIntegration = actions.system.has(
-  "plasma-browser-integration-host",
-);
+// export const hasPlasmaIntegration = actions.system.has(
+//   "plasma-browser-integration-host",
+// );
 
 export const getDistroIcon = () => {
   // Arches
@@ -64,6 +64,7 @@ export const getDistroIcon = () => {
   if (distroID == "nixos") return "nixos-symbolic";
   // Cool thing
   if (distroID == "fedora") return "fedora-symbolic";
+  if (distroID == "fedora-asahi-remix") return "fedora-symbolic";
   // Debians
   if (distroID == "linuxmint") return "ubuntu-symbolic";
   if (distroID == "ubuntu") return "ubuntu-symbolic";
@@ -72,6 +73,7 @@ export const getDistroIcon = () => {
   if (distroID == "popos") return "ubuntu-symbolic";
   if (distroID == "raspbian") return "debian-symbolic";
   if (distroID == "kali") return "debian-symbolic";
+
   return "linux-symbolic";
 };
 
@@ -84,6 +86,7 @@ export const getDistroName = () => {
   if (distroID == "nixos") return "NixOS";
   // Cool thing
   if (distroID == "fedora") return "Fedora";
+  if (distroID == "fedora-asahi-remix") return "Fedora Asahi";
   // Debians
   if (distroID == "linuxmint") return "Linux Mint";
   if (distroID == "ubuntu") return "Ubuntu";

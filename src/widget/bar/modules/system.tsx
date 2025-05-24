@@ -5,10 +5,11 @@ import "../bar.scss";
 
 import BarGroup from "../utils/bar-group";
 import CircularProgress from "../../utils/circular-progress";
-import { PhosphorSvgIcon } from "../../utils/icons/phosphor-svg";
+import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { execAsync } from "astal/process";
 import config from "../../../utils/config";
 import { theme } from "../../../utils/color";
+import { PhosphorIconStyle, PhosphorIcons } from "../../utils/icons/types";
 
 export enum BarResourceType {
   RAM = "ram",
@@ -26,7 +27,7 @@ export interface SystemModuleProps extends Widget.BoxProps { }
 
 export interface BarResourceProps extends Widget.BoxProps {
   type: BarResourceType;
-  icon: string;
+  icon: PhosphorIcons;
   command: string;
   iconColor?: string;
 }
@@ -100,10 +101,10 @@ const BarResource = (props: BarResourceProps) => {
           <box
             widthRequest={4}
           ></box>
-          <PhosphorSvgIcon
+          <PhosphorIcon
             iconName={props.icon}
             size={16}
-            style="duotone"
+            style={PhosphorIconStyle.Duotone}
             color={props.iconColor || theme.foreground}
           />
         </box>
@@ -153,7 +154,7 @@ export default function SystemResources() {
       <box>
         <BarResource
           type={BarResourceType.RAM}
-          icon="cpu"
+          icon={PhosphorIcons.Cpu}
           command={RESOURCE_COMMAND.RAM}
           iconColor={theme.info}
         />
@@ -165,13 +166,13 @@ export default function SystemResources() {
           <box>
             <BarResource
               type={BarResourceType.SWAP}
-              icon="arrows-left-right"
+              icon={PhosphorIcons.ArrowsLeftRight}
               command={RESOURCE_COMMAND.SWAP}
               iconColor={theme.success}
             />
             <BarResource
               type={BarResourceType.CPU}
-              icon="gauge"
+              icon={PhosphorIcons.Gauge}
               command={RESOURCE_COMMAND.CPU}
               iconColor={theme.warning}
             />

@@ -1,21 +1,21 @@
-import { Widget, Gtk } from "astal/gtk3";
+import { Widget, Gtk } from "astal/gtk4";
 import { TabContent } from "../utils/containers/tabs";
 
-import { SIDEBAR_MODULES } from "./modules/types";
+import { SidebarModules } from "./modules/types";
 
 export const getSidebarTabs = () => {
   const tabs: TabContent[] = [];
-  for (const key in SIDEBAR_MODULES) {
-    tabs.push(SIDEBAR_MODULES[key]);
+  for (const key in SidebarModules) {
+    tabs.push(SidebarModules[key]);
   }
   return tabs;
 };
 
 export const getSidebarTabByName = (name: string) => {
   let tab: TabContent | null = null;
-  for (const key in SIDEBAR_MODULES) {
-    if (SIDEBAR_MODULES[key].name === name) {
-      tab = SIDEBAR_MODULES[key];
+  for (const key in SidebarModules) {
+    if (SidebarModules[key].name === name) {
+      tab = SidebarModules[key];
     }
   }
 
@@ -26,5 +26,5 @@ export const getSidebarTabByName = (name: string) => {
 };
 
 export const getSidebarTabByKey = (key: string) => {
-  return SIDEBAR_MODULES[key];
+  return SidebarModules[key];
 };

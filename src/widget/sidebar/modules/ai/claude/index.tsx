@@ -1,32 +1,20 @@
-import { Widget, Gtk, Gdk, Astal } from "astal/gtk3";
+import { Widget, Gtk } from "astal/gtk4";
 import GObject from "gi://GObject";
 import { ChatSendButton } from "../index";
-import ChatInput from "../utils/chat-input";
-import ChatMessage from "../utils/chat-message";
+import ChatInput from "../components/chat-input";
+import ChatMessage from "../components/chat-message";
 import { AIName } from "../index";
 import { Variable, bind } from "astal";
 import { VarMap } from "../../../../../types/var-map";
-import { parseCommand } from "../../../../../utils";
 import { ClaudeService } from "../../../../../services/claude";
-import { AICommandProps } from "../../../../../handlers/claude-commands";
-import { SystemMessage } from "../utils/system-message";
-import { ClaudeCommands } from "../../../../../handlers/claude-commands";
-import ChatView from "../utils/chat-view";
+import { ClaudeCommands, AICommandProps } from "../../../../../handlers/claude-commands";
+import { SystemMessage } from "../components/system-message";
+import ChatView from "../components/chat-view";
 import config from "../../../../../utils/config";
-import { enableClickthrough } from "../../../../../utils";
-// import ChatContent from "../utils/chat-content";
+import { parseCommand, enableClickthrough } from "../../../../../utils";
+// import ChatContent from "../components/chat-content";
 
 export interface ClaudeAIProps extends Widget.BoxProps { }
-
-// [AIName.GEMINI]: {
-//   label: "Gemini",
-//   name: AIName.GEMINI,
-//   sendCommand: geminiSendMessage,
-//   contentWidget: geminiView,
-//   commandBar: geminiCommands,
-//   tabIcon: geminiTabIcon,
-//   placeholderText: getString("Message Gemini..."),
-// },
 
 const WelcomeMessage = () => {
   return (
@@ -46,6 +34,7 @@ export default function ClaudeAI(props: ClaudeAIProps) {
   ]);
 
   const input = Variable("");
+  const reavererIsVisible = Variable(false);
   const updateContent = Variable(false);
 
   print("Service Starting");
@@ -125,60 +114,71 @@ export default function ClaudeAI(props: ClaudeAIProps) {
     }
   };
 
-  const sendMessageReturn = (self: Widget.Entry, event: Gdk.Event) => {
+  const sendMessageReturn = () => {
     sendMessage(input.get());
   };
 
-  const sendMessageClick = (self: Widget.Button, event: Astal.ClickEvent) => {
+  const sendMessageClick = () => {
     sendMessage(input.get());
   };
 
-  const handleInputChanged = (self: Widget.Entry) => {
-    ChatPlaceholderRevealer.visible = false;
-    input.set(self.get_text());
+  const handleInputChanged = () => {
+    reavererIsVisible.set(true);
+    // input.set(self.get_text());
+
   };
 
   chatContent.subscribe((content) => {
     print("sub-Chat Content size:", content.length);
   });
 
-  const chatPlaceholder = new Widget.Label({
-    cssName: "txt-subtext txt-smallie margin-left-5",
-    halign: Gtk.Align.START,
-    valign: Gtk.Align.CENTER,
-    label: "Enter Text...",
-    // label: APIS[currentApiId].placeholderText,
-  });
-
-  const ChatPlaceholderRevealer = new Widget.Revealer({
-    revealChild: true,
-    transitionType: Gtk.RevealerTransitionType.CROSSFADE,
-    transitionDuration: config.animations.durationLarge,
-    child: chatPlaceholder,
-    setup: enableClickthrough,
-  });
+  // const chatPlaceholder = Widget.Label({
+  //   cssName: "txt-subtext txt-smallie margin-left-5",
+  //   halign: Gtk.Align.START,
+  //   valign: Gtk.Align.CENTER,
+  //   label: "Enter Text...",
+  //   // label: APIS[currentApiId].placeholderText,
+  // });
+  //
+  // const ChatPlaceholderRevealer = Widget.Revealer({
+  //   revealChild: true,
+  //   transitionType: Gtk.RevealerTransitionType.CROSSFADE,
+  //   transitionDuration: config.animations.durationLarge,
+  //   child: chatPlaceholder,
+  //   setup: enableClickthrough,
+  // });
 
   return (
     <box {...props} vexpand>
-      <ChatView>
-        <box cssName="spacing-v-10" vertical>
-          {/*   <ChatContent content={} /> */}
-          {bind(chatContent).as((v) => {
-            return v.map(([num, w]) => w);
-          })}
-        </box>
-      </ChatView>
+      {/* <ChatView> */}
+      {/*   <box cssName="spacing-v-10" vertical> */}
+      {/*       <ChatContent content={} /> */}
+      {/*     {bind(chatContent).as((v) => { */}
+      {/*       return v.map(([num, w]) => w); */}
+      {/*     })} */}
+      {/*   </box> */}
+      {/* </ChatView> */}
       <box cssName="sidebar-chat-textarea" vexpand={false}>
-        <overlay passThrough overlays={[ChatPlaceholderRevealer]}>
-          <ChatInput
-            autoFocus={true}
-            aiName={AIName.CLAUDE}
-            handleSubmit={sendMessageReturn}
-            onChanged={handleInputChanged}
-          />
-        </overlay>
+        {/* <overlay> */}
+        {/*   <revealer */}
+        {/*     visible={reavererIsVisible.get()} */}
+        {/*     transitionType={Gtk.RevealerTransitionType.CROSSFADE} transitionDuration={config.animations.durationLarge}> */}
+        {/*     <ChatInput */}
+        {/*       autoFocus={true} */}
+        {/*       aiName={AIName.CLAUDE} */}
+        {/*       handleSubmit={sendMessageReturn} */}
+        {/*       onChanged={handleInputChanged} */}
+        {/*     /> */}
+        {/*   </revealer> */}
+        {/*   <ChatInput */}
+        {/*     autoFocus={true} */}
+        {/*     aiName={AIName.CLAUDE} */}
+        {/*     handleSubmit={sendMessageReturn} */}
+        {/*     onChanged={handleInputChanged} */}
+        {/*   /> */}
+        {/* </overlay> */}
         <box cssName="width-10" />
-        <ChatSendButton onClick={sendMessageClick} />
+        {/* <ChatSendButton onClicked={sendMessageClick} /> */}
       </box>
     </box>
   );

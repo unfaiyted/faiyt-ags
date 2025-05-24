@@ -1,17 +1,20 @@
 import { App, Astal, Gtk, Gdk } from "astal/gtk4";
+import { bind, Variable } from "astal";
+
 import { getSidebarTabs } from "../utils";
 import { ScreenSide } from "../types";
 import PhosphorIcon from "../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../utils/icons/types";
 import SideBar from "../";
 import Tabs from "../../utils/containers/tabs";
-import { TabContent } from "../../../utils/containers/tabs";
+import { TabContent } from "./../../utils/containers/tabs";
 import { getSidebarTabByName } from "../utils";
-import { bind, Variable } from "astal";
+
 import QuickToggles from "../modules/toggles";
 import { PopupWindowProps } from "../../utils/popup-window";
 import { SidebarModule } from "../modules/types";
 import HeaderModule from "../modules/header";
+import { monitorFile } from "astal";
 
 interface RighSideBarProps extends PopupWindowProps {
   screenSide?: ScreenSide.RIGHT;
@@ -21,6 +24,8 @@ interface RighSideBarProps extends PopupWindowProps {
 
 export default function RightSideBar(sideBarProps: RighSideBarProps) {
   const { setup, child, ...props } = sideBarProps;
+  
+  print(`RightSideBar - Monitor Index: ${props.monitorIndex}, GdkMonitor: ${props.gdkmonitor}`);
 
   const enabledTabs = [
     SidebarModule.NOTIFICATIONS,
@@ -38,7 +43,7 @@ export default function RightSideBar(sideBarProps: RighSideBarProps) {
   sidebarTabs.map((tab) => print("Tab name:", tab.name));
 
   return (
-    <SideBar {...props} screenSide={ScreenSide.RIGHT} application={App}>
+    <SideBar {...props} monitorIndex={props.monitorIndex} screenSide={ScreenSide.RIGHT} application={App} cssName="sidebar-right">
       <box cssName="sidebar-right spacing-v-15" vertical vexpand>
         <box vertical cssName="spacing-v-5">
           <HeaderModule />

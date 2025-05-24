@@ -9,14 +9,14 @@ export interface SystemMessageProps extends Widget.BoxProps {
 
 export const SystemMessage = (props: SystemMessageProps) => {
   return (
-    <box className="sidebar-chat-message">
+    <box cssName="sidebar-chat-message">
       <box vertical>
         <label
           xalign={0}
           halign={Gtk.Align.START}
           wrap
           label={`System  •  ${props.commandName}`}
-          className="txt txt-bold sidebar-chat-name sidebar-chat-name-system"
+          cssName="txt txt-bold sidebar-chat-name sidebar-chat-name-system"
         />
         {<ChatMessageContent content={props.content} />}
       </box>

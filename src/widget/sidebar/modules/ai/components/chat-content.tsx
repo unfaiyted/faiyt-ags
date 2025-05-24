@@ -13,7 +13,7 @@ export const ChatContent = (props: ChatContentProps) => {
   };
 
   return (
-    <box className="spacing-v-5" vertical>
+    <box cssName="spacing-v-5" vertical>
       {props.content}
     </box>
   );

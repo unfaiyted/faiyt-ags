@@ -1,8 +1,9 @@
 import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
-import GtkSource from "gi://GtkSource?version=4";
+import GtkSource from "gi://GtkSource?version=5";
 import config from "../../../../../utils/config";
+import { PhosphorIcons, PhosphorIconStyle } from "../../../../utils/icons/types";
+import PhosphorIcon from "../../../../utils/icons/phosphor";
 import { execAsync } from "astal/process";
-import { MaterialIcon } from "../../../../utils/icons/material";
 
 const CUSTOM_SCHEME_ID = `custom`;
 
@@ -41,7 +42,7 @@ export const ChatCodeBlock = (content = "", lang = "txt") => {
 
   const sourceView = HighlightedCode(content, lang);
 
-  const handleClick = (self: Widget.Button, event: Astal.ClickEvent) => {
+  const handleClick = () => {
     const buffer = sourceView.get_buffer();
     const copyContent = buffer.get_text(
       buffer.get_start_iter(),
@@ -57,22 +58,23 @@ export const ChatCodeBlock = (content = "", lang = "txt") => {
   };
 
   const codeBlock = (
-    <box className="sidebar-chat-codeblock" vertical>
-      <box className="sidebar-chat-codeblock-topbar">
-        <label className="sidebar-chat-codeblock-topbar-txt">{lang}</label>
-        <box className="sidebar-chat-codeblock-topbar-btn">
+    <box cssName="sidebar-chat-codeblock" vertical>
+      <box cssName="sidebar-chat-codeblock-topbar">
+        <label cssName="sidebar-chat-codeblock-topbar-txt">{lang}</label>
+        <box cssName="sidebar-chat-codeblock-topbar-btn">
           <button
-            className="sidebar-chat-codeblock-topbar-btn"
-            onClick={handleClick}
+            cssName="sidebar-chat-codeblock-topbar-btn"
+            onClicked={handleClick}
           >
-            <box className="spacing-h-5">
-              <MaterialIcon icon="content_copy" size="small" />
-              <label label="Copy" />
+            <box cssName="spacing-h-5">
+              {/* <MaterialIcon icon="content_copy" size="small" /> */}
+              <PhosphorIcon iconName={PhosphorIcons.Copy} />
+              < label label="Copy" />
             </box>
           </button>
         </box>
       </box>
-      <box className="sidebar-chat-codeblock-code" homogeneous>
+      <box cssName="sidebar-chat-codeblock-code" homogeneous>
         <scrollable
           vscroll={Gtk.PolicyType.NEVER}
           hscroll={Gtk.PolicyType.AUTOMATIC}

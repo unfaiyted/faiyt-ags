@@ -1,3 +1,4 @@
+@use 'sass:map';
 /* Rosé Pine Theme Colors */
 $current-theme: rose-pine;
 
@@ -142,5 +143,5 @@ $themes: (
 );
 
 @function c($color) {
-  @return map-get(map-get($themes, $current-theme), $color);
+  @return map.get(map.get($themes, $current-theme), $color);
 }

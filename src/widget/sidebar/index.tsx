@@ -6,10 +6,13 @@ import { Variable, bind } from "astal";
 
 export interface SideBarProps extends PopupWindowProps {
   screenSide: ScreenSide;
+  monitorIndex?: number;
 }
 
 export default function SideBar(sideBarProps: SideBarProps) {
-  const { setup, child, ...props } = sideBarProps;
+  const { setup, child, screenSide, monitorIndex, ...props } = sideBarProps;
+  
+  print(`SideBar - screenSide: ${screenSide}, monitorIndex: ${monitorIndex}, gdkmonitor: ${props.gdkmonitor}`);
 
   const keymode: Astal.Keymode = Astal.Keymode.ON_DEMAND;
 
@@ -18,7 +21,7 @@ export default function SideBar(sideBarProps: SideBarProps) {
   // TODO: handle all 4 sides
   let anchor: Astal.WindowAnchor = Astal.WindowAnchor.NONE;
 
-  switch (sideBarProps.screenSide) {
+  switch (screenSide) {
     case ScreenSide.LEFT:
       anchor =
         Astal.WindowAnchor.LEFT |
@@ -46,19 +49,19 @@ export default function SideBar(sideBarProps: SideBarProps) {
     default:
   }
 
-  const name: string = `sidebar-${sideBarProps.screenSide}`;
+  const monitorSuffix = monitorIndex !== undefined ? `-${monitorIndex}` : '';
+  const name: string = `sidebar-${screenSide}${monitorSuffix}`;
   const layer: Astal.Layer = Astal.Layer.TOP;
   print("Sidebar name:", name);
 
   return (
     <PopupWindow
+      {...props}
       name={name}
-      cssName={props.cssName}
       layer={layer}
       visible={bind(isVisible).as((v) => v)}
       keymode={keymode}
       anchor={anchor}
-      {...props}
     >
       {child}
     </PopupWindow>

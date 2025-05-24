@@ -24,7 +24,7 @@ export default function PinButton(props: PinButtonProps) {
     <button
       valign={Gtk.Align.START}
       tooltipText={props.name}
-      onClick={handleClick}
+      onClicked={handleClick}
       cssName={`sidebar-pin ${props.cssName}`}
       label={`${props.icon}`}
       {...props}

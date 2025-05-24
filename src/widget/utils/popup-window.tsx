@@ -17,7 +17,6 @@ export default ({
 }: PopupWindowProps) => {
   // Register ESC key to close window
   const closeWindow = () => {
-    // App.closeWindow(name);
     try {
       if (typeof name === "string") App?.get_window(name)?.close();
     } catch (error) {
@@ -50,14 +49,13 @@ export default ({
       self.set_css_classes([hideClassName]);
     }
   };
+  const handleKeyPress = (self: Gtk.Window, keyval: number, keycode: number, state: Gdk.ModifierType) => {
+    print("Key press event:", keyval);
+    print("Key press event.keycode:", keycode);
+    print("Gdk.Key.Escape:", Gdk.KEY_Escape);
 
-  const handleKeyPress = (self: Gtk.Window, event: Gdk.KeyEvent) => {
-    // print("Key press event.keyval:", event.get_keyval());
-    // print("Key press event.keycode:", event.get_keycode());
-    // print("Gdk.Key.Escape:", Gdk.KEY_Escape);
-
-    if (event.get_keycode() === Gdk.KEY_Escape) {
-      // print("Closing popup-window, event.keycode[1]:", event.get_keycode()[1]);
+    if (keyval === Gdk.KEY_Escape) {
+      print("Closing popup-window:", keyval);
       self.hide();
       self.visible = false;
       return true;
@@ -73,10 +71,12 @@ export default ({
   return (
     <window
       name={name}
+      gdkmonitor={props.gdkmonitor}
+      decorated={false}
       layer={Astal.Layer.TOP}
-      onDraw={handleDraw}
-      onKeyPressEvent={handleKeyPress}
-      cssName={props.cssName}
+      onKeyPressed={handleKeyPress}
+      // setup={handleDraw}
+      cssName={props.cssName || "popup-window"}
       {...props}
     >
       <box setup={boxSetup}>{child}</box>

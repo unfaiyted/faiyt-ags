@@ -34,7 +34,7 @@ if (!fileExists(`${config.dir.config}/claude_history.json`)) {
 
 exec(`mkdir -p ${config.dir.config}/ags/user/ai`);
 
-function replaceapidom(URL: string) {
+function replaceApiDOM(URL: string) {
   if (fileExists(APIDOM_FILE_LOCATION)) {
     var contents = readFile(APIDOM_FILE_LOCATION).trim();
     var URL = URL.toString().replace(
@@ -499,10 +499,6 @@ export class ClaudeService extends GObject.Object {
     // const proxyResolver = new Gio.SimpleProxyResolver({
     //   defaultProxy: config.ai.proxyUrl || undefined,
     // });
-
-    // const requestHeaders = new Soup.MessageHeaders(
-    //   Soup.MessageHeadersType.REQUEST,
-    // );
 
     const session = new Soup.Session();
     const message = new Soup.Message({

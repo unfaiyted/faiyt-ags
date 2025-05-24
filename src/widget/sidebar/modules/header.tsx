@@ -1,4 +1,4 @@
-import { Widget, Gtk } from "astal/gtk3";
+import { Widget, Gtk } from "astal/gtk4";
 import { getDistroIcon } from "../../../utils/system";
 import { ReloadIconButton } from "./buttons/reload";
 import { SettingsIconButton } from "./buttons/settings";
@@ -15,7 +15,7 @@ export default function HeaderModule(props: HeaderModuleProps) {
     <box
       cssName="spacing-h-10 sidebar-group-invisible-morehorizpad"
     >
-      <icon icon={getDistroIcon()} className="txt txt-larger" />
+      <image iconName={getDistroIcon()} cssName="txt txt-larger" />
       <label
         halign={Gtk.Align.START}
         label={bind(uptime).as((v) => "Uptime: " + v.toString())}

@@ -1,7 +1,7 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { Variable } from "astal";
 import Hypr from "gi://AstalHyprland";
-import { PhosphorSvgIcon } from "../../utils/icons/phosphor-svg";
+import { PhosphorIcon } from "../../utils/icons/phosphor";
 import BarGroup from "../utils/bar-group";
 import { theme } from "../../../utils/color";
 
@@ -117,7 +117,7 @@ export default function WindowTitle() {
                 : "desktop";
 
               const icon = (
-                <PhosphorSvgIcon
+                <PhosphorIcon
                   iconName={iconName}
                   style="duotone"
                   size={16}

@@ -1,8 +1,7 @@
 import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk4";
 import SystemTray from "gi://AstalTray";
-// import Astal from "gi://Astal";
-import PhosphorIcon from "../../../utils/icons/phosphor";
-import { PhosphorIcons } from "../../../utils/icons/types";
+import { PhosphorIcon } from "../../../utils/icons/phosphor";
+import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
 
 export interface TrayItemProps extends Widget.ButtonProps {
   item: SystemTray.TrayItem;
@@ -36,7 +35,7 @@ export default function TrayItem(trayItemProps: TrayItemProps) {
       onClicked={handleItemClick}
     >
       {item?.iconName == "" ? (
-        <PhosphorIcon icon={PhosphorIcons["question-mark"]} size={16} />
+        <PhosphorIcon iconName={PhosphorIcons.QuestionMark} style={PhosphorIconStyle.Duotone} size={16} />
       ) : (
         <image
           iconName={item?.iconName == "" ? "missing-symbolic" : item.iconName}

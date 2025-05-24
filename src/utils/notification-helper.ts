@@ -29,4 +29,3 @@ export const getNotifd = () => {
 };
 
 export default getNotifd;
-

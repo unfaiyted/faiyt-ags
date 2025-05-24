@@ -1,12 +1,12 @@
 import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk4";
 import PopupWindow, { PopupWindowProps } from "../../utils/popup-window";
 import SideBar from "../index";
-import { SideBarProps, ScreenSide } from "../types";
+import { ScreenSide } from "../types";
 import types from "../../bar/types";
 import Tabs from "../../utils/containers/tabs";
-import { getSidebarTabs } from "../modules";
+import { getSidebarTabs } from "../utils";
 import PhosphorIcon from "../../utils/icons/phosphor";
-import { PhosphorIcons, PhosphorWeight } from "../../utils/icons/types";
+import { PhosphorIcons, PhosphorIconStyle } from "../../utils/icons/types";
 
 interface LeftSideBarProps extends PopupWindowProps {
   screenSide?: ScreenSide.LEFT;
@@ -28,8 +28,8 @@ export default function LeftSideBar(sideBarProps: LeftSideBarProps) {
 
   return (
     <SideBar {...props} screenSide={ScreenSide.LEFT} application={App}>
-      <box className="sidebar-left spacing-v-10">
-        <box vexpand={true} css="min-width: 2px;">
+      <box cssName="sidebar-left spacing-v-10">
+        <box vexpand={true} >
           <Tabs tabs={sidebarTabs} active={0} />
         </box>
       </box>

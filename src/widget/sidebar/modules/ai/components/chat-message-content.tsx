@@ -2,16 +2,17 @@ import { Widget, Gtk } from "astal/gtk4";
 import { ChatCodeBlock } from "./chat-code-block";
 import config from "../../../../../utils/config";
 import { ClaudeMessage } from "../../../../../services/claude";
-import GtkSource from "gi://GtkSource?version=4";
+import GtkSource from "gi://GtkSource?version=5";
 import { Binding } from "astal";
 
 export interface MessageContentProps extends Widget.BoxProps {
   content: string | Binding<string>;
 }
 
+
 const Divider = () =>
-  new Widget.Box({
-    className: "sidebar-chat-divider",
+  Widget.Box({
+    cssName: "sidebar-chat-divider",
   });
 
 const md2pango = (content: string) => {
@@ -19,9 +20,9 @@ const md2pango = (content: string) => {
 };
 
 const TextBlock = (content = "") =>
-  new Widget.Label({
+  Widget.Label({
     halign: Gtk.Align.FILL,
-    className: "txt sidebar-chat-txtblock sidebar-chat-txt",
+    cssName: "txt sidebar-chat-txtblock sidebar-chat-txt",
     useMarkup: true,
     xalign: 0,
     wrap: true,
@@ -30,9 +31,9 @@ const TextBlock = (content = "") =>
   });
 
 export const ChatMessageContent = (props: MessageContentProps) => {
-  const contentBox = new Widget.Box({
+  const contentBox = Widget.Box({
     ...props,
-    className: "sidebar-chat-message-content",
+    cssName: "sidebar-chat-message-content",
   });
 
   const updateText = (item: GtkSource.View, text: string) => {
@@ -100,24 +101,14 @@ export const ChatMessageContent = (props: MessageContentProps) => {
       const lastLabel = kids[kids.length - 1];
       let blockContent = lines.slice(lastProcessed, lines.length).join("\n");
       if (!inCode) {
-        const currLabel = lastLabel as Widget.Label;
+        const currLabel = lastLabel;
         currLabel.label = `${md2pango(blockContent)}${useCursor ? config.ai.writingCursor : ""}`;
       } else {
         const currItem = lastLabel as GtkSource.View;
         currItem.get_buffer().set_text(blockContent, -1);
       }
     }
-    // Debug: plain text
-    // contentBox.add(Label({
-    //     hpack: 'fill',
-    //     className: 'txt sidebar-chat-txtblock sidebar-chat-txt',
-    //     useMarkup: false,
-    //     xalign: 0,
-    //     wrap: true,
-    //     selectable: true,
-    //     label: '------------------------------\n' + md2pango(content),
-    // }))
-    contentBox.show_all();
+    contentBox.show();
   };
   if (props.content instanceof Binding) {
     print("Binding content subscribed");

@@ -30,7 +30,7 @@ export default function LeftSideModule(
   );
 }
 //
-// <eventbox onScroll={handleScroll} onClick={handleClick}>
+// <eventbox onScroll={handleScroll} onClicked={handleClick}>
 //   {/* <box homogeneous={false}> */}
 //   <box className="bar-sidemodule">
 //     ,{/* <box className="bar-corner-spacing" /> */}

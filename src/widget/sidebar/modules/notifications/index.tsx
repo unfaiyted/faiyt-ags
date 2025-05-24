@@ -1,7 +1,6 @@
 import { Widget, Gtk } from "astal/gtk4";
 import config from "../../../../utils/config";
 import gobject from "gi://GObject";
-import MaterialIcon from "../../../utils/icons/material";
 import { VarMap } from "../../../../types/var-map";
 import Notification from "./notification";
 import Notifd from "gi://AstalNotifd";
@@ -22,7 +21,7 @@ export const NotificationListEmpty = (props: Widget.BoxProps) => {
     <box homogeneous {...props}>
       <box vertical valign={Gtk.Align.CENTER} cssName="txt spacing-v-10">
         <box vertical cssName="spacing-v-5 txt-subtext">
-          <MaterialIcon icon="notifications_active" size="gigantic" />
+          {/* <MaterialIcon icon="notifications_active" size="gigantic" /> */}
           <label label="No notifications" cssName="txt-small" />
         </box>
       </box>

@@ -1,5 +1,14 @@
 import { icons } from "@phosphor-icons/core";
 
+export enum PhosphorIconStyle {
+  Regular = "regular",
+  Bold = "bold",
+  Duotone = "duotone",
+  Fill = "fill",
+  Light = "light",
+  Thin = "thin",
+}
+
 export enum PhosphorIcons {
   Acorn = "acorn",
   AddressBook = "address-book",

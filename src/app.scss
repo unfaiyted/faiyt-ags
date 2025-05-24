@@ -1,7 +1,8 @@
 @use "styles/colors";
 
 // TAILWIND CSS
-@import "./output.css";
+@forward "./output.css";
 
 // BAR CSS
-@import "./widget/bar/bar.scss";
+@forward "./widget/bar/bar.scss";
+@forward "./widget/bar/modules/utilities/utililies-button.scss";

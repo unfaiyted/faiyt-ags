@@ -1,4 +1,4 @@
-import { Widget, Gtk } from "astal/gtk3";
+import { Widget, Gtk } from "astal/gtk4";
 import { actions } from "../../../../utils/actions";
 import { setupCursorHover } from "../../../utils/buttons";
 
@@ -7,7 +7,7 @@ export const ReloadIconButton = (props: Widget.ButtonProps) => {
     <button
       cssName="txt-small sidebar-iconbutton"
       tooltipText="Reload Environment config"
-      onClick={actions.system.reload}
+      onClicked={actions.system.reload}
       setup={setupCursorHover}
     >
       {/* <MaterialIcon icon="refresh" size="normal" /> */}

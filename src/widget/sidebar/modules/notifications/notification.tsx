@@ -2,10 +2,10 @@ import { Widget, Gtk } from "astal/gtk4";
 import GLib from "gi://GLib";
 import Pango from "gi://Pango";
 import { Variable, Binding, bind } from "astal";
-import MaterialIcon from "../../../utils/icons/material";
 import config from "../../../../utils/config";
 import { getFriendlyTimeString } from "../../../../utils";
 import { setupCursorHover } from "../../../utils/buttons";
+import Notifd from "gi://AstalNotifd?version=0.1";
 import getNotifd from "../../../../utils/notification-helper";
 
 export interface NotificationProps extends Widget.RevealerProps {
@@ -30,11 +30,11 @@ export interface NotificationExpandProps extends Widget.BoxProps {
 export const NotificationIcon = (props: NotificationIconProps) => {
   return (
     <box valign={Gtk.Align.START} homogeneous>
-      <overlay overlays={[]}>
+      <overlay>
         <box
           valign={Gtk.Align.CENTER}
           hexpand
-          className={`notif-icon notif-icon-material-${props.notification.urgency}`}
+          cssName={`notif-icon notif-icon-material-${props.notification.urgency}`}
         ></box>
       </overlay>
     </box>
@@ -54,11 +54,10 @@ export const NotificationText = (props: NotificationTextProps) => {
     return (
       <label
         xalign={0}
-        className="txt-small txt-semibold titlefont"
+        cssName="txt-small txt-semibold titlefont"
         justify={Gtk.Justification.LEFT}
         hexpand
         maxWidthChars={1}
-        truncate={true}
         ellipsize={Pango.EllipsizeMode.END}
         label={props.notification.summary}
       />
@@ -70,7 +69,7 @@ export const NotificationText = (props: NotificationTextProps) => {
       <label
         valign={Gtk.Align.CENTER}
         justify={Gtk.Justification.RIGHT}
-        className="txt-smaller txt-semibold"
+        cssName="txt-smaller txt-semibold"
         label={time ? time : ""}
       />
     );
@@ -85,7 +84,7 @@ export const NotificationText = (props: NotificationTextProps) => {
       >
         <label
           xalign={0}
-          className={`txt-smallie notif-body-${urgency}`}
+          cssName={`txt-smallie notif-body-${urgency}`}
           useMarkup
           maxWidthChars={1}
           wrap
@@ -106,8 +105,8 @@ export const NotificationText = (props: NotificationTextProps) => {
         <box>
           <button
             hexpand
-            className={`notif-action notif-action-${urgency}`}
-            onClick={() => { }}
+            cssName={`notif-action notif-action-${urgency}`}
+            onClicked={() => { }}
             setup={setupCursorHover}
           >
             <label>Close</label>
@@ -117,8 +116,8 @@ export const NotificationText = (props: NotificationTextProps) => {
             return (
               <button
                 hexpand
-                className={`notif-action notif-action-${urgency}`}
-                onClick={() => props.notification.invoke(action.id)}
+                cssName={`notif-action notif-action-${urgency}`}
+                onClicked={() => props.notification.invoke(action.id)}
                 setup={setupCursorHover}
               >
                 <label>{action.label}</label>
@@ -143,21 +142,21 @@ export const NotificationText = (props: NotificationTextProps) => {
 };
 
 export const NotificationExpandButton = (props: NotificationExpandProps) => {
-  // onClick={() => props.notification.expand()}
+  // onClicked={() => props.notification.expand()}
   //
   return (
     <button
       valign={Gtk.Align.START}
-      className="notif-expand-btn"
+      cssName="notif-expand-btn"
       setup={setupCursorHover}
-      onClick={props.toggleExpand}
+      onClicked={props.toggleExpand}
     >
-      <box className="spacing-h-5">
-        <MaterialIcon
-          icon="expand_more"
-          size="normal"
-          valign={Gtk.Align.CENTER}
-        />
+      <box cssName="spacing-h-5">
+        {/* <MaterialIcon */}
+        {/*   icon="expand_more" */}
+        {/*   size="normal" */}
+        {/*   valign={Gtk.Align.CENTER} */}
+        {/* /> */}
       </box>
     </button>
   );
@@ -187,10 +186,10 @@ export default function Notification(props: NotificationProps) {
       <box homogeneous>
         <box homogeneous>
           <box
-            className={`${props.isPopup ? "popup-" : ""}notif-${props.notification.urgency} spacing-h-10`}
+            cssName={`${props.isPopup ? "popup-" : ""}notif-${props.notification.urgency} spacing-h-10`}
           >
             <NotificationIcon notification={props.notification} />
-            <box className="spacing-h-5">
+            <box cssName="spacing-h-5">
               <NotificationText
                 notification={props.notification}
                 isExpanded={bind(isExpanded)}

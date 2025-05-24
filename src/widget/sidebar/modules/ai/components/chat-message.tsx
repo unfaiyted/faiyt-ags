@@ -1,4 +1,4 @@
-import { Widget, Gtk, Gdk, Astal } from "astal/gtk3";
+import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
 import GLib from "gi://GLib";
 import ChatCodeBlock from "./chat-code-block";
 import ChatMessageContent from "./chat-message-content";

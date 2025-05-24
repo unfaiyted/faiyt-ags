@@ -1,13 +1,14 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { Variable, bind } from "astal";
 import BarGroup from "../../utils/bar-group";
-import { PhosphorSvgIcon } from "../../../utils/icons/phosphor-svg";
+import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import { exec } from "astal/process";
 import config from "../../../../utils/config";
 import { actions } from "../../../../utils/actions";
 import { writeFile, readFile } from "astal/file";
 import GLib from "gi://GLib";
-import { WeatherSymbol, WwoCode } from "./types";
+import { WwoCode } from "./types";
+import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
 import { theme } from "../../../../utils/color";
 
 const WEATHER_CACHE_FOLDER = `${GLib.get_user_cache_dir()}/ags/weather`;
@@ -16,26 +17,26 @@ exec(`mkdir -p ${WEATHER_CACHE_FOLDER}`);
 export interface SideModuleProps extends Widget.BoxProps { }
 
 // Map weather conditions to Phosphor icons (using actual existing icon names)
-const WEATHER_ICON_MAP: Record<string, string> = {
-  SUNNY: "sun",
-  PARTLY_CLOUDY: "cloud-sun",
-  CLOUDY: "cloud",
-  VERY_CLOUDY: "cloud",
-  FOG: "cloud-fog",
-  LIGHT_SHOWERS: "cloud-rain",
-  LIGHT_RAIN: "cloud-rain",
-  HEAVY_SHOWERS: "cloud-rain",
-  HEAVY_RAIN: "cloud-rain",
-  LIGHT_SNOW: "cloud-snow",
-  HEAVY_SNOW: "cloud-snow",
-  LIGHT_SNOW_SHOWERS: "cloud-snow",
-  HEAVY_SNOW_SHOWERS: "cloud-snow",
-  THUNDERY_SHOWERS: "cloud-lightning",
-  THUNDERY_HEAVY_RAIN: "cloud-lightning",
-  THUNDERY_SNOW_SHOWERS: "cloud-lightning",
-  LIGHT_SLEET: "cloud-rain",
-  LIGHT_SLEET_SHOWERS: "cloud-rain",
-  DEFAULT: "thermometer"
+const WEATHER_ICON_MAP: Record<string, PhosphorIcons> = {
+  SUNNY: PhosphorIcons.Sun,
+  PARTLY_CLOUDY: PhosphorIcons.CloudSun,
+  CLOUDY: PhosphorIcons.Cloud,
+  VERY_CLOUDY: PhosphorIcons.Cloud,
+  FOG: PhosphorIcons.CloudFog,
+  LIGHT_SHOWERS: PhosphorIcons.CloudRain,
+  LIGHT_RAIN: PhosphorIcons.CloudRain,
+  HEAVY_SHOWERS: PhosphorIcons.CloudRain,
+  HEAVY_RAIN: PhosphorIcons.CloudRain,
+  LIGHT_SNOW: PhosphorIcons.CloudSnow,
+  HEAVY_SNOW: PhosphorIcons.CloudSnow,
+  LIGHT_SNOW_SHOWERS: PhosphorIcons.CloudSnow,
+  HEAVY_SNOW_SHOWERS: PhosphorIcons.CloudSnow,
+  THUNDERY_SHOWERS: PhosphorIcons.CloudLightning,
+  THUNDERY_HEAVY_RAIN: PhosphorIcons.CloudLightning,
+  THUNDERY_SNOW_SHOWERS: PhosphorIcons.CloudLightning,
+  LIGHT_SLEET: PhosphorIcons.CloudRain,
+  LIGHT_SLEET_SHOWERS: PhosphorIcons.CloudRain,
+  DEFAULT: PhosphorIcons.Thermometer
 };
 
 // Get temperature-based color (blue for cold, red for warm) using Rosé Pine colors
@@ -73,11 +74,11 @@ function getWeatherColor(condition: string): string {
 }
 
 export default function SideModule() {
-  const weatherIcon = new Variable("thermometer");
+  const weatherIcon = new Variable(PhosphorIcons.Thermometer);
   const weatherIconColor = new Variable(theme.foreground);
   const temperature = new Variable(0);
   const feelsLike = new Variable(0);
-  const weatherDesc = new Variable("Weather");
+  const weatherDesc = new Variable(":/");
   const tooltipText = new Variable("");
   const tempColor = new Variable(theme.foreground);
 
@@ -131,31 +132,31 @@ export default function SideModule() {
                   tooltipText.set(`${weatherDescription} - Feels like ${feelsLikeValue}°${config.weather.preferredUnit}`);
                 } catch (symbolErr) {
                   print("Symbol error:", symbolErr);
-                  weatherIcon.set("thermometer");
+                  weatherIcon.set(PhosphorIcons.Thermometer);
                   weatherIconColor.set(theme.foreground);
                   weatherDesc.set("Weather unavailable");
                 }
               } else {
                 // Fallback for missing temperature data
-                weatherIcon.set("thermometer");
+                weatherIcon.set(PhosphorIcons.Thermometer);
                 weatherIconColor.set(theme.foreground);
                 weatherDesc.set("Weather data incomplete");
               }
             } else {
               // Fallback for missing weather description
-              weatherIcon.set("thermometer");
+              weatherIcon.set(PhosphorIcons.Thermometer);
               weatherIconColor.set(theme.foreground);
               weatherDesc.set("Weather description unavailable");
             }
           } else {
             // Fallback for missing weather data structure
-            weatherIcon.set("thermometer");
+            weatherIcon.set(PhosphorIcons.Thermometer);
             weatherIconColor.set(theme.foreground);
             weatherDesc.set("Weather data unavailable");
           }
         } catch (err) {
           print("Error parsing weather data:", err);
-          weatherIcon.set("thermometer");
+          weatherIcon.set(PhosphorIcons.Thermometer);
           weatherIconColor.set(theme.foreground);
           weatherDesc.set("Weather parse error");
         }
@@ -204,32 +205,32 @@ export default function SideModule() {
                   tooltipText.set(`${weatherDescription} - Feels like ${feelsLikeValue}°${config.weather.preferredUnit}`);
                 } catch (symbolErr) {
                   print("Symbol error:", symbolErr);
-                  weatherIcon.set("thermometer");
+                  weatherIcon.set(PhosphorIcons.Thermometer);
                   weatherIconColor.set(theme.foreground);
                   weatherDesc.set("Weather unavailable");
                 }
               } else {
                 // Fallback for missing temperature data
-                weatherIcon.set("thermometer");
+                weatherIcon.set(PhosphorIcons.Thermometer);
                 weatherIconColor.set(theme.foreground);
                 weatherDesc.set("Weather data incomplete");
               }
             } else {
               // Fallback for missing weather description
-              weatherIcon.set("thermometer");
+              weatherIcon.set(PhosphorIcons.Thermometer);
               weatherIconColor.set(theme.foreground);
               weatherDesc.set("Weather description unavailable");
             }
           } else {
             // Fallback for missing weather data structure
-            weatherIcon.set("thermometer");
+            weatherIcon.set(PhosphorIcons.Thermometer);
             weatherIconColor.set(theme.foreground);
             weatherDesc.set("Weather data unavailable");
           }
         } catch (err) {
           // Fallback for JSON parsing errors or missing cache
           print(err);
-          weatherIcon.set("thermometer");
+          weatherIcon.set(PhosphorIcons.Thermometer);
           weatherIconColor.set(theme.foreground);
           weatherDesc.set("Weather unavailable");
         }
@@ -265,10 +266,10 @@ export default function SideModule() {
           box.add_controller(motionController);
         }}
       >
-        <PhosphorSvgIcon
+        <PhosphorIcon
           iconName={bind(weatherIcon)}
           color={bind(weatherIconColor)}
-          style="duotone"
+          style={PhosphorIconStyle.Duotone}
           marginEnd={6}
           size={16}
         />

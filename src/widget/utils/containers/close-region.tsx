@@ -46,12 +46,14 @@ export default function CloseRegion(props: CloseRegionProps) {
   }
 
   return (
-    <box onClick={props.handleClose}>
-      <box
-        vexpand={props.vexpand || true}
-        heightRequest={props.hexpand ? monitor.height : height}
-        widthRequest={props.hexpand ? monitor.width : width}
-      ></box>
-    </box>
+    <button onClicked={props.handleClose}>
+      <box>
+        <box
+          vexpand={props.vexpand || true}
+          heightRequest={props.hexpand ? monitor.height : height}
+          widthRequest={props.hexpand ? monitor.width : width}
+        ></box>
+      </box>
+    </button>
   );
 }

@@ -1,31 +1,32 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { Variable, bind } from "astal";
 import BarGroup from "../../utils/bar-group";
-import { PhosphorSvgIcon } from "../../../utils/icons/phosphor-svg";
+import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import { Fixed } from "../../../utils/containers/drawing-area";
 import CircularProgress from "../../../utils/circular-progress";
 import Battery from "gi://AstalBattery";
+import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
 import { theme } from "../../../../utils/color";
 
 export interface BatteryModuleProps extends Widget.BoxProps { }
 
 // Helper function to get battery icon name based on level and charging state
-function getBatteryIconName(level: number, charging: boolean): string {
+function getBatteryIconName(level: number, charging: boolean): PhosphorIcons {
   if (charging) {
-    return "battery-charging";
+    return PhosphorIcons.BatteryCharging;
   }
-  
+
   // Handle different battery levels
   if (level <= 10) {
-    return "battery-low";
+    return PhosphorIcons.BatteryLow;
   } else if (level <= 30) {
-    return "battery-warning";
+    return PhosphorIcons.BatteryWarning;
   } else if (level <= 60) {
-    return "battery-medium";
+    return PhosphorIcons.BatteryMedium;
   } else if (level <= 90) {
-    return "battery-high";
+    return PhosphorIcons.BatteryHigh;
   } else {
-    return "battery-full";
+    return PhosphorIcons.BatteryFull;
   }
 }
 
@@ -38,7 +39,7 @@ export default function BatteryModule(props: BatteryModuleProps) {
   const timeRemaining = new Variable("");
   const batteryState = new Variable("");
   const batteryColor = new Variable(theme.foreground);
-  const batteryIconName = new Variable("battery");
+  const batteryIconName = new Variable(PhosphorIcons.BatteryEmpty);
 
   // Helper function to format time remaining
   const formatTimeRemaining = (seconds: number): string => {
@@ -127,10 +128,10 @@ export default function BatteryModule(props: BatteryModuleProps) {
 
                 // Add new PhosphorSvgIcon with current values
                 const icon = (
-                  <PhosphorSvgIcon
+                  <PhosphorIcon
                     iconName={batteryIconName.get()}
                     size={16}
-                    style="duotone"
+                    style={PhosphorIconStyle.Duotone}
                     color={batteryColor.get()}
                   />
                 );
@@ -150,7 +151,6 @@ export default function BatteryModule(props: BatteryModuleProps) {
   return (
     <BarGroup>
       <button
-        {...props}
         cssName="sys-resources-btn"
         heightRequest={24}
         widthRequest={24}

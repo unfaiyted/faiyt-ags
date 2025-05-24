@@ -132,13 +132,13 @@ export const TabHeaderItem = (tabHeaderItemProps: TabHeaderItemProps) => {
 
   // print("TabHeaderItem:", props.tab.name);
   return (
-    <button cssName="tab-btn" onClick={handleClick}>
+    <button cssName="tab-btn" onClicked={handleClick}>
       <box
         halign={Gtk.Align.CENTER}
         valign={Gtk.Align.CENTER}
         cssName={`spacing-v-5 txt-small`}
       >
-        <PhosphorIcon icon={props.tab.icon} size={24} />
+        <PhosphorIcon iconName={props.tab.icon} size={24} />
         {!props.hideLabels ? <label label={props.tab.name} /> : <box />}
       </box>
     </button>
