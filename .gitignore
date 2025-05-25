@@ -4,3 +4,4 @@ dist/
 astal/
 .claude/
 logs/
+./src/output.css
