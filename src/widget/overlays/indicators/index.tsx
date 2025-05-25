@@ -2,6 +2,28 @@ import { Widget, Gtk, Gdk } from "astal/gtk4";
 import config from "../../../utils/config";
 import { Binding, Variable, bind } from "astal";
 import { c } from "../../../utils/style";
+import GLib from "gi://GLib";
+
+// Shared visibility state for all indicators
+export const indicatorVisibility = Variable(false);
+let fadeOutTimer: number | null = null;
+
+// Function to show indicators and reset fade timer
+export const showIndicators = () => {
+  indicatorVisibility.set(true);
+
+  // Clear existing timer
+  if (fadeOutTimer !== null) {
+    GLib.source_remove(fadeOutTimer);
+  }
+
+  // Set new timer to fade out after 3 seconds
+  fadeOutTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 3000, () => {
+    indicatorVisibility.set(false);
+    fadeOutTimer = null;
+    return false; // Don't repeat
+  });
+};
 
 export interface ProgressBarProps extends Widget.BoxProps {
   value: Binding<number>;
@@ -34,7 +56,7 @@ export const ProgressBar = (props: ProgressBarProps) => {
 
 export interface IndicatorCardProps extends Widget.BoxProps {
   value: Binding<number>;
-  icon?: Widget.ImageProps;
+  icon?: Gtk.Image;
   name?: Binding<string>;
 }
 
@@ -88,17 +110,22 @@ export interface IndicatorContainerProps extends Widget.RevealerProps {
 }
 
 export const IndicatorsContainer = (props: IndicatorContainerProps) => {
-  const isShow = Variable(true);
-
   return (
     <revealer
       {...props}
-      // cssName={bind(isShow).as((v) => (v ? showClass : hideClass))}
-      transitionDuration={config.animations.durationSmall}
+      cssName="indicator-wrapper"
+      // cssClasses={bind(indicatorVisibility).as((v) => (v ? ["show"] : ["hide"]))}
+      transitionDuration={300}
       transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-      revealChild={true}
+      revealChild={bind(indicatorVisibility)}
+
     >
-      <box halign={Gtk.Align.CENTER} vertical={false} cssName="indicator-container">
+      <box
+        halign={Gtk.Align.CENTER}
+        vertical={false}
+
+        cssClasses={bind(indicatorVisibility).as((v) => (v ? ["show"] : ["hide"]))}
+        cssName="indicator-container">
         {props?.children || props?.child}
       </box>
     </revealer>

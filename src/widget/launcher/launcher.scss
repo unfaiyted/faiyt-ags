@@ -1,0 +1,93 @@
+@use "styles/colors";
+
+// Main launcher window
+launcher {
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px);
+}
+
+// Container for launcher content
+launcher-container {
+  min-width: 600px;
+  min-height: 400px;
+}
+
+// Search box area
+launcher-search-box {
+  background-color: colors.c(background-elevated);
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+// Search input container
+search-input-container {
+  background-color: colors.c(background);
+  border: 1px solid colors.c(border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  min-width: 500px;
+}
+
+// Search input
+launcher-search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: colors.c(foreground);
+  min-height: 32px;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+// Search icon
+search-icon {
+  font-size: 20px;
+  margin-left: 16px;
+  color: colors.c(foreground-alt);
+}
+
+// Placeholder text
+search-placeholder {
+  font-size: 16px;
+  color: colors.c(foreground-alt);
+}
+
+// Results container
+launcher-results-container {
+  max-height: 400px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: colors.c(muted);
+    border-radius: 2px;
+  }
+}
+
+// Results box
+launcher-results {
+  min-width: 500px;
+  max-height: 400px;
+}
+
+// Results list
+launcher-results-list {
+  padding: 8px;
+
+  >* {
+    margin-bottom: 4px;
+  }
+}

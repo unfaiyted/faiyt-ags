@@ -1,5 +1,5 @@
 import { Widget, Gtk } from "astal/gtk4";
-import { IndicatorCard } from "./index";
+import { IndicatorCard, showIndicators } from "./index";
 import { Variable, bind, exec, execAsync } from "astal";
 import GLib from "gi://GLib";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
@@ -83,7 +83,13 @@ class KeyboardBacklightService {
       const current = exec(`cat ${this._kbdBacklightPath}/brightness`);
       const value = parseInt(current) || 0;
       const percent = Math.round((value / this._max) * 100);
-      this._brightness.set(percent);
+      const oldValue = this._brightness.get();
+      
+      // Only update and show indicator if value actually changed
+      if (oldValue !== percent) {
+        this._brightness.set(percent);
+        showIndicators();
+      }
     } catch (error) {
       print("Error reading keyboard brightness:", error);
     }
@@ -113,12 +119,14 @@ class KeyboardBacklightService {
     try {
       // Use brightnessctl with kbd_backlight device
       await execAsync(`brightnessctl --device='kbd_backlight' set ${percent}%`);
+      showIndicators();
     } catch (error) {
       // Fallback to direct sysfs write
       if (this._kbdBacklightPath) {
         const value = Math.round((percent / 100) * this._max);
         try {
           await execAsync(`pkexec sh -c 'echo ${value} > ${this._kbdBacklightPath}/brightness'`);
+          showIndicators();
         } catch (e) {
           print("Error setting keyboard brightness:", e);
         }

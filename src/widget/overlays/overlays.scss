@@ -1,10 +1,41 @@
 @use "styles/colors";
 
 system-overlays {
-  margin-top: 8px;
+  background-color: transparent;
+  border: none;
+}
+
+indicator-wrapper {
+
+  .show {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  .hide {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+  }
+}
+
+indicator-container {
+  margin: 8px;
   border-radius: 8px;
-  drop-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  background-color: colors.c(background-alt);
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border: 1px solid colors.c(border);
+
+  .show {
+    opacity: 1;
+    transition: opacity 0.4s ease-in-out;
+  }
+
+  .hide {
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+  }
+
 }
 
 osd-brightness {
@@ -85,22 +116,22 @@ osd-value-txt {
 // Popup notification specific styles
 .osd-notifs {
   margin: 16px;
-  
+
   .notification-container {
     max-width: 400px;
-    background: linear-gradient(135deg, 
-      rgba(0, 0, 0, 0.9) 0%, 
-      rgba(0, 0, 0, 0.85) 100%);
+    background: linear-gradient(135deg,
+        rgba(0, 0, 0, 0.9) 0%,
+        rgba(0, 0, 0, 0.85) 100%);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4),
-                0 4px 8px rgba(0, 0, 0, 0.2);
+      0 4px 8px rgba(0, 0, 0, 0.2);
     margin-bottom: 8px;
-    
+
     &:hover {
       transform: translateY(0);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5),
-                  0 4px 8px rgba(0, 0, 0, 0.3);
+        0 4px 8px rgba(0, 0, 0, 0.3);
     }
   }
 }

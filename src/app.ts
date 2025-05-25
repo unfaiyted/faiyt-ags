@@ -8,7 +8,7 @@ import { BarMode } from "./widget/bar/types";
 import SideRight from "./widget/sidebar/views/right";
 import SystemOverlays from "./widget/overlays";
 import cliRequestHandler from "./handlers/cli";
-// import LauncherBar from "./widget/launcher";
+import LauncherBar from "./widget/launcher";
 import {
   BarCornerTopLeft,
   BarCornerTopRight,
@@ -28,8 +28,7 @@ App.start({
       BarCornerTopRight({ gdkmonitor: gdkmonitor, index });
       SystemOverlays({ gdkmonitor: gdkmonitor, monitor: index });
     });
-
-    // LauncherBar({ gdkmonitor: App.get_monitors()[0], monitor: 0 });
+    LauncherBar({ gdkmonitor: App.get_monitors()[0], monitor: 0 });
 
     // SideLeft({ gdkmonitor: App.get_monitors()[0] });
   },

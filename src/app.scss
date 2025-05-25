@@ -8,3 +8,21 @@
 @forward "./widget/overlays/overlays.scss";
 @forward "./widget/sidebar/sidebars.scss";
 @forward "./widget/bar/modules/utilities/utililies-button.scss";
+@forward "./widget/launcher/launcher.scss";
+
+// Transparent overlay for click-outside detection
+click-outside-overlay {
+  background-color: rgba(0, 0, 0, 0.2);
+  border: none;
+
+  button {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+
+    &:hover {
+      background-color: transparent;
+    }
+  }
+}

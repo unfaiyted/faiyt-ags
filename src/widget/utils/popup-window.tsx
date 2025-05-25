@@ -57,9 +57,17 @@ export default ({
     }
   };
 
-
   print("PopupWindow - name:", name);
   print("PopupWindow - cssName:", props.cssName);
+
+  const windowSetup = (self: Gtk.Window) => {
+    print(`PopupWindow setup called for ${name}`);
+    // Call the passed setup function if it exists
+    if (setup) {
+      print(`PopupWindow calling custom setup for ${name}`);
+      setup(self);
+    }
+  };
 
   return (
     <window
@@ -68,9 +76,8 @@ export default ({
       decorated={false}
       layer={Astal.Layer.TOP}
       onKeyPressed={handleKeyPress}
-      // setup={handleDraw}
       cssName={props.cssName || "popup-window"}
-
+      setup={windowSetup}
       {...props}
     >
       <box setup={boxSetup}>{child}</box>

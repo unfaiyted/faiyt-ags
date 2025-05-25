@@ -49,64 +49,52 @@ export default function LauncherResults(props: LauncherResultsProps) {
       const resultApps = apps.fuzzy_query(searchText);
 
       resultApps.forEach((app, index) => {
-        if (index > 10) return;
+        if (index >= props.maxResults) return;
         appResults.set(index, app);
       });
 
       revealResults.set(resultApps.length > 0);
+    } else {
+      revealResults.set(false);
     }
   };
 
-  props.searchText.subscribe(() => {
-    if (props.searchText.get().length > 1) {
-      revealResults.set(true);
-      return;
-    }
-    revealResults.set(false);
-  });
-
+  // Debounced update function
   const debouncedUpdate = debounce(updateResults, 200);
-  const sub = props.searchText.subscribe(debouncedUpdate);
 
-  const setupResults = (self: Widget.Revealer) => { };
+  // Subscribe to search text changes
+  const cleanup = props.searchText.subscribe(debouncedUpdate);
 
+  // Clear results when hidden
   revealResults.subscribe((v) => {
     if (!v) appResults.deleteAll();
   });
 
   return (
     <revealer
-      setup={setupResults}
       transitionDuration={config.animations.durationLarge}
       revealChild={bind(revealResults)}
       transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
       halign={Gtk.Align.CENTER}
     >
       <box
-        className="overview-search-results"
-        css={`
-          min-height: 30rem;
-        `} // TODO: make configurable seems to be 6 on my monitor and setup. Might want to look into this moer to check on laptop and such
+        cssName="launcher-results"
         vertical
+        hexpand
       >
         <scrollable
           hexpand
           vscroll={Gtk.PolicyType.AUTOMATIC}
           hscroll={Gtk.PolicyType.NEVER}
           vexpand
+          maxContentHeight={400}
         >
-          <box vexpand homogeneous>
-            <box
-              className="spacing-v-5-revealer"
-              valign={Gtk.Align.START}
-              vertical
-            >
-              {bind(appResults).as((v) => {
-                return v.map(([num, app]) => (
-                  <AppButton index={num} app={app} />
-                ));
-              })}
-            </box>
+          <box vertical cssName="launcher-results-list">
+            {bind(appResults).as((v) => {
+              return v.map(([num, app]) => (
+                <AppButton key={app.get_id()} index={num} app={app} />
+              ));
+            })}
           </box>
         </scrollable>
       </box>

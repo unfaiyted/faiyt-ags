@@ -1,5 +1,5 @@
 import { Widget, Gtk } from "astal/gtk4";
-import { IndicatorCard } from "./index";
+import { IndicatorCard, showIndicators } from "./index";
 import { Variable, bind, exec, execAsync } from "astal";
 import GLib from "gi://GLib";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
@@ -46,7 +46,13 @@ class BrightnessService {
       const current = exec(`cat ${this._backlightPath}/brightness`);
       const value = parseInt(current) || 0;
       const percent = Math.round((value / this._max) * 100);
-      this._brightness.set(percent);
+      const oldValue = this._brightness.get();
+      
+      // Only update and show indicator if value actually changed
+      if (oldValue !== percent) {
+        this._brightness.set(percent);
+        showIndicators();
+      }
     } catch (error) {
       print("Error reading brightness:", error);
     }
@@ -75,6 +81,7 @@ class BrightnessService {
         // Fallback to direct write if brightnessctl is not available
         execAsync(`pkexec sh -c 'echo ${value} > ${this._backlightPath}/brightness'`);
       });
+      showIndicators();
     } catch (error) {
       print("Error setting brightness:", error);
     }

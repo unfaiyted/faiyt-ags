@@ -1,5 +1,5 @@
 import { Widget, Gtk } from "astal/gtk4";
-import { IndicatorCard } from "./index";
+import { IndicatorCard, showIndicators } from "./index";
 import Wp from "gi://AstalWp";
 import { Variable, bind } from "astal";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
@@ -35,12 +35,14 @@ export const VolumeIndicator = (props: Widget.BoxProps) => {
       print("Volume changed:", volumePercent + "%");
       value.set(volumePercent);
       updateIcon(volumePercent, speaker.mute || false);
+      showIndicators();
     });
 
     // Listen for mute changes
     audio.defaultSpeaker.connect("notify::mute", (speaker: Wp.Endpoint) => {
       const volumePercent = Math.round(speaker.volume * 100);
       updateIcon(volumePercent, speaker.mute || false);
+      showIndicators();
     });
 
     // Also listen for default speaker changes
@@ -56,11 +58,13 @@ export const VolumeIndicator = (props: Widget.BoxProps) => {
           print("Volume changed:", volumePercent + "%");
           value.set(volumePercent);
           updateIcon(volumePercent, speaker.mute || false);
+          showIndicators();
         });
 
         audio.defaultSpeaker.connect("notify::mute", (speaker: Wp.Endpoint) => {
           const volumePercent = Math.round(speaker.volume * 100);
           updateIcon(volumePercent, speaker.mute || false);
+          showIndicators();
         });
       }
     });

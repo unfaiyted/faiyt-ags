@@ -1,4 +1,4 @@
-import { App, Gtk, Gdk } from "astal/gtk4";
+import { App, Gtk, Gdk, Widget } from "astal/gtk4";
 import { getSidebarTabs } from "../utils";
 import { ScreenSide } from "../types";
 import SideBar from "../";
@@ -6,11 +6,10 @@ import Tabs, { TabContent } from "../../utils/containers/tabs";
 import { c } from "../../../utils/style";
 
 import QuickToggles from "../modules/toggles";
-import { PopupWindowProps } from "../../utils/popup-window";
 import { SidebarModule } from "../modules/types";
 import HeaderModule from "../modules/header";
 
-interface RighSideBarProps extends PopupWindowProps {
+interface RighSideBarProps extends Widget.WindowProps {
   screenSide?: ScreenSide.RIGHT;
   monitorIndex: number;
 }
@@ -39,7 +38,7 @@ export default function RightSideBar(sideBarProps: RighSideBarProps) {
   sidebarTabs.map((tab) => print("Tab name:", tab.name));
 
   return (
-    <SideBar {...props} monitorIndex={props.monitorIndex} screenSide={ScreenSide.RIGHT} application={App} cssName="sidebar-right">
+    <SideBar {...props} monitorIndex={props.monitorIndex} screenSide={ScreenSide.RIGHT}>
       <box
         cssName="sidebar-right-box"
         cssClasses={c`spacing-v-10`}

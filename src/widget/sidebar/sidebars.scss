@@ -1,6 +1,22 @@
 @use "styles/colors";
 
+// Fullscreen transparent window that contains the sidebar
+sidebar-fullscreen {
+  background-color: transparent;
+  border: none;
+  width: 100%;
+  height: 100%;
+}
 
+// Debug: visualize click area
+sidebar-click-area {
+  // background-color: rgba(255, 0, 0, 0.1); // Light red tint for debugging
+  background-color: transparent; // Transparent 
+}
+
+sidebar-container {
+  background-color: transparent;
+}
 
 sidebar {
   background-color: colors.c(background-alt);
@@ -14,7 +30,9 @@ sidebar {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
-sidebar-right {}
+sidebar-right {
+  // Right sidebar specific styles
+}
 
 
 sidebar-left {}
