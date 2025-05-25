@@ -1,3 +1,6 @@
 node_modules/
 @girs/
 dist/
+astal/
+.claude/
+logs/
