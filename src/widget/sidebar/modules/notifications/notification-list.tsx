@@ -48,7 +48,9 @@ export const NotificationList = (props: Widget.BoxProps) => {
         <box valign={Gtk.Align.START} vertical>
           {bind(notificationDisplay).as((v) => {
             print(`NotificationList: Rendering ${v.length} notifications`);
-            return v.map(([num, w]) => (
+            // Sort by ID in descending order (newest first)
+            const sorted = [...v].sort(([idA], [idB]) => idB - idA);
+            return sorted.map(([num, w]) => (
               <Notification key={num} isPopup={false} notification={w} />
             ));
           })}

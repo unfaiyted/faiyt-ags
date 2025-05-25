@@ -34,6 +34,7 @@ export const ListActionButton = (props: ListActionButtonProps) => {
 export const NotificationSilenceButton = (props: Widget.BoxProps) => (
   <ListActionButton
     icon={bind(notifd, "dontDisturb").as(dnd => dnd ? PhosphorIcons.BellSlash : PhosphorIcons.Bell)}
+    marginEnd={4}
     name="Silence"
     action={(self) => {
       notifd.dontDisturb = !notifd.dontDisturb;
@@ -56,6 +57,7 @@ export const NotificationClearButton = (props: Widget.ButtonProps) => {
 
   return (
     <revealer
+      marginStart={4}
       transitionType={Gtk.RevealerTransitionType.SLIDE_RIGHT}
       transitionDuration={config.animations.durationSmall}
       revealChild={notifications.length > 0}

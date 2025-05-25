@@ -1,4 +1,4 @@
-import { Widget, Gtk } from "astal/gtk4";
+import { Widget, Gtk, Gdk } from "astal/gtk4";
 import GLib from "gi://GLib";
 import Pango from "gi://Pango";
 import { Variable, Binding, bind } from "astal";
@@ -30,6 +30,23 @@ export interface NotificationExpandProps extends Widget.BoxProps {
 }
 
 export const NotificationIcon = (props: NotificationIconProps) => {
+  // Check if notification has an image
+  if (props.notification.image && props.notification.image.length > 0) {
+    return (
+      <box 
+        cssClasses={["notification-image-wrapper", `urgency-${props.notification.urgency}`]}
+        valign={Gtk.Align.START}
+      >
+        <Gtk.Image 
+          file={props.notification.image}
+          cssClasses={["notification-image"]}
+          widthRequest={64}
+          heightRequest={64}
+        />
+      </box>
+    );
+  }
+  
   // Choose icon based on urgency or app
   const getIcon = () => {
     switch (props.notification.urgency) {
@@ -89,7 +106,7 @@ export const NotificationText = (props: NotificationTextProps) => {
   const NotifyTextPreview = () => {
     return (
       <revealer
-        revealChild={true}
+        revealChild={bind(isExpanded).as(exp => !exp)}
         transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
         transitionDuration={config.animations.durationSmall}
       >
@@ -97,10 +114,12 @@ export const NotificationText = (props: NotificationTextProps) => {
           xalign={0}
           cssClasses={["notification-body"]}
           useMarkup
-          maxWidthChars={1}
+          maxWidthChars={50}
           wrap
-          label={props.notification.body.split("\n")[0]}
+          label={props.notification.body}
           justify={Gtk.Justification.LEFT}
+          lines={2}
+          ellipsize={Pango.EllipsizeMode.END}
         />
       </revealer>
     );
@@ -113,28 +132,40 @@ export const NotificationText = (props: NotificationTextProps) => {
         transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
         transitionDuration={config.animations.durationSmall}
       >
-        <box cssClasses={["notification-actions"]}>
-          <button
-            hexpand
-            cssClasses={["notification-action"]}
-            onClicked={() => props.notification.dismiss()}
-            setup={setupCursorHover}
-          >
-            <label>Dismiss</label>
-          </button>
+        <box vertical spacing={12}>
+          <label
+            xalign={0}
+            cssClasses={["notification-body-expanded"]}
+            useMarkup
+            wrap
+            label={props.notification.body}
+            justify={Gtk.Justification.LEFT}
+          />
+          <box cssClasses={["notification-actions"]}>
+            <button
+              hexpand
+              cssClasses={["notification-action"]}
+              onClicked={() => {
+                props.notification.dismiss();
+              }}
+              setup={setupCursorHover}
+            >
+              <label>Dismiss</label>
+            </button>
 
-          {props.notification.actions.map((action) => {
-            return (
-              <button
-                hexpand
-                cssClasses={["notification-action"]}
-                onClicked={() => props.notification.invoke(action.id)}
-                setup={setupCursorHover}
-              >
-                <label>{action.label}</label>
-              </button>
-            );
-          })}
+            {props.notification.actions.map((action) => {
+              return (
+                <button
+                  hexpand
+                  cssClasses={["notification-action"]}
+                  onClicked={() => props.notification.invoke(action.id)}
+                  setup={setupCursorHover}
+                >
+                  <label>{action.label}</label>
+                </button>
+              );
+            })}
+          </box>
         </box>
       </revealer>
     );
@@ -157,7 +188,6 @@ export const NotificationExpandButton = (props: NotificationExpandProps) => {
     <button
       valign={Gtk.Align.START}
       cssClasses={["notification-expand-btn"]}
-      setup={setupCursorHover}
       onClicked={props.toggleExpand}
     >
       <PhosphorIcon iconName={PhosphorIcons.DotsThreeVertical} size={16} />
@@ -178,6 +208,13 @@ export default function Notification(props: NotificationProps) {
     isExpanded.set(!isExpanded.get());
   };
 
+  const gestureClick = new Gtk.GestureClick();
+  gestureClick.connect('pressed', (gesture, nPress, x, y) => {
+    if (gesture.get_button() === Gdk.BUTTON_PRIMARY) {
+      toggleExpand();
+    }
+  });
+
   return (
     <revealer
       revealChild={true}
@@ -185,7 +222,13 @@ export default function Notification(props: NotificationProps) {
       transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
       {...props}
     >
-      <box cssClasses={["notification-container"]}>
+      <box 
+        cssClasses={["notification-container"]}
+        setup={(self) => {
+          self.add_controller(gestureClick);
+          setupCursorHover(self);
+        }}
+      >
         <NotificationIcon notification={props.notification} />
         <NotificationText
           notification={props.notification}

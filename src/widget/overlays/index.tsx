@@ -30,10 +30,11 @@ export const SystemOverlays = (props: SystemOverlayProps) => {
           </Indicators>
 
           {/* <MusicControls /> */}
-          <PopupNotifications />
+
           {/* <ColorSchemeSwitcher /> */}
         </box>
       </box>
+      {/* <PopupNotifications /> */}
     </window>
   );
 };
