@@ -22,8 +22,8 @@ export const NotificationListEmpty = (props: Widget.BoxProps) => {
   return (
     <box cssClasses={["notification-empty"]} {...props}>
       <box vertical valign={Gtk.Align.CENTER}>
-        <PhosphorIcon 
-          iconName={PhosphorIcons.BellSlash} 
+        <PhosphorIcon
+          iconName={PhosphorIcons.BellSlash}
           size={48}
           cssClasses={["empty-icon"]}
         />

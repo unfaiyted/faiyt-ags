@@ -38,6 +38,7 @@ export const NotificationList = (props: Widget.BoxProps) => {
       {...props}
       hexpand
       vexpand
+      cssName="notification-list"
     >
       <Gtk.ScrolledWindow
         vscrollbar_policy={Gtk.PolicyType.AUTOMATIC}
@@ -45,13 +46,13 @@ export const NotificationList = (props: Widget.BoxProps) => {
         vexpand
         hexpand
       >
-        <box valign={Gtk.Align.START} vertical>
+        <box valign={Gtk.Align.START} vertical >
           {bind(notificationDisplay).as((v) => {
             print(`NotificationList: Rendering ${v.length} notifications`);
             // Sort by ID in descending order (newest first)
             const sorted = [...v].sort(([idA], [idB]) => idB - idA);
             return sorted.map(([num, w]) => (
-              <Notification key={num} isPopup={false} notification={w} />
+              <Notification isPopup={false} notification={w} />
             ));
           })}
         </box>

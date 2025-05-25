@@ -1,7 +1,8 @@
 import { Widget, Gtk, Gdk } from "astal/gtk4";
 import GLib from "gi://GLib";
+import Gio from "gi://Gio";
 import Pango from "gi://Pango";
-import { Variable, Binding, bind } from "astal";
+import { Variable, Binding, bind, execAsync } from "astal";
 import config from "../../../../utils/config";
 import { getFriendlyTimeString } from "../../../../utils";
 import { setupCursorHover } from "../../../utils/buttons";
@@ -22,6 +23,7 @@ export interface NotificationIconProps extends Widget.BoxProps {
 export interface NotificationTextProps extends Widget.BoxProps {
   notification: Notifd.Notification;
   isExpanded: Binding<boolean>;
+  imagePath?: string | null;
 }
 
 export interface NotificationExpandProps extends Widget.BoxProps {
@@ -29,24 +31,196 @@ export interface NotificationExpandProps extends Widget.BoxProps {
   toggleExpand: () => void;
 }
 
+interface NotificationIconWithDetectionProps extends NotificationIconProps {
+  onImageDetected?: (path: string | null) => void;
+}
+
+const NotificationIconWithDetection = (props: NotificationIconWithDetectionProps) => {
+  const result = NotificationIcon(props);
+
+  // Extract the detected image path from the icon detection logic
+  const notification = props.notification;
+  let detectedPath = null;
+
+  // Check all the same sources as NotificationIcon
+  if (notification.image && notification.image.length > 0) {
+    detectedPath = notification.image;
+  } else {
+    try {
+      const imagePathHint = notification.get_str_hint("image-path");
+      if (imagePathHint && imagePathHint.length > 0) {
+        detectedPath = imagePathHint;
+      }
+    } catch (e) {
+      try {
+        const imagePathHint = notification.get_str_hint("image_path");
+        if (imagePathHint && imagePathHint.length > 0) {
+          detectedPath = imagePathHint;
+        }
+      } catch (e2) { }
+    }
+  }
+
+  // Check body for image paths
+  if (!detectedPath && notification.body) {
+    const pathRegex = /(?:^|\s)(\/[^\s]+(?:\.png|\.jpg|\.jpeg|\.gif|\.bmp|\.svg|\.webp))(?:\s|$)/gi;
+    const matches = notification.body.match(pathRegex);
+    if (matches && matches.length > 0) {
+      const potentialPath = matches[0].trim();
+      try {
+        const file = Gio.File.new_for_path(potentialPath);
+        if (file.query_exists(null)) {
+          detectedPath = potentialPath;
+        }
+      } catch (e) { }
+    }
+  }
+
+  // Check app_icon
+  if (!detectedPath && notification.app_icon && notification.app_icon.startsWith("/")) {
+    try {
+      const file = Gio.File.new_for_path(notification.app_icon);
+      if (file.query_exists(null)) {
+        detectedPath = notification.app_icon;
+      }
+    } catch (e) { }
+  }
+
+  // Report detected path
+  if (props.onImageDetected) {
+    props.onImageDetected(detectedPath);
+  }
+
+  return result;
+};
+
 export const NotificationIcon = (props: NotificationIconProps) => {
-  // Check if notification has an image
-  if (props.notification.image && props.notification.image.length > 0) {
+  const notification = props.notification;
+
+  // Debug: Log notification with image info
+  const hasImageProperty = notification.image && notification.image.length > 0;
+  const hasFilePathInBody = notification.body && notification.body.match(/\/[^\s]+\.(png|jpg|jpeg|gif|bmp|svg|webp)/i);
+
+  if (hasImageProperty || hasFilePathInBody) {
+    print(`=== Notification with potential image ===`);
+    print(`Summary: ${notification.summary}`);
+    if (hasImageProperty) print(`Image property: ${notification.image}`);
+    if (hasFilePathInBody) print(`Body contains file path: ${notification.body}`);
+  }
+
+  // Try to get image from hints
+  let imagePath = null;
+
+  // Check direct image property first
+  if (notification.image && notification.image.length > 0) {
+    imagePath = notification.image;
+  } else {
+    // Try to get image path from hints
+    try {
+      const imagePathHint = notification.get_str_hint("image-path");
+      if (imagePathHint && imagePathHint.length > 0) {
+        imagePath = imagePathHint;
+      }
+    } catch (e) {
+      // Try alternate naming
+      try {
+        const imagePathHint = notification.get_str_hint("image_path");
+        if (imagePathHint && imagePathHint.length > 0) {
+          imagePath = imagePathHint;
+        }
+      } catch (e2) {
+        // No hints found
+      }
+    }
+  }
+
+  // If still no image, try to extract file path from notification body
+  if (!imagePath && notification.body) {
+    // Common image extensions
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.svg', '.webp'];
+
+    // Try to find file paths in the body
+    // Match absolute paths that start with / and contain image extensions
+    const pathRegex = /(?:^|\s)(\/[^\s]+(?:\.png|\.jpg|\.jpeg|\.gif|\.bmp|\.svg|\.webp))(?:\s|$)/gi;
+    const matches = notification.body.match(pathRegex);
+
+    if (matches && matches.length > 0) {
+      // Clean up the first match (remove whitespace)
+      const potentialPath = matches[0].trim();
+      print(`Found potential image path in body: ${potentialPath}`);
+
+      // Check if file exists
+      try {
+        const file = Gio.File.new_for_path(potentialPath);
+        if (file.query_exists(null)) {
+          imagePath = potentialPath;
+          print(`Confirmed image file exists: ${imagePath}`);
+        }
+      } catch (e) {
+        print(`Could not check file existence: ${e}`);
+      }
+    }
+  }
+
+  // If we have an image path, try to display it
+  if (imagePath) {
+    print(`Attempting to display image: ${imagePath}`);
+
+    // Create the image widget
+    const imageWidget = new Gtk.Image({
+      cssClasses: ["notification-image"],
+      widthRequest: 64,
+      heightRequest: 64,
+    });
+
+    // Set the image file
+    try {
+      imageWidget.set_from_file(imagePath);
+    } catch (e) {
+      print(`Failed to load notification image: ${e}`);
+      // Fall back to icon if image fails to load
+      return NotificationIconFallback(props);
+    }
+
     return (
-      <box 
-        cssClasses={["notification-image-wrapper", `urgency-${props.notification.urgency}`]}
+      <box
+        cssClasses={["notification-image-wrapper", `urgency-${notification.urgency}`]}
         valign={Gtk.Align.START}
       >
-        <Gtk.Image 
-          file={props.notification.image}
-          cssClasses={["notification-image"]}
-          widthRequest={64}
-          heightRequest={64}
-        />
+        {imageWidget}
       </box>
     );
   }
-  
+
+  // Check if we have an app icon that might be a file path
+  if (notification.app_icon && notification.app_icon.startsWith("/")) {
+    print(`App icon looks like a file path: ${notification.app_icon}`);
+
+    const imageWidget = new Gtk.Image({
+      cssClasses: ["notification-image"],
+      widthRequest: 64,
+      heightRequest: 64,
+    });
+
+    try {
+      imageWidget.set_from_file(notification.app_icon);
+      return (
+        <box
+          cssClasses={["notification-image-wrapper", `urgency-${notification.urgency}`]}
+          valign={Gtk.Align.START}
+        >
+          {imageWidget}
+        </box>
+      );
+    } catch (e) {
+      print(`Failed to load app icon as image: ${e}`);
+    }
+  }
+
+  return NotificationIconFallback(props);
+};
+
+const NotificationIconFallback = (props: NotificationIconProps) => {
   // Choose icon based on urgency or app
   const getIcon = () => {
     switch (props.notification.urgency) {
@@ -58,9 +232,9 @@ export const NotificationIcon = (props: NotificationIconProps) => {
         return PhosphorIcons.Bell;
     }
   };
-  
+
   return (
-    <box 
+    <box
       cssClasses={["notification-icon-wrapper", `urgency-${props.notification.urgency}`]}
       valign={Gtk.Align.CENTER}
     >
@@ -132,41 +306,14 @@ export const NotificationText = (props: NotificationTextProps) => {
         transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
         transitionDuration={config.animations.durationSmall}
       >
-        <box vertical spacing={12}>
-          <label
-            xalign={0}
-            cssClasses={["notification-body-expanded"]}
-            useMarkup
-            wrap
-            label={props.notification.body}
-            justify={Gtk.Justification.LEFT}
-          />
-          <box cssClasses={["notification-actions"]}>
-            <button
-              hexpand
-              cssClasses={["notification-action"]}
-              onClicked={() => {
-                props.notification.dismiss();
-              }}
-              setup={setupCursorHover}
-            >
-              <label>Dismiss</label>
-            </button>
-
-            {props.notification.actions.map((action) => {
-              return (
-                <button
-                  hexpand
-                  cssClasses={["notification-action"]}
-                  onClicked={() => props.notification.invoke(action.id)}
-                  setup={setupCursorHover}
-                >
-                  <label>{action.label}</label>
-                </button>
-              );
-            })}
-          </box>
-        </box>
+        <label
+          xalign={0}
+          cssClasses={["notification-body-expanded"]}
+          useMarkup
+          wrap
+          label={props.notification.body}
+          justify={Gtk.Justification.LEFT}
+        />
       </revealer>
     );
   };
@@ -204,15 +351,19 @@ export default function Notification(props: NotificationProps) {
   const notification = props.notification;
   const isExpanded = Variable(false);
 
+  // Track detected image path
+  const detectedImagePath = Variable<string | null>(null);
+
   const toggleExpand = () => {
     isExpanded.set(!isExpanded.get());
   };
 
   const gestureClick = new Gtk.GestureClick();
-  gestureClick.connect('pressed', (gesture, nPress, x, y) => {
-    if (gesture.get_button() === Gdk.BUTTON_PRIMARY) {
-      toggleExpand();
-    }
+  gestureClick.set_button(Gdk.BUTTON_PRIMARY);
+  gestureClick.set_exclusive(true);
+
+  gestureClick.connect('pressed', () => {
+    toggleExpand();
   });
 
   return (
@@ -222,22 +373,115 @@ export default function Notification(props: NotificationProps) {
       transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
       {...props}
     >
-      <box 
-        cssClasses={["notification-container"]}
-        setup={(self) => {
-          self.add_controller(gestureClick);
-          setupCursorHover(self);
-        }}
-      >
-        <NotificationIcon notification={props.notification} />
-        <NotificationText
-          notification={props.notification}
-          isExpanded={bind(isExpanded)}
-        />
-        <NotificationExpandButton
-          notification={props.notification}
-          toggleExpand={toggleExpand}
-        />
+      <box cssClasses={["notification-container"]} vertical>
+        <box
+          cssClasses={["notification-clickable-area"]}
+          setup={(self) => {
+            self.add_controller(gestureClick);
+            setupCursorHover(self);
+          }}
+        >
+          <NotificationIconWithDetection
+            notification={props.notification}
+            onImageDetected={(path) => detectedImagePath.set(path)}
+          />
+          <NotificationText
+            notification={props.notification}
+            isExpanded={bind(isExpanded)}
+            imagePath={detectedImagePath.get()}
+          />
+          <NotificationExpandButton
+            notification={props.notification}
+            toggleExpand={toggleExpand}
+          />
+        </box>
+
+        {/* Action buttons outside clickable area */}
+        <revealer
+          revealChild={bind(isExpanded)}
+          transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
+          transitionDuration={config.animations.durationSmall}
+        >
+          <box vertical spacing={12} cssClasses={["notification-actions-container"]}>
+            {/* Image-specific actions if we have an image path */}
+            {bind(detectedImagePath).as(imagePath => imagePath ? (
+              <box cssClasses={["notification-image-actions"]}>
+                <button
+                  hexpand
+                  cssClasses={["notification-action", "image-action"]}
+                  onClicked={async () => {
+                    try {
+                      // Copy image to clipboard using wl-copy
+                      await execAsync(['bash', '-c', `wl-copy -t image/png < "${imagePath}"`]);
+                      print(`Copied image to clipboard: ${imagePath}`);
+                    } catch (e) {
+                      print(`Failed to copy image: ${e}`);
+                    }
+                  }}
+                  setup={setupCursorHover}
+                  marginEnd={8}
+                >
+                  <box spacing={6}>
+                    <PhosphorIcon iconName={PhosphorIcons.Copy} size={16} />
+                    <label>Copy Image</label>
+                  </box>
+                </button>
+
+                <button
+                  hexpand
+                  cssClasses={["notification-action", "image-action"]}
+                  onClicked={async () => {
+                    try {
+                      // Get the directory of the image
+                      const file = Gio.File.new_for_path(imagePath);
+                      const parent = file.get_parent();
+                      if (parent) {
+                        const folderPath = parent.get_path();
+                        // Open folder in file manager
+                        await execAsync(['xdg-open', folderPath]);
+                        print(`Opened folder: ${folderPath}`);
+                      }
+                    } catch (e) {
+                      print(`Failed to open folder: ${e}`);
+                    }
+                  }}
+                  setup={setupCursorHover}
+                >
+                  <box spacing={6}>
+                    <PhosphorIcon iconName={PhosphorIcons.FolderOpen} size={16} />
+                    <label>Open Folder</label>
+                  </box>
+                </button>
+              </box>
+            ) : <label></label>)}
+
+            <box cssClasses={["notification-actions"]}>
+              <button
+                hexpand
+                cssClasses={["notification-action"]}
+                onClicked={() => {
+                  props.notification.dismiss();
+                }}
+                setup={setupCursorHover}
+              >
+                <label>Dismiss</label>
+              </button>
+
+              {props.notification.actions.map((action) => {
+                return (
+                  <button
+                    hexpand
+                    cssClasses={["notification-action"]}
+                    onClicked={() => props.notification.invoke(action.id)}
+                    setup={setupCursorHover}
+                  >
+                    <label>{action.label}</label>
+                  </button>
+                );
+              })}
+            </box>
+          </box>
+        </revealer>
       </box>
     </revealer>
   );
