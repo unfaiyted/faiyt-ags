@@ -76,21 +76,21 @@ export default function LauncherResults(props: LauncherResultsProps) {
         vertical
         hexpand
       >
-        <scrollable
+        <Gtk.ScrolledWindow
           hexpand
-          vscroll={Gtk.PolicyType.AUTOMATIC}
-          hscroll={Gtk.PolicyType.NEVER}
+          vscrollbar_policy={Gtk.PolicyType.AUTOMATIC}
+          hscrollbar_policy={Gtk.PolicyType.NEVER}
           vexpand
           maxContentHeight={400}
         >
           <box vertical cssName="launcher-results-list">
-            {bind(appResults).as((apps) => 
+            {bind(appResults).as((apps) =>
               apps.map((app, index) => (
-                <AppButton key={app.get_id()} index={index} app={app} />
+                <AppButton index={index} app={app} />
               ))
             )}
           </box>
-        </scrollable>
+        </Gtk.ScrolledWindow>
       </box>
     </revealer>
   );
