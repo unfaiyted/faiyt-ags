@@ -7,6 +7,9 @@ import Tabs from "../../utils/containers/tabs";
 import { getSidebarTabs } from "../utils";
 import PhosphorIcon from "../../utils/icons/phosphor";
 import { PhosphorIcons, PhosphorIconStyle } from "../../utils/icons/types";
+import { createLogger } from "../../../utils/logger";
+
+const log = createLogger('LeftSidebar');
 
 interface LeftSideBarProps extends PopupWindowProps {
   screenSide?: ScreenSide.LEFT;
@@ -22,9 +25,7 @@ export default function LeftSideBar(sideBarProps: LeftSideBarProps) {
     enabledTabs.includes(tab.name.toLowerCase()),
   );
 
-  // print("Sidebar tabs:", sidebarTabs);
-
-  sidebarTabs.map((tab) => print("Tab name:", tab.name));
+  log.debug('Enabled tabs', { tabs: sidebarTabs.map(tab => tab.name) });
 
   return (
     <SideBar {...props} screenSide={ScreenSide.LEFT} application={App}>

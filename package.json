@@ -19,6 +19,7 @@
     "dev:logs": "./logs.sh",
     "dev:trace": "GJS_DEBUG=all GJS_ENABLE_TRACING=1 ags run --gtk4 src/app.ts",
     "dev:smart": "node source-mapper.js && GJS_DEBUG=all ags run --gtk4 src/app.ts 2>&1 | node error-tracer.js",
+    "dev:enhanced": "./dev-enhanced.sh",
     "source-map": "node source-mapper.js",
     "trace-error": "node error-tracer.js",
     "analyze:error": "echo 'Use dev:smart to run with enhanced error reporting'",
@@ -33,9 +34,12 @@
   ],
   "author": "Dane L Miller",
   "devDependencies": {
+    "@cspotcode/source-map-support": "^0.8.1",
     "bun-types": "^1.2.13",
     "nodemon": "^3.1.10",
     "sass": "^1.89.0",
+    "source-map": "^0.7.4",
+    "source-map-support": "^0.5.21",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
   },
@@ -44,6 +48,5 @@
     "astal": "/usr/share/astal/gjs",
     "csstype": "^3.1.3",
     "tailwindcss": "^3.4.17"
-  },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  }
 }

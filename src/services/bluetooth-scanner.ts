@@ -1,6 +1,10 @@
 import { GObject, register } from "astal/gobject";
 import { subprocess } from "astal/process";
 import { Variable } from "astal";
+import { createLogger, PerformanceMonitor } from "../utils/logger";
+
+const log = createLogger("BluetoothScanner");
+const perf = new PerformanceMonitor("BluetoothScanner");
 
 export interface ScannedDevice {
   address: string;
@@ -24,6 +28,7 @@ export default class BluetoothScanner extends GObject.Object {
 
   static get_default(): BluetoothScanner {
     if (!BluetoothScanner._instance) {
+      log.debug("Creating new BluetoothScanner instance");
       BluetoothScanner._instance = new BluetoothScanner();
     }
     return BluetoothScanner._instance;
@@ -43,25 +48,30 @@ export default class BluetoothScanner extends GObject.Object {
 
   constructor() {
     super();
+    log.info("Initializing BluetoothScanner");
     this._startBluetoothctl();
   }
 
   private _startBluetoothctl() {
     try {
+      log.info("Starting bluetoothctl subprocess");
       this._proc = subprocess({
         cmd: ["bluetoothctl"],
         stdout: (line) => this._parseLine(line),
-        stderr: (line) => print("bluetoothctl error:", line),
+        stderr: (line) => log.error("bluetoothctl stderr:", { error: line }),
       });
+      log.debug("bluetoothctl subprocess started successfully");
     } catch (error) {
-      print("Failed to start bluetoothctl:", error);
+      log.error("Failed to start bluetoothctl", { error });
     }
   }
 
   private _parseLine(line: string) {
+    const timer = perf.start("parseLine");
+    
     // Debug log the line to see what we're getting
     if (line.includes("RSSI") || line.includes("Device")) {
-      print(`Bluetoothctl: ${line}`);
+      log.verbose(`Bluetoothctl output: ${line}`);
     }
     
     // Parse different bluetoothctl output patterns
@@ -77,13 +87,14 @@ export default class BluetoothScanner extends GObject.Object {
           lastSeen: Date.now()
         });
         this._updateDevicesList();
-        print(`New device discovered: ${name} (${address})`);
+        log.info(`New device discovered: ${name}`, { address, name });
       } else {
         // Update last seen time if device reappears
         const device = this._devices.get(address)!;
         device.lastSeen = Date.now();
         this._updateDevicesList();
       }
+      timer();
       return;
     }
 
@@ -93,10 +104,11 @@ export default class BluetoothScanner extends GObject.Object {
       const address = delDeviceMatch[1];
       if (this._devices.has(address)) {
         const device = this._devices.get(address);
-        print(`Device removed: ${device?.name} (${address})`);
+        log.info(`Device removed: ${device?.name}`, { address, name: device?.name });
         this._devices.delete(address);
         this._updateDevicesList();
       }
+      timer();
       return;
     }
 
@@ -108,6 +120,7 @@ export default class BluetoothScanner extends GObject.Object {
       
       // If device doesn't exist yet, create it
       if (!device) {
+        log.debug(`Creating device from property change`, { address, property, value });
         device = {
           address,
           name: address, // Use address as temp name
@@ -144,10 +157,10 @@ export default class BluetoothScanner extends GObject.Object {
           
           if (rssiValue !== undefined) {
             device.rssi = rssiValue;
-            print(`Updated RSSI for ${device.name}: ${rssiValue} dBm`);
+            log.debug(`Updated RSSI for ${device.name}`, { name: device.name, rssi: rssiValue, address });
             this._updateDevicesList(); // Trigger UI update
           } else {
-            print(`Failed to parse RSSI value: "${value}"`);
+            log.warn(`Failed to parse RSSI value`, { value, address });
           }
           break;
         case "Icon":
@@ -164,21 +177,29 @@ export default class BluetoothScanner extends GObject.Object {
           break;
       }
       this._updateDevicesList();
+      timer();
       return;
     }
 
     // Discovery state changes
     if (line.includes("Discovery started")) {
-      print("Bluetooth discovery started");
+      log.info("Bluetooth discovery started");
       this._scanning.set(true);
     } else if (line.includes("Discovery stopped")) {
-      print("Bluetooth discovery stopped");
+      log.info("Bluetooth discovery stopped");
       this._scanning.set(false);
     }
+    
+    timer();
   }
 
   private _updateDevicesList() {
     const devicesList = Array.from(this._devices.values());
+    
+    log.verbose(`Updating devices list`, { 
+      deviceCount: devicesList.length,
+      withRSSI: devicesList.filter(d => d.rssi !== undefined).length 
+    });
     
     // Sort by multiple criteria:
     // 1. Devices with RSSI (closer) first
@@ -208,16 +229,18 @@ export default class BluetoothScanner extends GObject.Object {
 
   async startScan() {
     if (!this._proc) {
-      print("Bluetoothctl process not running");
+      log.error("Cannot start scan: bluetoothctl process not running");
       return;
     }
 
     try {
       // Clear existing devices for fresh scan
+      log.debug("Clearing device list for fresh scan");
       this._devices.clear();
       this._updateDevicesList();
       
       // Send scan on command
+      log.info("Starting Bluetooth scan");
       this._proc.write("scan on\n");
       this._scanning.set(true);
       
@@ -228,7 +251,7 @@ export default class BluetoothScanner extends GObject.Object {
         
         for (const [address, device] of this._devices) {
           if (now - device.lastSeen > staleTimeout) {
-            print(`Removing stale device: ${device.name} (${address})`);
+            log.debug(`Removing stale device`, { name: device.name, address, lastSeen: device.lastSeen });
             this._devices.delete(address);
           }
         }
@@ -239,36 +262,45 @@ export default class BluetoothScanner extends GObject.Object {
       // Auto-stop after 30 seconds
       setTimeout(() => {
         if (this._scanning.get()) {
+          log.info("Auto-stopping scan after 30 seconds");
           clearInterval(cleanupInterval);
           this.stopScan();
         }
       }, 30000);
     } catch (error) {
-      print("Failed to start scan:", error);
+      log.error("Failed to start scan", { error });
       this._scanning.set(false);
     }
   }
 
   async stopScan() {
-    if (!this._proc) return;
+    if (!this._proc) {
+      log.warn("Cannot stop scan: bluetoothctl process not running");
+      return;
+    }
 
     try {
+      log.info("Stopping Bluetooth scan");
       this._proc.write("scan off\n");
       this._scanning.set(false);
     } catch (error) {
-      print("Failed to stop scan:", error);
+      log.error("Failed to stop scan", { error });
     }
   }
 
   destroy() {
     if (this._proc) {
       try {
+        log.info("Destroying BluetoothScanner instance");
         this.stopScan();
         this._proc.write("quit\n");
         this._proc.kill();
+        log.debug("BluetoothScanner cleanup completed");
       } catch (error) {
-        print("Error cleaning up bluetoothctl:", error);
+        log.error("Error cleaning up bluetoothctl", { error });
       }
+    } else {
+      log.debug("No bluetoothctl process to clean up");
     }
   }
 }

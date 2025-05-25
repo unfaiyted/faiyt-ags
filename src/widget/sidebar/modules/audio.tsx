@@ -4,21 +4,28 @@ import Wp from "gi://AstalWp";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../utils/icons/types";
 import { truncateText } from "../../../utils";
+import { createLogger } from "../../../utils/logger";
+
+const log = createLogger("AudioModule");
 
 const wp = Wp.get_default();
 const audio = wp?.audio;
 
 // Debug: Check what's available
 if (wp) {
-  print("WirePlumber available");
-  print(`Audio service: ${audio ? "available" : "not available"}`);
+  log.info("WirePlumber available");
+  log.debug("Audio service status", { available: !!audio });
   if (audio) {
-    print(`Default speaker: ${audio.default_speaker?.description || "none"}`);
-    print(`Default microphone: ${audio.default_microphone?.description || "none"}`);
-    print(`Speakers: ${audio.speakers?.length || 0}`);
-    print(`Microphones: ${audio.microphones?.length || 0}`);
-    print(`Streams: ${audio.streams?.length || 0}`);
+    log.debug("Audio devices", {
+      defaultSpeaker: audio.default_speaker?.description || "none",
+      defaultMicrophone: audio.default_microphone?.description || "none",
+      speakerCount: audio.speakers?.length || 0,
+      microphoneCount: audio.microphones?.length || 0,
+      streamCount: audio.streams?.length || 0
+    });
   }
+} else {
+  log.warn("WirePlumber not available");
 }
 
 // Get volume icon based on level and mute state
@@ -91,23 +98,31 @@ const AudioDevices = () => {
   // Initialize defaults if not set
   const initializeDefaults = async () => {
     if (audio) {
-      print("=== Initializing audio defaults ===");
-      print(`Available speakers: ${audio.speakers?.map(s => `${s.id}:${s.description}`).join(", ")}`);
-      print(`Available microphones: ${audio.microphones?.map(m => `${m.id}:${m.description}`).join(", ")}`);
+      log.debug("Initializing audio defaults");
+      log.debug("Available devices", {
+        speakers: audio.speakers?.map(s => ({ id: s.id, name: s.description })),
+        microphones: audio.microphones?.map(m => ({ id: m.id, name: m.description }))
+      });
 
       // First check if AstalWp already has defaults
       if (audio.default_speaker) {
-        print(`AstalWp default speaker: ${audio.default_speaker.description} (id: ${audio.default_speaker.id})`);
+        log.debug("AstalWp default speaker", { 
+          name: audio.default_speaker.description, 
+          id: audio.default_speaker.id 
+        });
         defaultSpeakerId.set(audio.default_speaker.id);
       } else {
-        print("No default speaker from AstalWp");
+        log.debug("No default speaker from AstalWp");
       }
 
       if (audio.default_microphone) {
-        print(`AstalWp default microphone: ${audio.default_microphone.description} (id: ${audio.default_microphone.id})`);
+        log.debug("AstalWp default microphone", { 
+          name: audio.default_microphone.description, 
+          id: audio.default_microphone.id 
+        });
         defaultMicrophoneId.set(audio.default_microphone.id);
       } else {
-        print("No default microphone from AstalWp");
+        log.debug("No default microphone from AstalWp");
       }
 
       // Always get wpctl status to find defaults
@@ -136,25 +151,31 @@ const AudioDevices = () => {
             const match = line.match(/\*?\s*(\d+)\./);
             if (match) {
               const id = match[1];
-              print(`Found default device in wpctl: ${line.trim()}`);
+              log.debug("Found default device in wpctl", { line: line.trim(), id });
 
               if (inSinks) {
                 const speaker = audio.speakers?.find(s => String(s.id) === id);
                 if (speaker) {
-                  print(`Setting default speaker: ${speaker.description} (id: ${speaker.id})`);
+                  log.info("Setting default speaker", { 
+                    name: speaker.description, 
+                    id: speaker.id 
+                  });
                   defaultSpeakerId.set(speaker.id);
                 } else {
-                  print(`Could not find speaker with id ${id} in available speakers`);
+                  log.warn("Speaker not found", { id, availableIds: audio.speakers?.map(s => s.id) });
                 }
               } else if (inSources) {
                 // Skip monitor sources
                 if (!line.toLowerCase().includes("monitor")) {
                   const mic = audio.microphones?.find(m => String(m.id) === id);
                   if (mic) {
-                    print(`Setting default microphone: ${mic.description} (id: ${mic.id})`);
+                    log.info("Setting default microphone", { 
+                      name: mic.description, 
+                      id: mic.id 
+                    });
                     defaultMicrophoneId.set(mic.id);
                   } else {
-                    print(`Could not find microphone with id ${id} in available microphones`);
+                    log.warn("Microphone not found", { id, availableIds: audio.microphones?.map(m => m.id) });
                   }
                 }
               }
@@ -162,12 +183,13 @@ const AudioDevices = () => {
           }
         }
       } catch (e) {
-        print("Failed to get defaults from wpctl status:", e);
+        log.error("Failed to get defaults from wpctl status", { error: e });
       }
 
-      print(`Final default speaker ID: ${defaultSpeakerId.get() || "none"}`);
-      print(`Final default microphone ID: ${defaultMicrophoneId.get() || "none"}`);
-      print("=== End initialization ===");
+      log.debug("Audio defaults initialized", {
+        defaultSpeakerId: defaultSpeakerId.get() || "none",
+        defaultMicrophoneId: defaultMicrophoneId.get() || "none"
+      });
     }
   };
 
@@ -179,7 +201,7 @@ const AudioDevices = () => {
   retryDelays.forEach(delay => {
     setTimeout(() => {
       if (!defaultSpeakerId.get() || !defaultMicrophoneId.get()) {
-        print(`Retrying initialization after ${delay}ms...`);
+        log.debug("Retrying audio initialization", { delay });
         initializeDefaults();
       }
     }, delay);
@@ -197,10 +219,18 @@ const AudioDevices = () => {
 
     // Log changes
     if (prevSpeakerId !== audio.default_speaker?.id) {
-      print(`Default speaker changed to: ${audio.default_speaker?.description || "none"}`);
+      log.info("Default speaker changed", { 
+        from: prevSpeakerId,
+        to: audio.default_speaker?.id,
+        name: audio.default_speaker?.description || "none" 
+      });
     }
     if (prevMicId !== audio.default_microphone?.id) {
-      print(`Default microphone changed to: ${audio.default_microphone?.description || "none"}`);
+      log.info("Default microphone changed", { 
+        from: prevMicId,
+        to: audio.default_microphone?.id,
+        name: audio.default_microphone?.description || "none" 
+      });
     }
   });
 
@@ -228,14 +258,22 @@ const AudioDevices = () => {
     const isDefault = bind(type === "speaker" ? defaultSpeakerId : defaultMicrophoneId).as(defId => {
       const result = defId === device.id;
       if (result) {
-        print(`Device ${device.description} (${device.id}) is default ${type}`);
+        log.debug("Device is default", { 
+          name: device.description, 
+          id: device.id, 
+          type 
+        });
       }
       return result;
     });
 
     const handleSetDefault = async () => {
       try {
-        print(`Setting default ${type}: ${device.description} (id: ${device.id})`);
+        log.debug("Setting default device", { 
+          type, 
+          name: device.description, 
+          id: device.id 
+        });
 
         if (type === "speaker") {
           // Try to set via the audio object first
@@ -244,14 +282,14 @@ const AudioDevices = () => {
             defaultSpeakerId.set(device.id);
           } catch (e) {
             // Fallback to wpctl command
-            print(`Using wpctl to set default speaker: ${device.id}`);
+            log.debug("Falling back to wpctl for speaker", { id: device.id });
             await execAsync(["wpctl", "set-default", String(device.id)]);
             // Update our variable directly
             defaultSpeakerId.set(device.id);
           }
         } else {
           // For microphones, use wpctl directly since the property might not be writable
-          print(`Using wpctl to set default microphone: ${device.id}`);
+          log.debug("Using wpctl to set default microphone", { id: device.id });
           await execAsync(["wpctl", "set-default", String(device.id)]);
           // Update our variable directly
           defaultMicrophoneId.set(device.id);
@@ -260,7 +298,7 @@ const AudioDevices = () => {
         // Also re-initialize to ensure sync
         setTimeout(() => initializeDefaults(), 100);
       } catch (error) {
-        print(`Failed to set default ${type}:`, error);
+        log.error("Failed to set default device", { type, error });
       }
     };
 
@@ -368,29 +406,43 @@ const AppVolumeMixer = () => {
   const showAll = Variable(false);
 
   // Debug: Log initial streams
-  print(`Initial streams: ${audio?.streams?.length || 0}`);
-  audio?.streams?.forEach(s => {
-    print(`  Stream: ${s.name} - ${s.description} (volume: ${s.volume})`);
+  log.debug("Initial streams", {
+    count: audio?.streams?.length || 0,
+    streams: audio?.streams?.map(s => ({
+      name: s.name,
+      description: s.description,
+      volume: s.volume
+    }))
   });
 
   // Subscribe to stream changes
   audio?.connect("notify::streams", () => {
     const newStreams = audio.streams || [];
-    print(`Streams updated: ${newStreams.length} streams`);
-    newStreams.forEach(s => {
-      print(`  Stream: ${s.name} - ${s.description} (volume: ${s.volume})`);
+    log.debug("Streams updated", {
+      count: newStreams.length,
+      streams: newStreams.map(s => ({
+        name: s.name,
+        description: s.description,
+        volume: s.volume
+      }))
     });
     streams.set(newStreams);
   });
 
   // Also listen for stream-added and stream-removed events
   audio?.connect("stream-added", (_, stream) => {
-    print(`Stream added: ${stream.name} - ${stream.description}`);
+    log.debug("Stream added", { 
+      name: stream.name, 
+      description: stream.description 
+    });
     streams.set(audio.streams || []);
   });
 
   audio?.connect("stream-removed", (_, stream) => {
-    print(`Stream removed: ${stream.name} - ${stream.description}`);
+    log.debug("Stream removed", { 
+      name: stream.name, 
+      description: stream.description 
+    });
     streams.set(audio.streams || []);
   });
 
@@ -483,7 +535,9 @@ const AppVolumeMixer = () => {
 
             // Also check for recording streams if regular streams are empty
             if (appStreams.length === 0 && audio?.recorders) {
-              print(`No playback streams, checking recorders: ${audio.recorders.length}`);
+              log.debug("No playback streams, using recorders", { 
+                recorderCount: audio.recorders.length 
+              });
               appStreams = audio.recorders;
             }
 
@@ -513,6 +567,7 @@ const AppVolumeMixer = () => {
 
 export default function AudioModules(props: Widget.BoxProps) {
   const { cssName, ...restProps } = props;
+  log.debug("Creating audio module widget");
 
   if (!audio) {
     return (

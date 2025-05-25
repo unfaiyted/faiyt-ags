@@ -8,6 +8,9 @@ import { setupCursorHover } from "../../../utils/buttons";
 import getNotifd from "../../../../utils/notification-helper";
 import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../../utils/icons/types";
+import { createLogger } from "../../../../utils/logger";
+
+const log = createLogger('NotificationButtons');
 
 const notifd = getNotifd();
 
@@ -38,7 +41,7 @@ export const NotificationSilenceButton = (props: Widget.BoxProps) => (
     name="Silence"
     action={(self) => {
       notifd.dontDisturb = !notifd.dontDisturb;
-      print("NotificationSilenceButton:", notifd.dontDisturb);
+      log.debug('Toggled Do Not Disturb', { enabled: notifd.dontDisturb });
       self.set_css_classes(notifd.dontDisturb ? ["notification-control-btn", "active"] : ["notification-control-btn"]);
     }}
   />

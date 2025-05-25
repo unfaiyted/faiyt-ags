@@ -1,6 +1,7 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { Variable, Binding, bind } from "astal";
 import { TrackTitleProps } from "./types";
+import { barLogger as log } from "../../../../utils/logger";
 
 export const TrackTitle = (props: TrackTitleProps) => {
   function trimTrackTitle(title: string) {
@@ -17,7 +18,7 @@ export const TrackTitle = (props: TrackTitleProps) => {
   const artist = new Variable(props.artist.get());
 
   props.title.subscribe((title: string) => {
-    print("Track title:", title);
+    log.debug("Track title changed", { title });
     trimmedTitle.set(trimTrackTitle(title));
     artist.set(props.artist.get());
   });

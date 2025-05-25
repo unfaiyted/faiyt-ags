@@ -3,6 +3,9 @@ import config from "../../../utils/config";
 import { Binding, Variable, bind } from "astal";
 import { c } from "../../../utils/style";
 import GLib from "gi://GLib";
+import { createLogger } from "../../../utils/logger";
+
+const log = createLogger("Indicators");
 
 // Shared visibility state for all indicators
 export const indicatorVisibility = Variable(false);
@@ -10,6 +13,7 @@ let fadeOutTimer: number | null = null;
 
 // Function to show indicators and reset fade timer
 export const showIndicators = () => {
+  log.debug("Showing indicators");
   indicatorVisibility.set(true);
 
   // Clear existing timer
@@ -19,6 +23,7 @@ export const showIndicators = () => {
 
   // Set new timer to fade out after 3 seconds
   fadeOutTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 3000, () => {
+    log.debug("Hiding indicators after timeout");
     indicatorVisibility.set(false);
     fadeOutTimer = null;
     return false; // Don't repeat
@@ -110,6 +115,8 @@ export interface IndicatorContainerProps extends Widget.RevealerProps {
 }
 
 export const IndicatorsContainer = (props: IndicatorContainerProps) => {
+  log.debug("Creating indicators container");
+  
   return (
     <revealer
       {...props}

@@ -3,7 +3,6 @@
 // Main launcher window
 launcher {
   background-color: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
 }
 
 // Container for launcher content
@@ -35,14 +34,9 @@ search-input-container {
 launcher-search-input {
   background: transparent;
   border: none;
-  outline: none;
   font-size: 16px;
   color: colors.c(foreground);
   min-height: 32px;
-
-  &:focus {
-    outline: none;
-  }
 }
 
 // Search icon
@@ -60,27 +54,12 @@ search-placeholder {
 
 // Results container
 launcher-results-container {
-  max-height: 400px;
-  overflow-y: auto;
-
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: colors.c(muted);
-    border-radius: 2px;
-  }
+  
 }
 
 // Results box
 launcher-results {
   min-width: 500px;
-  max-height: 400px;
 }
 
 // Results list

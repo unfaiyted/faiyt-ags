@@ -4,13 +4,18 @@ import { KBBacklightBrightnessIndicator } from "./indicators/kb-backlight-bright
 import { VolumeIndicator } from "./indicators/volume";
 import Indicators from "./indicators/index";
 import PopupNotifications from "./popup-notifications";
+import { createLogger } from "../../utils/logger";
 // import { MusicControls } from "./music";
 // import { Notifications } from "./notifications";
 // import { ColorSchemeSwitcher } from "./scheme-switcher";
 
+const log = createLogger("Overlays");
+
 export interface SystemOverlayProps extends Widget.WindowProps { }
 
 export const SystemOverlays = (props: SystemOverlayProps) => {
+  log.debug("Creating system overlays", { monitor: props.monitor });
+  
   return (
     <window
       {...props}

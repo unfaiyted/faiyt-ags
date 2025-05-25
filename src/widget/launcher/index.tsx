@@ -3,6 +3,7 @@ import PopupWindow, { PopupWindowProps } from "../utils/popup-window";
 import { Variable, bind } from "astal";
 import config from "../../utils/config";
 import LauncherResults from "./launcher-results";
+import { launcherLogger as log } from "../../utils/logger";
 
 export interface LauncherProps extends PopupWindowProps {
   monitor: number;
@@ -11,13 +12,14 @@ export interface LauncherProps extends PopupWindowProps {
 export default function LauncherBar(launcherProps: LauncherProps) {
   const { setup, child, ...props } = launcherProps;
 
-  const isVisible = Variable(false);
+  const isVisible = Variable(true);
   const placeholderText = Variable("Type to Search");
   const searchText = Variable("");
   let entryRef: Gtk.Entry | null = null;
 
   // Close the launcher
   const closeLauncher = () => {
+    log.debug("Closing launcher");
     const window = App.get_window("launcher");
     if (window) {
       window.hide();
@@ -38,12 +40,15 @@ export default function LauncherBar(launcherProps: LauncherProps) {
   // Reset state when window visibility changes
   isVisible.subscribe((v) => {
     if (v) {
+      log.info("Launcher opened");
       searchText.set("");
       placeholderText.set("Type to Search");
       // Focus entry when shown
       if (entryRef) {
         entryRef.grab_focus();
       }
+    } else {
+      log.info("Launcher closed");
     }
   });
 

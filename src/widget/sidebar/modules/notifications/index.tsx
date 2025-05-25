@@ -13,6 +13,9 @@ import { NotificationList } from "./notification-list";
 import getNotifd from "../../../../utils/notification-helper";
 import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../../utils/icons/types";
+import { createLogger } from "../../../../utils/logger";
+
+const log = createLogger('NotificationModule');
 
 const notifd = getNotifd();
 
@@ -59,7 +62,7 @@ export const NotificationCount = (props: NotificationCountProps) => {
 export function NotificationModule(props: Widget.BoxProps) {
   const notifications = notifd.get_notifications();
 
-  print("notifications.length", notifications.length);
+  log.debug('Initial notification count', { count: notifications.length });
 
   const empty = Variable(notifications.length === 0);
   const count = Variable(notifications.length);
@@ -69,7 +72,7 @@ export function NotificationModule(props: Widget.BoxProps) {
     const notifications = _notifd.get_notifications();
     empty.set(notifications.length === 0);
     count.set(notifications.length);
-    print("Notification:", n.summary, n.body);
+    log.debug('New notification', { id, summary: n.summary, body: n.body });
   });
 
   notifd.connect("resolved", (_notifd: Notifd.Notifd, id: number) => {

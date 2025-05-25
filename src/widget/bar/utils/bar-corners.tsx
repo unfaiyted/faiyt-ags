@@ -6,6 +6,7 @@ import "../bar.scss"
 import cairo from "cairo";
 import { RgbaColor } from "../types";
 import { theme } from "../../../utils/color";
+import { barLogger as log } from "../../../utils/logger";
 
 export interface BarCornerTopProps extends Widget.WindowProps {
   index?: number;
@@ -23,9 +24,9 @@ export interface RoundedCornerProps extends DrawingAreaProps {
 }
 
 export const RoundedCorner = (props: RoundedCornerProps) => {
-  print("RoundedCorner creating:", props.place);
+  log.debug(`Creating RoundedCorner`, { place: props.place });
   const setupDrawingArea = (self: Gtk.DrawingArea) => {
-    print(`Setting up corner drawing area for ${props.place}`);
+    log.debug(`Setting up corner drawing area`, { place: props.place });
 
     //   const c = self
     //     .get_style_context()
@@ -51,7 +52,7 @@ export const RoundedCorner = (props: RoundedCornerProps) => {
     // Get styles again after a short delay
     // In GTK4, we need a simpler approach
     timeout(10, () => {
-      print(`Timeout triggered for ${props.place}`);
+      log.debug(`Style timeout triggered`, { place: props.place });
 
       // Since we can't directly access CSS properties in GTK4's style context,
       // we'll use theme values that match our CSS
@@ -68,15 +69,17 @@ export const RoundedCorner = (props: RoundedCornerProps) => {
       const c = hexToRgba(theme.background, 0.95); // Using surface color with transparency
       const r = 24; // Standard corner radius
 
-      print(`Theme values - Corner radius: ${r}px`);
-      print(`Theme values - Corner color: rgba(${c.red * 255}, ${c.green * 255}, ${c.blue * 255}, ${c.alpha})`);
+      log.debug(`Theme values`, { 
+        radius: `${r}px`,
+        color: `rgba(${c.red * 255}, ${c.green * 255}, ${c.blue * 255}, ${c.alpha})`
+      });
 
       self.set_draw_func((widget, cr, width, height) => {
-        print(`Drawing function triggered for ${props.place}`);
+        log.verbose(`Drawing function triggered`, { place: props.place });
 
         // Force size again just to be sure
         widget.set_size_request(r, r);
-        print(`Drawing corner: ${place} with radius: ${r}px`);
+        log.verbose(`Drawing corner`, { place, radius: `${r}px` });
 
         // Start with a completely clear surface (transparent background)
         cr.setOperator(cairo.Operator.CLEAR);
@@ -128,7 +131,7 @@ export const RoundedCorner = (props: RoundedCornerProps) => {
   };
 
   const { place } = props;
-  print(`Creating DrawingArea for ${place}`);
+  log.debug(`Creating DrawingArea`, { place });
   return (
     <DrawingArea
       cssName="corner"
@@ -141,7 +144,7 @@ export const RoundedCorner = (props: RoundedCornerProps) => {
 };
 
 export const BarCornerTopLeft = (props: BarCornerTopProps) => {
-  print(`Creating BarCornerTopLeft window for monitor ${props.index}`);
+  log.debug(`Creating BarCornerTopLeft window`, { monitor: props.index });
   return (
     <window
       gdkmonitor={props.gdkmonitor}
@@ -163,7 +166,7 @@ export const BarCornerTopLeft = (props: BarCornerTopProps) => {
 };
 
 export const BarCornerTopRight = (props: BarCornerTopProps) => {
-  print(`Creating BarCornerTopRight window for monitor ${props.index}`);
+  log.debug(`Creating BarCornerTopRight window`, { monitor: props.index });
   return (
     <window
       gdkmonitor={props.gdkmonitor}

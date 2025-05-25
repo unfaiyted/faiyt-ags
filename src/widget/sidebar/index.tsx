@@ -1,6 +1,9 @@
 import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk4";
 import { ScreenSide } from "./types";
 import { Variable, bind } from "astal";
+import { createLogger } from "../../utils/logger";
+
+const log = createLogger('Sidebar');
 
 
 export interface SideBarProps extends Widget.WindowProps {
@@ -12,7 +15,7 @@ export interface SideBarProps extends Widget.WindowProps {
 export default function SideBar(sideBarProps: SideBarProps) {
   const { setup, child, screenSide, monitorIndex, ...props } = sideBarProps;
 
-  print(`SideBar - screenSide: ${screenSide}, monitorIndex: ${monitorIndex}, gdkmonitor: ${props.gdkmonitor}`);
+  log.debug('Creating sidebar', { screenSide, monitorIndex, gdkmonitor: props.gdkmonitor });
 
   const keymode: Astal.Keymode = Astal.Keymode.ON_DEMAND;
   const revealSidebar = Variable(false);
@@ -49,13 +52,13 @@ export default function SideBar(sideBarProps: SideBarProps) {
     setTimeout(() => {
       const window = App.get_window(name);
       if (window) {
-        print(`Sidebar ${name}: closing`);
+        log.debug(`Closing sidebar: ${name}`);
         window.hide();
       }
     }, 350);
   };
 
-  print("Registering sidebar with name", name);
+  log.info(`Registering sidebar: ${name}`);
 
   return (
     <window
@@ -76,11 +79,11 @@ export default function SideBar(sideBarProps: SideBarProps) {
       exclusivity={Astal.Exclusivity.NORMAL}
       application={App}
       setup={(self: Gtk.Window) => {
-        print(`Sidebar window created: ${name}`);
+        log.debug(`Window created: ${name}`);
 
         // When window is shown, trigger the slide animation
         self.connect("show", () => {
-          print(`Sidebar ${name}: Window shown, triggering slide animation`);
+          log.debug(`Window shown, triggering slide animation`, { name });
           setTimeout(() => {
             revealSidebar.set(true);
           }, 40);
@@ -104,11 +107,11 @@ export default function SideBar(sideBarProps: SideBarProps) {
         vexpand
         cssName="sidebar-click-area"
         setup={(self: Gtk.Box) => {
-          print(`Sidebar ${name}: Setting up click detection for ${screenSide}`);
+          log.debug('Setting up click detection', { name, screenSide });
           // Add click gesture to detect clicks outside sidebar
           const clickGesture = new Gtk.GestureClick();
           clickGesture.connect("pressed", (gesture, n_press, x, y) => {
-            print(`Sidebar ${name}: Click at ${x}, ${y}`);
+            log.debug('Click detected', { name, x, y });
 
             // Navigate to the actual sidebar box inside the structure:
             // self (click-area box) -> sidebar-container -> revealer -> sidebar box
@@ -132,27 +135,30 @@ export default function SideBar(sideBarProps: SideBarProps) {
 
               if (sidebar) {
                 const allocation = sidebar.get_allocation();
-                print(`Sidebar ${name}: Sidebar allocation - x: ${allocation.x}, y: ${allocation.y}, width: ${allocation.width}, height: ${allocation.height}`);
-                print(`Sidebar ${name}: Container size - width: ${self.get_width()}, height: ${self.get_height()}`);
+                log.debug('Sidebar allocation', { 
+                  name, 
+                  allocation: { x: allocation.x, y: allocation.y, width: allocation.width, height: allocation.height },
+                  containerSize: { width: self.get_width(), height: self.get_height() }
+                });
 
                 // Convert click coordinates to sidebar-relative coordinates
                 const [success, sidebarX, sidebarY] = sidebar.translate_coordinates(self, 0, 0);
                 if (success) {
-                  print(`Sidebar ${name}: Sidebar position relative to click area: ${sidebarX}, ${sidebarY}`);
+                  log.debug('Sidebar position relative to click area', { name, sidebarX, sidebarY });
 
                   // Check if click is within sidebar bounds
                   const isInside = x >= sidebarX && x <= sidebarX + allocation.width &&
                     y >= sidebarY && y <= sidebarY + allocation.height;
 
                   if (!isInside) {
-                    print(`Sidebar ${name}: Click is outside sidebar`);
+                    log.debug('Click outside sidebar, closing', { name });
                     closeSidebar();
                   } else {
-                    print(`Sidebar ${name}: Click is inside sidebar`);
+                    log.debug('Click inside sidebar', { name });
                   }
                 }
               } else {
-                print(`Sidebar ${name}: Could not find sidebar widget`);
+                log.warn('Could not find sidebar widget', { name });
               }
             }
           });

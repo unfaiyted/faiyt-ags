@@ -5,6 +5,7 @@ import ChatMessageContent from "./chat-message-content";
 import { ClaudeMessage } from "../../../../../services/claude";
 // import {ChatMessage} from "./"
 import { Variable, bind } from "astal";
+import { sidebarLogger as log } from "../../../../../utils/logger";
 
 // const LATEX_DIR = `${GLib.get_user_cache_dir()}/ags/media/latex`;
 // const CUSTOM_SOURCEVIEW_SCHEME_PATH = `${App.configDir}/assets/themes/sourceviewtheme${darkMode.value ? '' : '-light'}.xml`;
@@ -49,7 +50,7 @@ export interface ChatMessageProps extends Widget.BoxProps {
 }
 
 export const ChatMessage = (props: ChatMessageProps) => {
-  print("ChatMESSAGE created");
+  log.debug("ChatMessage component created");
   const { message } = props;
 
   const displayMessage = Variable("Thinking...");
@@ -63,20 +64,22 @@ export const ChatMessage = (props: ChatMessageProps) => {
   // });
   //
   message.connect("delta", (delta: ClaudeMessage) => {
-    print("delta-content:", delta.content);
+    log.debug("Message delta received", { content: delta.content });
 
     displayMessage.set(delta.content);
   });
 
   message.connect("finished", (message: ClaudeMessage) => {
     // print("message", message);
-    print("finished-content:", message.content);
+    log.debug("Message finished", { content: message.content });
     thinking.set(false);
     displayMessage.set(message.content);
   });
 
-  print("Setting message.content", message.content);
-  print("thinking:", thinking.get());
+  log.debug("Initial message state", { 
+    content: message.content,
+    thinking: thinking.get() 
+  });
   displayMessage.set(message.content);
   return (
     <box className="sidebar-chat-message">

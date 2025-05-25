@@ -4,6 +4,7 @@ import { BarMode } from "../types";
 import NormalBarContent from "./normal";
 import FocusBarContent from "./focus";
 import NothingBarContent from "./nothing";
+import { barLogger as log } from "../../../utils/logger";
 
 export interface BaseBarContentProps extends Widget.BoxProps {
   mode: Binding<BarMode>;
@@ -14,7 +15,7 @@ export interface BaseBarContentProps extends Widget.BoxProps {
 export default function BarModeContent(baseBarProps: BaseBarContentProps) {
   const { setup, child, ...props } = baseBarProps;
 
-  print("BarModeContent - Monitor Index:", props.monitorIndex);
+  log.debug("BarModeContent created", { monitorIndex: props.monitorIndex });
   const getModeContent = () => {
     switch (props.mode.get()) {
       case BarMode.Normal:

@@ -8,6 +8,7 @@ import config from "../../utils/config";
 import { shellMode } from "./utils";
 import { BarMode } from "./types";
 import BarModeContent from "./modes";
+import { barLogger as log } from "../../utils/logger";
 
 
 // Main top bar
@@ -21,10 +22,10 @@ export default function Bar(barProps: BarProps) {
   const { gdkmonitor, index } = barProps;
   var barShellMode = new Variable<BarMode>(BarMode.Normal);
 
-  // print("Bar created");
+  log.debug(`Bar created for monitor ${index}`);
 
   shellMode.subscribe((shellMode: BarMode) => {
-    // print("COMPONENT: Shell mode changed:", shellMode.modes[index as number]);
+    log.debug(`Shell mode changed for monitor ${index}`, { mode: shellMode.modes[index as number] });
     barShellMode.set(shellMode.modes[index as number]);
   });
 

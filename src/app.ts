@@ -13,6 +13,12 @@ import {
   BarCornerTopLeft,
   BarCornerTopRight,
 } from "./widget/bar/utils/bar-corners";
+import { systemLogger, log, setLogLevel, LogLevel } from "./utils/logger";
+import { logSystemInfo } from "./services/logger";
+
+// Set log level from environment or default to info
+import { GLib } from "astal";
+setLogLevel(GLib.getenv('LOG_LEVEL') || LogLevel.INFO);
 
 // Init shell modes for all active monitors
 initialMonitorShellModes();
@@ -20,19 +26,39 @@ initialMonitorShellModes();
 App.start({
   css: appCSS,
   main() {
+    const timer = systemLogger.time('App Initialization');
+    
+    // Log system info on startup
+    log.info('AGS Application Starting');
+    logSystemInfo();
+    
     // Windows
-    App.get_monitors().map((gdkmonitor, index) => {
-      Bar({ gdkmonitor: gdkmonitor, index, mode: BarMode.Normal });
-      SideRight({ gdkmonitor: gdkmonitor, monitorIndex: index });
-      BarCornerTopLeft({ gdkmonitor: gdkmonitor, index });
-      BarCornerTopRight({ gdkmonitor: gdkmonitor, index });
-      SystemOverlays({ gdkmonitor: gdkmonitor, monitor: index });
+    const monitors = App.get_monitors();
+    log.info(`Found ${monitors.length} monitors`);
+    
+    monitors.map((gdkmonitor, index) => {
+      log.debug(`Setting up widgets for monitor ${index}`);
+      
+      try {
+        Bar({ gdkmonitor: gdkmonitor, index, mode: BarMode.Normal });
+        SideRight({ gdkmonitor: gdkmonitor, monitorIndex: index });
+        BarCornerTopLeft({ gdkmonitor: gdkmonitor, index });
+        BarCornerTopRight({ gdkmonitor: gdkmonitor, index });
+        SystemOverlays({ gdkmonitor: gdkmonitor, monitor: index });
+        LauncherBar({ gdkmonitor, monitor: index });
+        
+        log.info(`Monitor ${index} setup complete`);
+      } catch (error) {
+        log.error(`Failed to setup monitor ${index}`, { error });
+      }
     });
-    LauncherBar({ gdkmonitor: App.get_monitors()[0], monitor: 0 });
 
     // SideLeft({ gdkmonitor: App.get_monitors()[0] });
+    
+    timer.end('All widgets initialized');
   },
   requestHandler(request: string, res: (response: any) => void) {
+    log.debug('CLI request received', { request });
     cliRequestHandler(request, res);
   },
 });

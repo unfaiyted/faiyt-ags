@@ -4,6 +4,9 @@ import Bluetooth from "gi://AstalBluetooth";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../utils/icons/types";
 import BluetoothScanner from "../../../services/bluetooth-scanner";
+import { createLogger } from "../../../utils/logger";
+
+const log = createLogger('BluetoothModule');
 
 const bluetooth = Bluetooth.get_default();
 const scanner = BluetoothScanner.get_default();
@@ -66,7 +69,7 @@ const BluetoothStatus = () => {
     try {
       bluetooth.is_powered = !bluetooth.is_powered;
     } catch (error) {
-      print("Failed to toggle Bluetooth:", error);
+      log.error('Failed to toggle Bluetooth', { error });
     }
   };
 
@@ -116,7 +119,7 @@ const BluetoothDeviceItem = ({ device }: { device: BluetoothDevice }) => {
       const btDevice = bluetooth.get_devices().find(d => d.address === device.address);
       if (!btDevice) {
         // Device not in AstalBluetooth, use bluetoothctl
-        print(`Device ${device.name} not in AstalBluetooth, using bluetoothctl`);
+        log.debug('Device not in AstalBluetooth, using bluetoothctl', { device: device.name });
 
         if (device.connected) {
           await execAsync(["bluetoothctl", "disconnect", device.address]);
@@ -131,17 +134,17 @@ const BluetoothDeviceItem = ({ device }: { device: BluetoothDevice }) => {
         } else {
           // Pair first if not paired
           if (!device.paired) {
-            print(`Pairing with ${device.name}...`);
+            log.info('Pairing with device', { name: device.name });
             await execAsync(["bluetoothctl", "pair", device.address]);
             await execAsync(["bluetoothctl", "trust", device.address]);
           }
           // Then connect
-          print(`Connecting to ${device.name}...`);
+          log.info('Connecting to device', { name: device.name });
           await execAsync(["bluetoothctl", "connect", device.address]);
         }
       }
     } catch (error) {
-      print(`Failed to connect to ${device.name}:`, error);
+      log.error('Failed to connect to device', { name: device.name, error });
     }
     connecting.set(false);
   };
@@ -151,17 +154,17 @@ const BluetoothDeviceItem = ({ device }: { device: BluetoothDevice }) => {
     try {
       // Disconnect first if connected
       if (device.connected) {
-        print(`Disconnecting ${device.name} before removal...`);
+        log.debug('Disconnecting device before removal', { name: device.name });
         await execAsync(["bluetoothctl", "disconnect", device.address]);
         // Wait a bit for disconnect to complete
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       // Remove the device
-      print(`Removing ${device.name}...`);
+      log.info('Removing device', { name: device.name });
       await execAsync(["bluetoothctl", "remove", device.address]);
     } catch (error) {
-      print(`Failed to remove ${device.name}:`, error);
+      log.error('Failed to remove device', { name: device.name, error });
     }
     removing.set(false);
   };
@@ -281,7 +284,7 @@ const BluetoothDeviceList = () => {
     try {
       // Ensure bluetooth is powered on
       if (!bluetooth.is_powered) {
-        print("Bluetooth is off, turning it on first");
+        log.debug('Bluetooth is off, turning it on first');
         bluetooth.is_powered = true;
         // Wait a bit for bluetooth to power on
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -293,7 +296,7 @@ const BluetoothDeviceList = () => {
         await scanner.startScan();
       }
     } catch (error) {
-      print("Failed to toggle discovery:", error);
+      log.error('Failed to toggle discovery', { error });
     }
   };
 
@@ -339,11 +342,13 @@ const BluetoothDeviceList = () => {
 
             // Debug: Log scanned devices with RSSI
             if (scannedDevices.length > 0) {
-              print(`Scanned devices: ${scannedDevices.length}`);
-              scannedDevices.forEach(d => {
-                if (d.rssi !== undefined) {
-                  print(`  ${d.name} (${d.address}): RSSI=${d.rssi}`);
-                }
+              log.debug('Scanned devices', { 
+                count: scannedDevices.length,
+                devices: scannedDevices.filter(d => d.rssi !== undefined).map(d => ({
+                  name: d.name,
+                  address: d.address,
+                  rssi: d.rssi
+                }))
               });
             }
 
@@ -354,7 +359,7 @@ const BluetoothDeviceList = () => {
                 if (existingDevice) {
                   // Update RSSI for existing paired devices
                   existingDevice.rssi = scanned.rssi;
-                  print(`Updated RSSI for ${existingDevice.name}: ${scanned.rssi}`);
+                  log.debug('Updated RSSI for existing device', { name: existingDevice.name, rssi: scanned.rssi });
                 } else {
                   // Add new unpaired device
                   allDevices.push({
@@ -377,7 +382,7 @@ const BluetoothDeviceList = () => {
                 const pairedDevice = allDevices.find(d => d.address === scanned.address);
                 if (pairedDevice) {
                   pairedDevice.rssi = scanned.rssi;
-                  print(`Updated RSSI for paired device ${pairedDevice.name}: ${scanned.rssi}`);
+                  log.debug('Updated RSSI for paired device', { name: pairedDevice.name, rssi: scanned.rssi });
                 }
               });
             }

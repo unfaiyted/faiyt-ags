@@ -2,6 +2,7 @@ import { Widget, Gtk } from "astal/gtk4";
 import SideModule from "./side";
 import { actions } from "../../../utils/actions";
 import { UIWindows } from "../../../types";
+import { barLogger as log } from "../../../utils/logger";
 
 export interface RightSideModuleProps extends Widget.BoxProps {
 
@@ -17,7 +18,7 @@ export default function RightSideModule(
   props.onScrollDown = () => actions.audio.decrease();
   props.onPrimaryClick = () => actions.window.toggle(UIWindows.SIDEBAR_RIGHT);
 
-  print("RightSideModule - Monitor Index:", props.monitorIndex);
+  log.debug("RightSideModule created", { monitorIndex: props.monitorIndex });
 
   const monitorSuffix = props.monitorIndex !== undefined ? `-${props.monitorIndex}` : '';
   const sideBarName: string = `sidebar-right${monitorSuffix}`;

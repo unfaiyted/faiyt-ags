@@ -3,6 +3,7 @@ import { Variable } from "astal";
 import Hypr from "gi://AstalHyprland";
 import { BarMode } from "./types";
 import config from "../../utils/config";
+import { barLogger as log } from "../../utils/logger";
 
 const hypr = Hypr.get_default();
 
@@ -17,7 +18,7 @@ export const initialMonitorShellModes = () => {
   const monitors = Gdk.Display.get_default()?.get_monitors();
   const numberOfMonitors = monitors?.get_n_items() || 1;
 
-  print("Number of monitors:", numberOfMonitors);
+  log.info(`Found ${numberOfMonitors} monitors`);
   const monitorBarConfigs = [];
   for (let i = 0; i < numberOfMonitors; i++) {
     if (config.bar.modes[i]) {
@@ -31,54 +32,54 @@ export const initialMonitorShellModes = () => {
 
 // Mode switching
 const updateMonitorShellMode = (monitor: number, mode: BarMode) => {
-  print(`Updating monitor ${monitor} shell mode to:`, mode);
+  log.debug(`Updating monitor ${monitor} shell mode`, { mode });
   const newValue = [...shellMode.get().modes];
   newValue[monitor] = mode;
   shellMode.set({ modes: newValue });
-  print("Monitor shell mode:", newValue);
+  log.debug("Updated shell modes", { modes: newValue });
 };
 
 export const cycleMode = () => {
   const monitor = hypr.get_focused_monitor().id || 0;
 
-  // print(`Monitor ${monitor} shell mode:`, shellMode.get().modes[monitor]);
+  log.debug(`Current shell mode for monitor ${monitor}`, { mode: shellMode.get().modes[monitor] });
 
   if (shellMode.get().modes.length === 0) {
-    // print("Initial monitor shell modes not set.");
+    log.debug("Initial monitor shell modes not set, initializing");
     shellMode.set(initialMonitorShellModes());
   }
 
   if (shellMode.get().modes[monitor] === BarMode.Normal) {
-    // print("Cycling to focus mode.");
+    log.info("Cycling to focus mode");
     updateMonitorShellMode(monitor, BarMode.Focus);
   } else if (shellMode.get().modes[monitor] === BarMode.Focus) {
-    // print("Cycling to nothing mode.");
+    log.info("Cycling to nothing mode");
     updateMonitorShellMode(monitor, BarMode.Nothing);
   } else {
-    // print("Cycling to normal mode, end.");
+    log.info("Cycling to normal mode");
     updateMonitorShellMode(monitor, BarMode.Normal);
   }
 };
 
 export const getFocusedShellMode = () => {
-  // print("Getting focused shell mode.");
+  log.debug("Getting focused shell mode");
   const monitor = hypr.get_focused_monitor().id || 0;
 
   // check if initial monitor modes are set
   if (shellMode.get().modes.length === 0) {
-    // print("Initial monitor shell modes not set.");
+    log.debug("Initial monitor shell modes not set, initializing");
     shellMode.set(initialMonitorShellModes());
   }
   const monitorShellMode = shellMode.get().modes[monitor];
-  // print(`Shell mode for monitor ${monitor} is:`, monitorShellMode);
+  log.debug(`Shell mode for monitor ${monitor}`, { mode: monitorShellMode });
   return monitorShellMode;
 };
 
 export const getMonitorShellMode = (monitor: number) => {
-  // print("Getting monitor shell mode.", monitor);
+  log.debug(`Getting shell mode for monitor ${monitor}`);
   // check if initial monitor modes are set
   if (shellMode.get().modes.length === 0) {
-    // print("Initial monitor shell modes not set.");
+    log.debug("Initial monitor shell modes not set, initializing");
     shellMode.set(initialMonitorShellModes());
   }
   return shellMode.get().modes[monitor];

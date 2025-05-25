@@ -3,6 +3,7 @@ import { Variable, bind } from "astal";
 import SystemTray from "gi://AstalTray";
 import TrayItem from "./item";
 import config from "../../../../utils/config";
+import { barLogger as log } from "../../../../utils/logger";
 
 export interface TrayModuleProps extends Widget.BoxProps { }
 
@@ -14,12 +15,12 @@ export default function Tray(trayModuleProps: TrayModuleProps) {
   const trayItems = Variable<SystemTray.TrayItem[]>(tray.get_items());
 
   tray.connect("item-added", () => {
-    print("Tray item added.");
+    log.debug("Tray item added");
     trayItems.set(tray.get_items());
   });
 
   tray.connect("item-removed", () => {
-    print("Tray item removed.");
+    log.debug("Tray item removed");
     trayItems.set(tray.get_items());
   });
 

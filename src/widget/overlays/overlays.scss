@@ -102,13 +102,11 @@ osd-value-txt {
   border-radius: 8px;
   height: 8px;
   margin: 4px 0;
-  overflow: hidden;
 
   progress-bar-fill {
     background-color: colors.c(primary);
     border-radius: 8px;
-    transition: width 0.3s ease-in-out;
-    height: 100%;
+    transition: all 0.3s ease-in-out;
     min-height: 8px;
   }
 }
@@ -118,11 +116,9 @@ osd-value-txt {
   margin: 16px;
 
   .notification-container {
-    max-width: 400px;
     background: linear-gradient(135deg,
         rgba(0, 0, 0, 0.9) 0%,
         rgba(0, 0, 0, 0.85) 100%);
-    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4),
       0 4px 8px rgba(0, 0, 0, 0.2);

@@ -1,6 +1,7 @@
 import { Widget, Astal, Gtk, Gdk } from "astal/gtk4";
 import { Binding, bind } from "astal";
 import { setupCursorHover } from "../../../utils/buttons";
+import { sidebarLogger as log } from "../../../../utils/logger";
 
 export interface TogglesModuleProps extends Widget.ButtonProps {
   handleClick: () => void;
@@ -18,11 +19,11 @@ export const ToggleIcon = (props: TogglesModuleProps) => {
 
     switch (button) {
       case Gdk.BUTTON_PRIMARY:
-        print("Primary button pressed");
+        log.debug("Toggle primary button pressed");
         props.handleClick();
         break;
       case Gdk.BUTTON_SECONDARY:
-        print("Secondary button pressed");
+        log.debug("Toggle secondary button pressed");
         if (props.handleRightClick) {
           props.handleRightClick();
         }
@@ -72,7 +73,7 @@ export const ToggleIcon = (props: TogglesModuleProps) => {
   // Create a gesture for the toggle switch as well
   const switchGesture = new Gtk.GestureClick();
   switchGesture.connect('pressed', () => {
-    print("Switch clicked");
+    log.debug("Toggle switch clicked");
     props.handleClick();
   });
 

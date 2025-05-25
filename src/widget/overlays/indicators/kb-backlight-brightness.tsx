@@ -4,6 +4,9 @@ import { Variable, bind, exec, execAsync } from "astal";
 import GLib from "gi://GLib";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../utils/icons/types";
+import { createLogger } from "../../../utils/logger";
+
+const log = createLogger("KBBacklightIndicator");
 
 // Keyboard backlight service
 class KeyboardBacklightService {
@@ -13,6 +16,7 @@ class KeyboardBacklightService {
   private _hasBacklight = false;
 
   constructor() {
+    log.debug("Initializing keyboard backlight service");
     this._init();
   }
 
@@ -27,6 +31,7 @@ class KeyboardBacklightService {
         // Extract device name
         const deviceMatch = kbdDevice.match(/Device '([^']+)'/);
         const deviceName = deviceMatch ? deviceMatch[1] : 'kbd_backlight';
+        log.info("Found keyboard backlight device", { device: deviceName });
 
         // Get max brightness
         const maxOutput = exec(`brightnessctl -d ${deviceName} max`);
@@ -40,6 +45,7 @@ class KeyboardBacklightService {
 
         if (kbdBacklights.length > 0) {
           this._kbdBacklightPath = `${ledsDir}${kbdBacklights[0]}`;
+          log.debug("Keyboard backlight path", { path: this._kbdBacklightPath });
 
           // Get current brightness
           this._updateBrightness();
@@ -69,9 +75,11 @@ class KeyboardBacklightService {
 
           // Watch for brightness changes
           this._watchBrightness();
+        } else {
+          log.info("No keyboard backlight found");
         }
       } catch (e) {
-        print("No keyboard backlight found");
+        log.debug("Keyboard backlight detection failed", { error: e });
       }
     }
   }
@@ -87,17 +95,19 @@ class KeyboardBacklightService {
       
       // Only update and show indicator if value actually changed
       if (oldValue !== percent) {
+        log.debug("Keyboard brightness changed", { oldValue, newValue: percent });
         this._brightness.set(percent);
         showIndicators();
       }
     } catch (error) {
-      print("Error reading keyboard brightness:", error);
+      log.error("Error reading keyboard brightness", { error });
     }
   }
 
   private _watchBrightness() {
     if (!this._kbdBacklightPath) return;
 
+    log.debug("Starting keyboard backlight polling");
     // Poll for changes since file monitoring might not work reliably for sysfs
     GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
       this._updateBrightness();
@@ -116,6 +126,7 @@ class KeyboardBacklightService {
   async setBrightness(percent: number) {
     if (!this._hasBacklight) return;
 
+    log.debug("Setting keyboard brightness", { percent });
     try {
       // Use brightnessctl with kbd_backlight device
       await execAsync(`brightnessctl --device='kbd_backlight' set ${percent}%`);
@@ -128,7 +139,7 @@ class KeyboardBacklightService {
           await execAsync(`pkexec sh -c 'echo ${value} > ${this._kbdBacklightPath}/brightness'`);
           showIndicators();
         } catch (e) {
-          print("Error setting keyboard brightness:", e);
+          log.error("Error setting keyboard brightness", { error: e });
         }
       }
     }
@@ -149,8 +160,11 @@ export const KBBacklightBrightnessIndicator = (props: Widget.BoxProps) => {
 
   // Only render if keyboard backlight is available
   if (!kbBacklightService.hasBacklight) {
+    log.debug("No keyboard backlight available, skipping widget");
     return null;
   }
+  
+  log.debug("Creating keyboard backlight indicator widget");
 
   // Keep the keyboard icon constant since there's no variant for backlight
   // The progress bar will show the brightness level

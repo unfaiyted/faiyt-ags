@@ -13,6 +13,7 @@ import {
   DeltaType,
 } from "../types/claude";
 import { ServiceMessage, Role } from "../types/claude";
+import { serviceLogger as log } from "../utils/logger";
 
 const HISTORY_DIR = `${config.dir.state}/ags/user/ai/chats/`;
 const HISTORY_FILENAME = `claude.txt`;
@@ -28,7 +29,7 @@ if (!fileExists(`${config.dir.config}/claude_history.json`)) {
     `bash`,
     `-c`,
     `touch ${config.dir.config}/claude_history.json`,
-  ]).catch(print);
+  ]).catch(err => log.error("Failed to create claude history file", { error: err }));
   writeFile("[ ]", `${config.dir.config}/claude_history.json`);
 }
 
@@ -69,7 +70,7 @@ export class ClaudeMessage extends GObject.Object {
     this._isThinking = thinking;
     this._isDone = done;
     if (initialRole == Role.USER) {
-      print("initialRole", initialRole);
+      log.debug("ClaudeMessage initialized with user role", { initialRole });
       this.done = true;
       this._isDone = true;
       this.emit("changed");
@@ -84,12 +85,12 @@ export class ClaudeMessage extends GObject.Object {
 
   @signal()
   changed() {
-    print("ClaudeMessage changed");
+    log.verbose("ClaudeMessage changed signal emitted");
   }
 
   @signal(ClaudeMessage)
   finished(_message: ClaudeMessage) {
-    print("ClaudeMessage finished");
+    log.debug("ClaudeMessage finished signal emitted");
     _message._isDone = true;
     _message._isThinking = false;
   }
@@ -267,20 +268,20 @@ export class ClaudeService extends GObject.Object {
   constructor() {
     super();
 
-    print("ClaudeService constructor");
+    log.info("ClaudeService initializing");
 
     if (ENV_KEY) this._key = ENV_KEY;
     else if (fileExists(KEY_FILE)) this._key = readFile(KEY_FILE).trim();
     else this.emit("has-key", false);
 
-    print("Key:", this._key);
+    log.debug("API key status", { hasKey: this._key.length > 0 });
 
     // if (this._usingHistory) timeout(1000, () => this.loadHistory());
     if (this._usingHistory) this.loadHistory();
     else this._messages = this._assistantPrompt ? [...initMessages] : [];
 
-    print("initMessages:", initMessages);
-    print("intilized");
+    log.debug("Initial messages loaded", { count: this._messages.length });
+    log.info("ClaudeService initialized");
     this.emit("initialized");
   }
 
@@ -297,8 +298,11 @@ export class ClaudeService extends GObject.Object {
   set key(keyValue) {
     this._key = keyValue;
     writeFileAsync(this._key, KEY_FILE)
-      .then(() => this.emit("has-key", true))
-      .catch(print);
+      .then(() => {
+        log.info("API key saved successfully");
+        this.emit("has-key", true);
+      })
+      .catch(err => log.error("Failed to save API key", { error: err }));
   }
 
   get cycleModels() {
@@ -344,6 +348,7 @@ export class ClaudeService extends GObject.Object {
   }
 
   saveHistory() {
+    log.debug("Saving chat history", { path: HISTORY_PATH });
     exec(`bash -c 'mkdir -p ${HISTORY_DIR} && touch ${HISTORY_PATH}'`);
     writeFile(
       JSON.stringify(
@@ -354,6 +359,7 @@ export class ClaudeService extends GObject.Object {
       ),
       HISTORY_PATH,
     );
+    log.debug("Chat history saved", { messageCount: this._messages.length });
   }
 
   getMessage(id: number) {
@@ -361,6 +367,7 @@ export class ClaudeService extends GObject.Object {
   }
 
   loadHistory() {
+    log.info("Loading chat history");
     this._messages = [];
     this.appendHistory();
     this._usingHistory = true;
@@ -369,14 +376,20 @@ export class ClaudeService extends GObject.Object {
   appendHistory() {
     try {
       if (fileExists(HISTORY_PATH)) {
+        log.debug("History file found, loading messages");
         const readfile = readFile(HISTORY_PATH);
-        JSON.parse(readfile).forEach((element: ServiceMessage) => {
+        const historyMessages = JSON.parse(readfile);
+        log.debug("Loaded history", { messageCount: historyMessages.length });
+        
+        historyMessages.forEach((element: ServiceMessage) => {
           // this._messages.push(element);
           this.addMessage(element.role, element.parts[0].text);
         });
+      } else {
+        log.debug("No history file found");
       }
     } catch (e) {
-      print(e);
+      log.error("Failed to append history", { error: e });
     } finally {
       this._messages = this._assistantPrompt ? [...initMessages] : [];
     }
@@ -389,6 +402,7 @@ export class ClaudeService extends GObject.Object {
 
   @signal()
   clear() {
+    log.info("Clearing chat messages");
     this._messages = this._assistantPrompt ? [...initMessages] : [];
     if (this._usingHistory) this.saveHistory();
     this.emit("clear");
@@ -411,7 +425,7 @@ export class ClaudeService extends GObject.Object {
       stream.read_line_async(0, null, (stream, res) => {
         try {
           if (!stream) {
-            print("Stream ended");
+            log.debug("Stream ended");
             return;
           }
 
@@ -422,9 +436,9 @@ export class ClaudeService extends GObject.Object {
             return;
           }
 
-          // print("attempting line decode");
+          // log.verbose("attempting line decode");
           const line = this._decoder.decode(bytes);
-          console.log("decoded", line);
+          log.verbose("Decoded line", { line });
 
           if (line.startsWith("event: ")) {
             eventType = line.slice(7) as EventType;
@@ -436,10 +450,11 @@ export class ClaudeService extends GObject.Object {
                 const data = JSON.parse(eventData) as ContentBlockDelta;
                 if ((data.delta.type = DeltaType.TEXT_DELTA)) {
                   const delta = (data.delta as TextDelta)?.text || "";
+                  log.verbose("Received text delta", { deltaLength: delta.length });
                   aiResponse.addDelta(delta);
                 }
               } catch (e) {
-                print("Failed to parse event data:", e);
+                log.error("Failed to parse event data", { error: e });
               }
             }
           } else if (line === "") {
@@ -450,15 +465,18 @@ export class ClaudeService extends GObject.Object {
 
           readNextLine();
         } catch (e) {
-          print("Error reading ", (e as Error).message);
+          log.error("Error reading stream", { message: (e as Error).message });
           // if (this._usingHistory) this.saveHistory();
           //   return;
         } finally {
           if (eventType === EventType.MESSAGE_STOP) {
+            log.info("Message stream completed", { 
+              contentLength: aiResponse.content.length 
+            });
             aiResponse.done = true;
             aiResponse.emit("finished", aiResponse);
           }
-          // print("This line is done being read");
+          // log.verbose("This line is done being read");
         }
       });
     };
@@ -470,12 +488,13 @@ export class ClaudeService extends GObject.Object {
   }
 
   addMessage(role: Role, message: string) {
+    log.debug("Adding message", { role, messageLength: message.length });
     this._messages.push(new ClaudeMessage(role, message, false));
     this.emit("new-msg", this._messages.length - 1);
   }
 
   send(msg: string) {
-    print("msg:", msg);
+    log.info("Sending message to Claude", { message: msg });
     this._messages.push(new ClaudeMessage(Role.USER, msg, false, true));
     this.emit("new-msg", this._messages.length - 1);
     const aiResponse = new ClaudeMessage(
@@ -521,24 +540,37 @@ export class ClaudeService extends GObject.Object {
     );
 
     session.send_async(message, GLib.PRIORITY_DEFAULT, null, (_, result) => {
-      const stream = session.send_finish(result);
-      this.readResponse(
-        new Gio.DataInputStream({
-          close_base_stream: true,
-          base_stream: stream,
-        }),
-        aiResponse,
-      );
+      try {
+        const stream = session.send_finish(result);
+        log.debug("API request sent successfully");
+        this.readResponse(
+          new Gio.DataInputStream({
+            close_base_stream: true,
+            base_stream: stream,
+          }),
+          aiResponse,
+        );
+      } catch (error) {
+        log.error("Failed to send API request", { error });
+        aiResponse.done = true;
+        aiResponse.content = "Failed to connect to Claude API";
+      }
     });
     this._messages.push(aiResponse);
     this.emit("new-msg", this._messages.length - 1);
 
     if (this._cycleModels) {
       this._requestCount++;
-      if (this._cycleModels)
+      if (this._cycleModels) {
         this._modelIndex =
           (this._requestCount - (this._requestCount % ONE_CYCLE_COUNT)) %
           CHAT_MODELS.length;
+        log.debug("Model cycling", { 
+          requestCount: this._requestCount, 
+          modelIndex: this._modelIndex,
+          currentModel: this.modelName 
+        });
+      }
     }
   }
 }

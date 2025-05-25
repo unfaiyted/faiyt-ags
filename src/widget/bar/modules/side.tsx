@@ -1,6 +1,7 @@
 import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
 import { getScrollDirection } from "../../../utils";
 // import { ClickButtonPressed } from "../../../types";
+import { barLogger as log } from "../../../utils/logger";
 
 export interface SideModuleProps extends Widget.BoxProps {
   onScrollUp?: () => void;
@@ -18,10 +19,10 @@ export default function SideModule(sideModuleProps: SideModuleProps) {
     const scrollDirection = getScrollDirection(dx, dy);
 
     if (scrollDirection === Gdk.ScrollDirection.UP) {
-      print("scroll up");
+      log.debug("Scroll up detected");
       props.onScrollUp?.();
     } else if (scrollDirection === Gdk.ScrollDirection.DOWN) {
-      print("scroll down");
+      log.debug("Scroll down detected");
       props.onScrollDown?.();
     }
   };

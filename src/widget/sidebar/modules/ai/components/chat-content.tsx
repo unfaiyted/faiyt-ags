@@ -1,4 +1,5 @@
 import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
+import { sidebarLogger as log } from "../../../../../utils/logger";
 
 export interface ChatContentProps extends Widget.BoxProps {
   content: Array<Gtk.Widget>;
@@ -6,7 +7,7 @@ export interface ChatContentProps extends Widget.BoxProps {
 }
 
 export const ChatContent = (props: ChatContentProps) => {
-  print("ChatContent");
+  log.debug("ChatContent component created", { contentCount: props.content.length });
 
   const updateContent = () => {
     props.setUpdateCompleted();

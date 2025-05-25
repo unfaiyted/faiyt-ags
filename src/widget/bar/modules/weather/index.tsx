@@ -10,6 +10,7 @@ import GLib from "gi://GLib";
 import { WwoCode } from "./types";
 import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
 import { theme } from "../../../../utils/color";
+import { barLogger as log } from "../../../../utils/logger";
 
 const WEATHER_CACHE_FOLDER = `${GLib.get_user_cache_dir()}/ags/weather`;
 exec(`mkdir -p ${WEATHER_CACHE_FOLDER}`);
@@ -118,7 +119,7 @@ export default function SideModule() {
                   // Set icon based on weather condition
                   const iconName = WEATHER_ICON_MAP[weatherCondition.toUpperCase()] || WEATHER_ICON_MAP.DEFAULT;
                   weatherIcon.set(iconName);
-                  print("weatherIcon:", weatherIcon.get());
+                  log.debug("Weather icon set", { icon: weatherIcon.get() });
 
                   // Set color based on weather condition
                   const iconColor = getWeatherColor(weatherCondition);
@@ -131,7 +132,7 @@ export default function SideModule() {
                   weatherDesc.set(`${tempValue}°${config.weather.preferredUnit}`);
                   tooltipText.set(`${weatherDescription} - Feels like ${feelsLikeValue}°${config.weather.preferredUnit}`);
                 } catch (symbolErr) {
-                  print("Symbol error:", symbolErr);
+                  log.error("Weather symbol error", { error: symbolErr });
                   weatherIcon.set(PhosphorIcons.Thermometer);
                   weatherIconColor.set(theme.foreground);
                   weatherDesc.set("Weather unavailable");
@@ -155,7 +156,7 @@ export default function SideModule() {
             weatherDesc.set("Weather data unavailable");
           }
         } catch (err) {
-          print("Error parsing weather data:", err);
+          log.error("Error parsing weather data", { error: err });
           weatherIcon.set(PhosphorIcons.Thermometer);
           weatherIconColor.set(theme.foreground);
           weatherDesc.set("Weather parse error");
@@ -204,7 +205,7 @@ export default function SideModule() {
                   weatherDesc.set(`${tempValue}°${config.weather.preferredUnit}`);
                   tooltipText.set(`${weatherDescription} - Feels like ${feelsLikeValue}°${config.weather.preferredUnit}`);
                 } catch (symbolErr) {
-                  print("Symbol error:", symbolErr);
+                  log.error("Weather symbol error", { error: symbolErr });
                   weatherIcon.set(PhosphorIcons.Thermometer);
                   weatherIconColor.set(theme.foreground);
                   weatherDesc.set("Weather unavailable");
@@ -229,7 +230,7 @@ export default function SideModule() {
           }
         } catch (err) {
           // Fallback for JSON parsing errors or missing cache
-          print(err);
+          log.error("Failed to read weather cache", { error: err });
           weatherIcon.set(PhosphorIcons.Thermometer);
           weatherIconColor.set(theme.foreground);
           weatherDesc.set("Weather unavailable");

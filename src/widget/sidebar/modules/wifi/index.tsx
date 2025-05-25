@@ -4,6 +4,7 @@ import Network from "gi://AstalNetwork";
 import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../../utils/icons/types";
 import { c } from "../../../../utils/style";
+import { sidebarLogger as log } from "../../../../utils/logger";
 
 const network = Network.get_default();
 
@@ -24,6 +25,11 @@ const WifiStatus = () => {
 
   // Subscribe to changes
   network.wifi?.connect("notify", () => {
+    log.debug("WiFi status changed", {
+      ssid: network.wifi?.ssid,
+      strength: network.wifi?.strength,
+      enabled: network.wifi?.enabled
+    });
     isConnected.set(network.wifi?.ssid ? true : false);
     currentSSID.set(network.wifi?.ssid || "Not connected");
     strength.set(network.wifi?.strength || 0);
@@ -56,9 +62,11 @@ const WifiStatus = () => {
             active={bind(isEnabled)}
             onActivate={(self) => {
               if (self.active) {
+                log.info("Enabling WiFi");
                 self.set_css_classes(["wifi-active"]);
                 execAsync(["nmcli", "radio", "wifi", "on"]);
               } else {
+                log.info("Disabling WiFi");
                 self.set_css_classes(["wifi-inactive"]);
                 execAsync(["nmcli", "radio", "wifi", "off"]);
               }
@@ -87,9 +95,14 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
     try {
       if (wifiNetwork.connected) {
         // Disconnect
+        log.info("Disconnecting from WiFi", { ssid: wifiNetwork.ssid });
         await execAsync(["nmcli", "connection", "down", wifiNetwork.ssid]);
       } else {
         // Connect
+        log.info("Connecting to WiFi", { 
+          ssid: wifiNetwork.ssid, 
+          secure: wifiNetwork.secure 
+        });
         if (wifiNetwork.secure) {
           // For secure networks, we'll need to handle password input
           // For now, using nmcli which will prompt for password if needed
@@ -99,7 +112,7 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
         }
       }
     } catch (error) {
-      print(`Failed to connect to ${wifiNetwork.ssid}:`, error);
+      log.error(`Failed to connect to ${wifiNetwork.ssid}`, { error });
     }
     connecting.set(false);
   };
@@ -153,6 +166,7 @@ const WifiList = () => {
 
   const scanNetworks = async () => {
     scanning.set(true);
+    log.debug("Starting WiFi network scan");
     try {
       // Trigger a scan
       await execAsync(["nmcli", "device", "wifi", "rescan"]);
@@ -185,14 +199,16 @@ const WifiList = () => {
           return b.strength - a.strength;
         });
 
+      log.info("WiFi scan completed", { networkCount: networkList.length });
       networks.set(networkList);
     } catch (error) {
-      print("Failed to scan networks:", error);
+      log.error("Failed to scan networks", { error });
     }
     scanning.set(false);
   };
 
   // Initial scan
+  log.debug("Performing initial WiFi scan");
   scanNetworks();
 
   return (
@@ -236,6 +252,8 @@ const WifiList = () => {
 
 export default function WifiModule(props: Widget.BoxProps) {
   const { cssName, ...restProps } = props;
+  
+  log.debug("WifiModule created");
 
   return (
     <box cssName="wifi-module" vertical spacing={16} {...restProps}>

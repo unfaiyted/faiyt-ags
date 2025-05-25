@@ -12,6 +12,7 @@ import { SystemMessage } from "../components/system-message";
 import ChatView from "../components/chat-view";
 import config from "../../../../../utils/config";
 import { parseCommand, enableClickthrough } from "../../../../../utils";
+import { sidebarLogger as log } from "../../../../../utils/logger";
 // import ChatContent from "../components/chat-content";
 
 export interface ClaudeAIProps extends Widget.BoxProps { }
@@ -27,7 +28,7 @@ const WelcomeMessage = () => {
 };
 
 export default function ClaudeAI(props: ClaudeAIProps) {
-  print("ClaudeAI Initilizer");
+  log.debug("ClaudeAI initializing");
   const chatContent = new VarMap([
     [0, <box />],
     [1, <WelcomeMessage />],
@@ -37,11 +38,11 @@ export default function ClaudeAI(props: ClaudeAIProps) {
   const reavererIsVisible = Variable(false);
   const updateContent = Variable(false);
 
-  print("Service Starting");
+  log.debug("Starting Claude service");
   const claudeService = new ClaudeService();
 
   claudeService.connect("new-msg", (source: ClaudeService, id: number) => {
-    print("!!ClaudeService new-msg notify:", id);
+    log.debug("Claude service new message", { messageId: id });
     chatContent.set(
       id,
       <ChatMessage
@@ -52,12 +53,12 @@ export default function ClaudeAI(props: ClaudeAIProps) {
   });
 
   const appendChatContent = (newContent: Gtk.Widget) => {
-    print("appendChatContent called");
+    log.debug("Appending chat content");
     const maxKey = Math.max(...chatContent.get().map(([k]) => k));
     // existingContent.push();
-    print("last key:", maxKey);
+    log.debug("Chat content", { lastKey: maxKey });
     chatContent.set(maxKey + 1, newContent);
-    print("append-Chat Content size:", chatContent.get().length);
+    log.debug("Chat content updated", { size: chatContent.get().length });
     updateContent.set(true);
   };
 
@@ -67,7 +68,7 @@ export default function ClaudeAI(props: ClaudeAIProps) {
   };
 
   const sendMessage = (message: string) => {
-    print("sendMessage - Sending message:", message);
+    log.info("Sending message", { message });
     // Check if text or API key is empty
     if (message.length == 0) return;
     if (!claudeService.isKeySet()) {
@@ -94,13 +95,13 @@ export default function ClaudeAI(props: ClaudeAIProps) {
       };
 
       const commands = ClaudeCommands(aiCommand);
-      print("Current command:", command);
+      log.debug("Processing command", { command });
       const commandHandler = commands[command];
 
       if (commandHandler) {
         commandHandler(args);
       } else {
-        print("Invalid command");
+        log.warn("Invalid command", { command });
         appendChatContent(
           SystemMessage({
             content: "Invalid command.",
@@ -129,7 +130,7 @@ export default function ClaudeAI(props: ClaudeAIProps) {
   };
 
   chatContent.subscribe((content) => {
-    print("sub-Chat Content size:", content.length);
+    log.debug("Chat content subscription triggered", { contentSize: content.length });
   });
 
   // const chatPlaceholder = Widget.Label({

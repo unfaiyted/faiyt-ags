@@ -16,7 +16,6 @@
   }
   
   &:focus {
-    outline: 2px solid colors.c(focus);
-    outline-offset: 1px;
+    box-shadow: 0 0 0 2px colors.c(focus);
   }
 }

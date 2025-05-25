@@ -5,6 +5,9 @@ import GdkPixbuf from "gi://GdkPixbuf?version=2.0";
 import { Binding, Variable } from "astal";
 import { PhosphorIcons, PhosphorIconStyle } from "./types";
 import { theme } from "../../../utils/color";
+import { createLogger } from "../../../utils/logger";
+
+const log = createLogger("PhosphorIcon");
 
 
 // Props for the PhosphorSvgIcon component
@@ -60,7 +63,11 @@ function getIconPath(iconName: string, style: PhosphorIconStyle = PhosphorIconSt
 
   // Verify file exists
   if (!fileExists(iconPath)) {
-    print(`Fallback: Icon not found: ${iconPath}`);
+    log.debug("Icon not found, trying fallback", { 
+      iconPath, 
+      iconName, 
+      style 
+    });
     if (style !== PhosphorIconStyle.Regular) {
       return getIconPath(iconName, PhosphorIconStyle.Regular);
     }
@@ -91,7 +98,7 @@ function loadAndColorizeIcon(path: string, color?: string): string | null {
       return svgContent;
     }
   } catch (error) {
-    print(`Error loading SVG: ${error}`);
+    log.error("Error loading SVG", { path, error });
   }
 
   return null;
@@ -102,6 +109,12 @@ function loadAndColorizeIcon(path: string, color?: string): string | null {
  */
 export function PhosphorIcon(props: PhosphorIconProps) {
   const { iconName: propIconName, style = PhosphorIconStyle.Regular, size = 16, color: propColor, setup, ...rest } = props;
+  
+  log.verbose("Creating PhosphorIcon", { 
+    iconName: typeof propIconName === "string" ? propIconName : "[Binding]",
+    style,
+    size 
+  });
 
   const iconName = Variable(PhosphorIcons.QuestionMark);
   const color = Variable(theme.foreground);
@@ -139,7 +152,7 @@ export function PhosphorIcon(props: PhosphorIconProps) {
     // Subscribe to changes if props are Variables/Bindings
     if (propIconName && typeof propIconName.subscribe === "function") {
       propIconName.subscribe((newIconName) => {
-        print("Icon name changed:", newIconName);
+        log.debug("Icon name changed", { newIconName });
         loadIcon(image, newIconName, getColor());
       });
     }
@@ -157,18 +170,22 @@ export function PhosphorIcon(props: PhosphorIconProps) {
 
   // Function to load the icon
   const loadIcon = (image: Gtk.Image, iconNameValue: string, colorValue: string) => {
-    try {
-      // Convert camelCase to kebab-case if needed (e.g., batteryFull -> battery-full)
-      const normalizedIconName = iconNameValue.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+    log.verbose("Loading icon", { iconName: iconNameValue, color: colorValue });
+    
+    // Convert camelCase to kebab-case if needed (e.g., batteryFull -> battery-full)
+    const normalizedIconName = iconNameValue.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 
-      // Get the path to the icon file
-      const iconPath = getIconPath(normalizedIconName, style);
+    // Get the path to the icon file
+    const iconPath = getIconPath(normalizedIconName, style);
+    
+    try {
 
       if (colorValue && colorValue !== '') {
         // Load and modify the SVG content to include color
         const svgContent = loadAndColorizeIcon(iconPath, colorValue);
 
         if (svgContent) {
+          log.verbose("Loading colorized SVG", { iconName: iconNameValue, color: colorValue });
           // Create a new GdkPixbuf from the SVG content
           const loader = GdkPixbuf.PixbufLoader.new_with_type("svg");
 
@@ -193,14 +210,19 @@ export function PhosphorIcon(props: PhosphorIconProps) {
       // Set icon size
       image.set_pixel_size(size);
     } catch (error) {
-      print(`Failed to load icon: ${iconNameValue} at ${getIconPath(iconNameValue, style)}`);
+      log.error("Failed to load icon", { 
+        iconName: iconNameValue, 
+        path: iconPath,
+        error: error instanceof Error ? error.message : String(error)
+      });
       // Try fallback to a basic icon
       try {
         const fallbackPath = getIconPath("circle", style);
+        log.debug("Attempting fallback icon", { fallbackPath });
         image.set_from_file(fallbackPath);
         image.set_pixel_size(size);
       } catch (e) {
-        print("Failed to load fallback icon");
+        log.error("Failed to load fallback icon", { error: e });
       }
     }
   };
@@ -220,6 +242,8 @@ export function PhosphorIcon(props: PhosphorIconProps) {
  */
 export function BatteryIcon(props: Omit<PhosphorIconProps, "iconName"> & { level?: number, charging?: boolean }) {
   const { level = 100, charging = false, ...rest } = props;
+  
+  log.verbose("Creating BatteryIcon", { level, charging });
 
   // Determine which battery icon to show based on level and charging state
   let iconName = PhosphorIcons.BatteryEmpty;
@@ -240,6 +264,8 @@ export function BatteryIcon(props: Omit<PhosphorIconProps, "iconName"> & { level
   } else {
     iconName = PhosphorIcons.BatteryFull;
   }
+  
+  log.verbose("Battery icon selected", { iconName, level, charging });
 
   return <PhosphorIcon iconName={iconName} {...rest} />;
 }

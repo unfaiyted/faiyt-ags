@@ -10,6 +10,9 @@ import Notifd from "gi://AstalNotifd?version=0.1";
 import getNotifd from "../../../../utils/notification-helper";
 import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../../utils/icons/types";
+import { createLogger } from "../../../../utils/logger";
+
+const log = createLogger('Notification');
 
 export interface NotificationProps extends Widget.RevealerProps {
   notification: Notifd.Notification;
@@ -102,10 +105,13 @@ export const NotificationIcon = (props: NotificationIconProps) => {
   const hasFilePathInBody = notification.body && notification.body.match(/\/[^\s]+\.(png|jpg|jpeg|gif|bmp|svg|webp)/i);
 
   if (hasImageProperty || hasFilePathInBody) {
-    print(`=== Notification with potential image ===`);
-    print(`Summary: ${notification.summary}`);
-    if (hasImageProperty) print(`Image property: ${notification.image}`);
-    if (hasFilePathInBody) print(`Body contains file path: ${notification.body}`);
+    log.debug('Notification with potential image', {
+      summary: notification.summary,
+      hasImageProperty,
+      image: hasImageProperty ? notification.image : undefined,
+      hasFilePathInBody,
+      body: hasFilePathInBody ? notification.body : undefined
+    });
   }
 
   // Try to get image from hints
@@ -147,24 +153,24 @@ export const NotificationIcon = (props: NotificationIconProps) => {
     if (matches && matches.length > 0) {
       // Clean up the first match (remove whitespace)
       const potentialPath = matches[0].trim();
-      print(`Found potential image path in body: ${potentialPath}`);
+      log.debug('Found potential image path in body', { path: potentialPath });
 
       // Check if file exists
       try {
         const file = Gio.File.new_for_path(potentialPath);
         if (file.query_exists(null)) {
           imagePath = potentialPath;
-          print(`Confirmed image file exists: ${imagePath}`);
+          log.debug('Confirmed image file exists', { imagePath });
         }
       } catch (e) {
-        print(`Could not check file existence: ${e}`);
+        log.warn('Could not check file existence', { error: e });
       }
     }
   }
 
   // If we have an image path, try to display it
   if (imagePath) {
-    print(`Attempting to display image: ${imagePath}`);
+    log.debug('Attempting to display image', { imagePath });
 
     // Create the image widget
     const imageWidget = new Gtk.Image({
@@ -177,7 +183,7 @@ export const NotificationIcon = (props: NotificationIconProps) => {
     try {
       imageWidget.set_from_file(imagePath);
     } catch (e) {
-      print(`Failed to load notification image: ${e}`);
+      log.error('Failed to load notification image', { error: e, imagePath });
       // Fall back to icon if image fails to load
       return NotificationIconFallback(props);
     }
@@ -194,7 +200,7 @@ export const NotificationIcon = (props: NotificationIconProps) => {
 
   // Check if we have an app icon that might be a file path
   if (notification.app_icon && notification.app_icon.startsWith("/")) {
-    print(`App icon looks like a file path: ${notification.app_icon}`);
+    log.debug('App icon looks like a file path', { appIcon: notification.app_icon });
 
     const imageWidget = new Gtk.Image({
       cssClasses: ["notification-image"],
@@ -213,7 +219,7 @@ export const NotificationIcon = (props: NotificationIconProps) => {
         </box>
       );
     } catch (e) {
-      print(`Failed to load app icon as image: ${e}`);
+      log.warn('Failed to load app icon as image', { error: e, appIcon: notification.app_icon });
     }
   }
 
@@ -413,9 +419,9 @@ export default function Notification(props: NotificationProps) {
                     try {
                       // Copy image to clipboard using wl-copy
                       await execAsync(['bash', '-c', `wl-copy -t image/png < "${imagePath}"`]);
-                      print(`Copied image to clipboard: ${imagePath}`);
+                      log.info('Copied image to clipboard', { imagePath });
                     } catch (e) {
-                      print(`Failed to copy image: ${e}`);
+                      log.error('Failed to copy image', { error: e, imagePath });
                     }
                   }}
                   setup={setupCursorHover}
@@ -439,10 +445,10 @@ export default function Notification(props: NotificationProps) {
                         const folderPath = parent.get_path();
                         // Open folder in file manager
                         await execAsync(['xdg-open', folderPath]);
-                        print(`Opened folder: ${folderPath}`);
+                        log.info('Opened folder', { folderPath });
                       }
                     } catch (e) {
-                      print(`Failed to open folder: ${e}`);
+                      log.error('Failed to open folder', { error: e });
                     }
                   }}
                   setup={setupCursorHover}

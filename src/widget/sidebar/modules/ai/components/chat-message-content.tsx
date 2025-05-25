@@ -4,6 +4,7 @@ import config from "../../../../../utils/config";
 import { ClaudeMessage } from "../../../../../services/claude";
 import GtkSource from "gi://GtkSource?version=5";
 import { Binding } from "astal";
+import { sidebarLogger as log } from "../../../../../utils/logger";
 
 export interface MessageContentProps extends Widget.BoxProps {
   content: string | Binding<string>;
@@ -41,7 +42,7 @@ export const ChatMessageContent = (props: MessageContentProps) => {
   };
 
   const update = (content: string, useCursor = false) => {
-    print("update called with:", content);
+    log.debug("Updating message content", { contentLength: content.length, useCursor });
     // Clear and add first text widget
     const children = contentBox.children;
     for (let i = 0; i < children.length; i++) {
@@ -70,14 +71,14 @@ export const ChatMessageContent = (props: MessageContentProps) => {
               contentBox.add(ChatCodeBlock("", content));
             }
           } else {
-            print("Last kid is not a label, unexpectedly.");
+            log.warn("Unexpected child type, expected Label");
           }
         } else {
           if (lastKid instanceof GtkSource.View) {
             updateText(lastKid, blockContent);
             contentBox.add(TextBlock());
           } else {
-            print("Last kid is GtkSource.View, unexpectedly");
+            log.warn("Unexpected child type, expected GtkSource.View");
           }
         }
 
@@ -111,7 +112,7 @@ export const ChatMessageContent = (props: MessageContentProps) => {
     contentBox.show();
   };
   if (props.content instanceof Binding) {
-    print("Binding content subscribed");
+    log.debug("Content binding subscribed");
     props.content.subscribe(update);
     update(props.content.get());
   } else update(props.content);

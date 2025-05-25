@@ -5,6 +5,7 @@ import BarGroup from "../../utils/bar-group";
 import PlayingState from "./playing-state";
 import TrackTitle from "./track-title";
 import TrackProgress from "./progress-indicator";
+import { barLogger as log } from "../../../../utils/logger";
 
 // TODO: Would be good if we could use a reveal animation to hide the playing text and
 // double click the icon to expand it out and again to hide it so only the play icon is present.
@@ -21,11 +22,11 @@ export default function Music() {
     const currentPlayer = mpris.get_players()[0];
 
     if (!currentPlayer) return lastPlayer;
-    print("Current player:", currentPlayer.identity);
+    log.debug("Current player", { identity: currentPlayer.identity });
     if (lastPlayer && currentPlayer.identity === lastPlayer.identity)
       return currentPlayer;
 
-    print("Player changed:", currentPlayer.identity);
+    log.info("Player changed", { identity: currentPlayer.identity });
     updatePlayer(currentPlayer);
     return mpris.get_players()[0];
   });
@@ -40,18 +41,18 @@ export default function Music() {
 
   if (mpris) {
     mpris.connect("player-closed", () => {
-      print("Player closed");
+      log.info("Player closed");
       updatePlayer(player.get());
     });
 
     mpris.connect("player-added", () => {
-      print("Player added");
+      log.info("Player added");
       updatePlayer(player.get());
     });
   }
 
   const updatePlayer = (currentPlayer: Mpris.Player) => {
-    print(`Updating player`);
+    log.debug("Updating player");
     player.set(currentPlayer || mpris.get_players()[0]);
     playerCount.set(mpris.get_players().length);
 
