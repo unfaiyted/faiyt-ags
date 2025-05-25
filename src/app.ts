@@ -18,7 +18,7 @@ import { logSystemInfo } from "./services/logger";
 
 // Set log level from environment or default to info
 import { GLib } from "astal";
-setLogLevel(GLib.getenv('LOG_LEVEL') || LogLevel.INFO);
+setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.INFO);
 
 // Init shell modes for all active monitors
 initialMonitorShellModes();
@@ -26,19 +26,19 @@ initialMonitorShellModes();
 App.start({
   css: appCSS,
   main() {
-    const timer = systemLogger.time('App Initialization');
-    
+    const timer = systemLogger.time("App Initialization");
+
     // Log system info on startup
-    log.info('AGS Application Starting');
+    log.info("AGS Application Starting");
     logSystemInfo();
-    
+
     // Windows
     const monitors = App.get_monitors();
     log.info(`Found ${monitors.length} monitors`);
-    
+
     monitors.map((gdkmonitor, index) => {
       log.debug(`Setting up widgets for monitor ${index}`);
-      
+
       try {
         Bar({ gdkmonitor: gdkmonitor, index, mode: BarMode.Normal });
         SideRight({ gdkmonitor: gdkmonitor, monitorIndex: index });
@@ -46,19 +46,24 @@ App.start({
         BarCornerTopRight({ gdkmonitor: gdkmonitor, index });
         SystemOverlays({ gdkmonitor: gdkmonitor, monitor: index });
         LauncherBar({ gdkmonitor, monitor: index });
-        
+
         log.info(`Monitor ${index} setup complete`);
       } catch (error) {
-        log.error(`Failed to setup monitor ${index}`, { error });
+        // Pass the error object directly to leverage source mapping
+        if (error instanceof Error) {
+          log.error(error, "App", { monitor: index });
+        } else {
+          log.error(`Failed to setup monitor ${index}`, "App", { error: String(error) });
+        }
       }
     });
 
     // SideLeft({ gdkmonitor: App.get_monitors()[0] });
-    
-    timer.end('All widgets initialized');
+
+    timer.end("All widgets initialized");
   },
   requestHandler(request: string, res: (response: any) => void) {
-    log.debug('CLI request received', { request });
+    log.debug("CLI request received", { request });
     cliRequestHandler(request, res);
   },
 });

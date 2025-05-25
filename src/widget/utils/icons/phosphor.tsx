@@ -63,10 +63,10 @@ function getIconPath(iconName: string, style: PhosphorIconStyle = PhosphorIconSt
 
   // Verify file exists
   if (!fileExists(iconPath)) {
-    log.debug("Icon not found, trying fallback", { 
-      iconPath, 
-      iconName, 
-      style 
+    log.debug("Icon not found, trying fallback", {
+      iconPath,
+      iconName,
+      style
     });
     if (style !== PhosphorIconStyle.Regular) {
       return getIconPath(iconName, PhosphorIconStyle.Regular);
@@ -109,11 +109,11 @@ function loadAndColorizeIcon(path: string, color?: string): string | null {
  */
 export function PhosphorIcon(props: PhosphorIconProps) {
   const { iconName: propIconName, style = PhosphorIconStyle.Regular, size = 16, color: propColor, setup, ...rest } = props;
-  
-  log.verbose("Creating PhosphorIcon", { 
+
+  log.verbose("Creating PhosphorIcon", {
     iconName: typeof propIconName === "string" ? propIconName : "[Binding]",
     style,
-    size 
+    size
   });
 
   const iconName = Variable(PhosphorIcons.QuestionMark);
@@ -169,15 +169,23 @@ export function PhosphorIcon(props: PhosphorIconProps) {
   };
 
   // Function to load the icon
-  const loadIcon = (image: Gtk.Image, iconNameValue: string, colorValue: string) => {
+  const loadIcon = (image: Gtk.Image, iconNameValue: string | Binding<string>, colorValue: string) => {
     log.verbose("Loading icon", { iconName: iconNameValue, color: colorValue });
-    
+
+
+    let value = (typeof iconNameValue === "string" ? iconNameValue : "");
+    // if binding and has get function get value
+    if (typeof iconNameValue !== "string" && typeof iconNameValue.get === "function") {
+      value = iconNameValue.get();
+    }
+
+
     // Convert camelCase to kebab-case if needed (e.g., batteryFull -> battery-full)
-    const normalizedIconName = iconNameValue.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+    const normalizedIconName = value.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 
     // Get the path to the icon file
     const iconPath = getIconPath(normalizedIconName, style);
-    
+
     try {
 
       if (colorValue && colorValue !== '') {
@@ -210,8 +218,8 @@ export function PhosphorIcon(props: PhosphorIconProps) {
       // Set icon size
       image.set_pixel_size(size);
     } catch (error) {
-      log.error("Failed to load icon", { 
-        iconName: iconNameValue, 
+      log.error("Failed to load icon", {
+        iconName: iconNameValue,
         path: iconPath,
         error: error instanceof Error ? error.message : String(error)
       });
@@ -242,7 +250,7 @@ export function PhosphorIcon(props: PhosphorIconProps) {
  */
 export function BatteryIcon(props: Omit<PhosphorIconProps, "iconName"> & { level?: number, charging?: boolean }) {
   const { level = 100, charging = false, ...rest } = props;
-  
+
   log.verbose("Creating BatteryIcon", { level, charging });
 
   // Determine which battery icon to show based on level and charging state
@@ -264,7 +272,7 @@ export function BatteryIcon(props: Omit<PhosphorIconProps, "iconName"> & { level
   } else {
     iconName = PhosphorIcons.BatteryFull;
   }
-  
+
   log.verbose("Battery icon selected", { iconName, level, charging });
 
   return <PhosphorIcon iconName={iconName} {...rest} />;

@@ -59,6 +59,10 @@ export class VarMap<K, T = Gtk.Widget> implements Subscribable {
     return [...this.#map.entries()];
   }
 
+  get value() {
+    return this.get();
+  }
+
   getByKey(key: K) {
     return this.#map.get(key);
   }

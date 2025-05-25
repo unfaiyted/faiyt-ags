@@ -23,7 +23,7 @@ export default function AppButton(props: AppButtonProps) {
   return (
     <LauncherButton
       name={props.app.name}
-      icon={<icon icon={props.app.iconName} />}
+      icon={<image iconName={props.app.iconName || "application-x-executable"} pixelSize={24} />}
       content={props.app.name}
       // onKeyPressEvent={handleKeyPress}
       onClicked={() => props.app.launch()}

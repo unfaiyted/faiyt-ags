@@ -71,14 +71,13 @@ export default ({
 
   return (
     <window
+      {...props}
       name={name}
-      gdkmonitor={props.gdkmonitor}
       decorated={false}
-      layer={Astal.Layer.TOP}
-      onKeyPressed={handleKeyPress}
+      layer={props.layer || Astal.Layer.TOP}
+      onKeyPressed={props.onKeyPressed || handleKeyPress}
       cssName={props.cssName || "popup-window"}
       setup={windowSetup}
-      {...props}
     >
       <box setup={boxSetup}>{child}</box>
     </window>

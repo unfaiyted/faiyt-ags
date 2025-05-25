@@ -12,6 +12,7 @@ export interface LauncherProps extends PopupWindowProps {
 export default function LauncherBar(launcherProps: LauncherProps) {
   const { setup, child, ...props } = launcherProps;
 
+  log.debug("Creating launcher bar", { monitor: launcherProps.monitor });
   const isVisible = Variable(true);
   const placeholderText = Variable("Type to Search");
   const searchText = Variable("");
@@ -160,7 +161,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
 
           {/* Search Results */}
           <box cssName="launcher-results-container">
-            <LauncherResults maxResults={10} searchText={bind(searchText)} />
+            <LauncherResults maxResults={10} searchText={searchText} />
           </box>
         </box>
 

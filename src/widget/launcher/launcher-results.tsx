@@ -2,11 +2,10 @@ import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk4";
 import Apps from "gi://AstalApps";
 import PopupWindow, { PopupWindowProps } from "../utils/popup-window";
 import CloseRegion from "../utils/containers/close-region";
-import { Variable, bind, Binding } from "astal";
+import { Variable, bind } from "astal";
 import GLib from "gi://GLib";
 import config from "../../utils/config";
 import actions from "../../utils/actions";
-import { VarMap } from "../../types/var-map";
 import AppButton from "./buttons/app-button";
 
 const debounce = <T extends (...args: any[]) => void>(
@@ -28,7 +27,7 @@ const debounce = <T extends (...args: any[]) => void>(
 };
 
 export interface LauncherResultsProps extends Widget.BoxProps {
-  searchText: Binding<string>;
+  searchText: Variable<string>;
   maxResults: number;
 }
 
@@ -39,22 +38,17 @@ const apps = new Apps.Apps({
 });
 
 export default function LauncherResults(props: LauncherResultsProps) {
-  const appResults = new VarMap<number, Apps.Application>([]);
+  const appResults = Variable<Apps.Application[]>([]);
   const revealResults = Variable(false);
 
   const updateResults = (searchText: string) => {
-    appResults.deleteAll();
-
     if (searchText.length > 1) {
       const resultApps = apps.fuzzy_query(searchText);
-
-      resultApps.forEach((app, index) => {
-        if (index >= props.maxResults) return;
-        appResults.set(index, app);
-      });
-
-      revealResults.set(resultApps.length > 0);
+      const limitedResults = resultApps.slice(0, props.maxResults);
+      appResults.set(limitedResults);
+      revealResults.set(limitedResults.length > 0);
     } else {
+      appResults.set([]);
       revealResults.set(false);
     }
   };
@@ -67,7 +61,7 @@ export default function LauncherResults(props: LauncherResultsProps) {
 
   // Clear results when hidden
   revealResults.subscribe((v) => {
-    if (!v) appResults.deleteAll();
+    if (!v) appResults.set([]);
   });
 
   return (
@@ -90,11 +84,11 @@ export default function LauncherResults(props: LauncherResultsProps) {
           maxContentHeight={400}
         >
           <box vertical cssName="launcher-results-list">
-            {bind(appResults).as((v) => {
-              return v.map(([num, app]) => (
-                <AppButton key={app.get_id()} index={num} app={app} />
-              ));
-            })}
+            {bind(appResults).as((apps) => 
+              apps.map((app, index) => (
+                <AppButton key={app.get_id()} index={index} app={app} />
+              ))
+            )}
           </box>
         </scrollable>
       </box>
