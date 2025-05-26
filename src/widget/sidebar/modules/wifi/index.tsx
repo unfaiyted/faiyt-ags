@@ -80,7 +80,7 @@ const WifiStatus = () => {
             <PhosphorIcon iconName={PhosphorIcons.CellSignalHigh} size={14} />
             <label label={bind(strength).as(s => `${s}%`)} />
           </box>
-        ) : null
+        ) : <label />
       )}
     </box>
   );
@@ -99,9 +99,9 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
         await execAsync(["nmcli", "connection", "down", wifiNetwork.ssid]);
       } else {
         // Connect
-        log.info("Connecting to WiFi", { 
-          ssid: wifiNetwork.ssid, 
-          secure: wifiNetwork.secure 
+        log.info("Connecting to WiFi", {
+          ssid: wifiNetwork.ssid,
+          secure: wifiNetwork.secure
         });
         if (wifiNetwork.secure) {
           // For secure networks, we'll need to handle password input
@@ -152,7 +152,7 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
         </box>
         <label cssName="wifi-strength" label={`${wifiNetwork.strength}%`} />
         {bind(connecting).as(c =>
-          c ? <Gtk.Spinner cssName="wifi-connecting" /> : null
+          c ? <Gtk.Spinner cssName="wifi-connecting" /> : <label />
         )}
       </box>
     </button>
@@ -252,7 +252,7 @@ const WifiList = () => {
 
 export default function WifiModule(props: Widget.BoxProps) {
   const { cssName, ...restProps } = props;
-  
+
   log.debug("WifiModule created");
 
   return (

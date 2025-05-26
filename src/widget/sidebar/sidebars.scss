@@ -104,9 +104,7 @@ notification-list {
   border-radius: 10px;
 }
 
-.notification-content {
-  
-}
+.notification-content {}
 
 .notification-header {
   margin-bottom: 4px;
@@ -143,9 +141,7 @@ notification-list {
   padding: 0 16px 16px 16px;
 }
 
-.notification-actions {
-  
-}
+.notification-actions {}
 
 .notification-image-actions {
   margin-bottom: 8px;
@@ -701,13 +697,9 @@ audio-module-content {
   padding: 16px;
 }
 
-audio-devices-container {
-  
-}
+audio-devices-container {}
 
-audio-devices-column {
-  
-}
+audio-devices-column {}
 
 audio-section-title {
   font-size: 14px;
@@ -817,11 +809,17 @@ volume-mute-btn {
   }
 }
 
+volume-slider-container {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
 volume-slider {
+  height: 6px;
+
   slider {
     min-height: 6px;
     border-radius: 3px;
-    margin: 10px;
     background-color: colors.c(muted, 0.5);
   }
 
@@ -945,9 +943,7 @@ header-module {
     }
   }
 
-  header-actions {
-    
-  }
+  header-actions {}
 
   header-button {
     min-width: 24px;
@@ -1041,9 +1037,7 @@ toggle-button {
   }
 }
 
-toggle-button-content {
-  
-}
+toggle-button-content {}
 
 toggle-icon-wrapper {
   padding: 0;
@@ -1077,7 +1071,7 @@ toggle-switch-container {
 
 toggle-switch {
   min-width: 40px;
-  min-height: 24px;
+  min-height: 2px;
   background: colors.c(background, 0.3);
   border-radius: 12px;
   border: 1px solid colors.c(border);
@@ -1169,9 +1163,7 @@ tab-btn-content {
   padding: 8px 5px;
 }
 
-tab-icon-wrapper {
-  
-}
+tab-icon-wrapper {}
 
 tab-icon {
   color: colors.c(foreground-alt);

@@ -153,3 +153,12 @@ $themes: (
     @return rgba($color-value, $opacity);
   }
 }
+
+@function darken($color, $amount) {
+
+  @return scale-color(c($color), $lightness: -($amount));
+}
+
+@function lighten($color, $amount) {
+  @return mix(white, c($color), $amount);
+}

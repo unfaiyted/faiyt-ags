@@ -15,7 +15,7 @@ export interface SystemOverlayProps extends Widget.WindowProps { }
 
 export const SystemOverlays = (props: SystemOverlayProps) => {
   log.debug("Creating system overlays", { monitor: props.monitor });
-  
+
   return (
     <window
       {...props}
@@ -26,8 +26,9 @@ export const SystemOverlays = (props: SystemOverlayProps) => {
       visible
       anchor={Astal.WindowAnchor.TOP}
     >
-      <box>
-        <box vertical>
+      <box vertical>
+        <PopupNotifications />
+        <box >
           <Indicators>
             <BrightnessIndicator />
             <KBBacklightBrightnessIndicator />
@@ -39,7 +40,7 @@ export const SystemOverlays = (props: SystemOverlayProps) => {
           {/* <ColorSchemeSwitcher /> */}
         </box>
       </box>
-      {/* <PopupNotifications /> */}
+
     </window>
   );
 };

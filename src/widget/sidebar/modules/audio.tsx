@@ -69,15 +69,17 @@ const VolumeSlider = ({
           />
         </button>
       )}
-      <slider
-        cssName="volume-slider"
-        hexpand
-        drawValue={false}
-        min={0}
-        max={1.5}
-        value={value}
-        onValueChanged={(self) => onChanged(self.value)}
-      />
+      <box cssName="volume-slider-container">
+        <slider
+          cssName="volume-slider"
+          hexpand
+          drawValue={false}
+          min={0}
+          max={1.5}
+          value={value}
+          onValueChanged={(self) => onChanged(self.value)}
+        />
+      </box>
       <label
         cssName="volume-label"
         label={typeof value === 'number' ? `${Math.round(value * 100)}%` : bind(value).as(v => `${Math.round(v * 100)}%`)}
@@ -106,9 +108,9 @@ const AudioDevices = () => {
 
       // First check if AstalWp already has defaults
       if (audio.default_speaker) {
-        log.debug("AstalWp default speaker", { 
-          name: audio.default_speaker.description, 
-          id: audio.default_speaker.id 
+        log.debug("AstalWp default speaker", {
+          name: audio.default_speaker.description,
+          id: audio.default_speaker.id
         });
         defaultSpeakerId.set(audio.default_speaker.id);
       } else {
@@ -116,9 +118,9 @@ const AudioDevices = () => {
       }
 
       if (audio.default_microphone) {
-        log.debug("AstalWp default microphone", { 
-          name: audio.default_microphone.description, 
-          id: audio.default_microphone.id 
+        log.debug("AstalWp default microphone", {
+          name: audio.default_microphone.description,
+          id: audio.default_microphone.id
         });
         defaultMicrophoneId.set(audio.default_microphone.id);
       } else {
@@ -156,9 +158,9 @@ const AudioDevices = () => {
               if (inSinks) {
                 const speaker = audio.speakers?.find(s => String(s.id) === id);
                 if (speaker) {
-                  log.info("Setting default speaker", { 
-                    name: speaker.description, 
-                    id: speaker.id 
+                  log.info("Setting default speaker", {
+                    name: speaker.description,
+                    id: speaker.id
                   });
                   defaultSpeakerId.set(speaker.id);
                 } else {
@@ -169,9 +171,9 @@ const AudioDevices = () => {
                 if (!line.toLowerCase().includes("monitor")) {
                   const mic = audio.microphones?.find(m => String(m.id) === id);
                   if (mic) {
-                    log.info("Setting default microphone", { 
-                      name: mic.description, 
-                      id: mic.id 
+                    log.info("Setting default microphone", {
+                      name: mic.description,
+                      id: mic.id
                     });
                     defaultMicrophoneId.set(mic.id);
                   } else {
@@ -219,17 +221,17 @@ const AudioDevices = () => {
 
     // Log changes
     if (prevSpeakerId !== audio.default_speaker?.id) {
-      log.info("Default speaker changed", { 
+      log.info("Default speaker changed", {
         from: prevSpeakerId,
         to: audio.default_speaker?.id,
-        name: audio.default_speaker?.description || "none" 
+        name: audio.default_speaker?.description || "none"
       });
     }
     if (prevMicId !== audio.default_microphone?.id) {
-      log.info("Default microphone changed", { 
+      log.info("Default microphone changed", {
         from: prevMicId,
         to: audio.default_microphone?.id,
-        name: audio.default_microphone?.description || "none" 
+        name: audio.default_microphone?.description || "none"
       });
     }
   });
@@ -258,10 +260,10 @@ const AudioDevices = () => {
     const isDefault = bind(type === "speaker" ? defaultSpeakerId : defaultMicrophoneId).as(defId => {
       const result = defId === device.id;
       if (result) {
-        log.debug("Device is default", { 
-          name: device.description, 
-          id: device.id, 
-          type 
+        log.debug("Device is default", {
+          name: device.description,
+          id: device.id,
+          type
         });
       }
       return result;
@@ -269,10 +271,10 @@ const AudioDevices = () => {
 
     const handleSetDefault = async () => {
       try {
-        log.debug("Setting default device", { 
-          type, 
-          name: device.description, 
-          id: device.id 
+        log.debug("Setting default device", {
+          type,
+          name: device.description,
+          id: device.id
         });
 
         if (type === "speaker") {
@@ -362,7 +364,7 @@ const AudioDevices = () => {
               : bind(deviceVolume).as(v => bind(deviceMuted).as(m => getMicIcon(v * 100, m)))
             }
           />
-        ) : null)}
+        ) : <label />)}
       </box>
     );
   };
@@ -431,17 +433,17 @@ const AppVolumeMixer = () => {
 
   // Also listen for stream-added and stream-removed events
   audio?.connect("stream-added", (_, stream) => {
-    log.debug("Stream added", { 
-      name: stream.name, 
-      description: stream.description 
+    log.debug("Stream added", {
+      name: stream.name,
+      description: stream.description
     });
     streams.set(audio.streams || []);
   });
 
   audio?.connect("stream-removed", (_, stream) => {
-    log.debug("Stream removed", { 
-      name: stream.name, 
-      description: stream.description 
+    log.debug("Stream removed", {
+      name: stream.name,
+      description: stream.description
     });
     streams.set(audio.streams || []);
   });
@@ -535,8 +537,8 @@ const AppVolumeMixer = () => {
 
             // Also check for recording streams if regular streams are empty
             if (appStreams.length === 0 && audio?.recorders) {
-              log.debug("No playback streams, using recorders", { 
-                recorderCount: audio.recorders.length 
+              log.debug("No playback streams, using recorders", {
+                recorderCount: audio.recorders.length
               });
               appStreams = audio.recorders;
             }

@@ -230,9 +230,9 @@ const NotificationIconFallback = (props: NotificationIconProps) => {
   // Choose icon based on urgency or app
   const getIcon = () => {
     switch (props.notification.urgency) {
-      case "critical":
+      case Notifd.Urgency.CRITICAL:
         return PhosphorIcons.Warning;
-      case "low":
+      case Notifd.Urgency.LOW:
         return PhosphorIcons.Info;
       default:
         return PhosphorIcons.Bell;
@@ -244,7 +244,7 @@ const NotificationIconFallback = (props: NotificationIconProps) => {
       cssClasses={["notification-icon-wrapper", `urgency-${props.notification.urgency}`]}
       valign={Gtk.Align.CENTER}
     >
-      <PhosphorIcon iconName={getIcon()} />
+      <PhosphorIcon marginStart={14} iconName={getIcon()} />
     </box>
   );
 };
@@ -384,7 +384,7 @@ export default function Notification(props: NotificationProps) {
           cssClasses={["notification-clickable-area"]}
           setup={(self) => {
             self.add_controller(gestureClick);
-            setupCursorHover(self);
+            // setupCursorHover(self);
           }}
         >
           <NotificationIconWithDetection
@@ -444,7 +444,7 @@ export default function Notification(props: NotificationProps) {
                       if (parent) {
                         const folderPath = parent.get_path();
                         // Open folder in file manager
-                        await execAsync(['xdg-open', folderPath]);
+                        await execAsync(['xdg-open', folderPath || ""]);
                         log.info('Opened folder', { folderPath });
                       }
                     } catch (e) {

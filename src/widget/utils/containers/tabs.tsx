@@ -106,7 +106,9 @@ export const TabHeaderItem = (tabHeaderItemProps: TabHeaderItemProps) => {
 
   const isActive = Variable(false);
 
+
   if (typeof active !== "number") {
+    isActive.set(active.get() === index);
     active.subscribe((v) => {
       if (v === index) {
         print("Active tab:", v);

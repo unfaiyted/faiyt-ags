@@ -94,7 +94,7 @@ const BluetoothStatus = () => {
             )}
           />
         </box>
-        <box cssName="bluetooth-switch">
+        <box marginBottom={24} cssName="bluetooth-switch">
           <switch
             active={bind(isPowered)}
             onActivate={(self) => {
@@ -342,7 +342,7 @@ const BluetoothDeviceList = () => {
 
             // Debug: Log scanned devices with RSSI
             if (scannedDevices.length > 0) {
-              log.debug('Scanned devices', { 
+              log.debug('Scanned devices', {
                 count: scannedDevices.length,
                 devices: scannedDevices.filter(d => d.rssi !== undefined).map(d => ({
                   name: d.name,

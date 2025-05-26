@@ -10,6 +10,14 @@
   position: static;
 }
 
+.\!fixed {
+  position: fixed !important;
+}
+
+.fixed {
+  position: fixed;
+}
+
 .absolute {
   position: absolute;
 }
