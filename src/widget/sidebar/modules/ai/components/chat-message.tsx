@@ -6,6 +6,7 @@ import { ClaudeMessage } from "../../../../../services/claude";
 // import {ChatMessage} from "./"
 import { Variable, bind } from "astal";
 import { sidebarLogger as log } from "../../../../../utils/logger";
+import { c } from "../../../../../utils/style";
 
 // const LATEX_DIR = `${GLib.get_user_cache_dir()}/ags/media/latex`;
 // const CUSTOM_SOURCEVIEW_SCHEME_PATH = `${App.configDir}/assets/themes/sourceviewtheme${darkMode.value ? '' : '-light'}.xml`;
@@ -26,7 +27,7 @@ const USERNAME = GLib.get_user_name();
 //             })
 
 const TextSkeleton = (extraClassName = "") => (
-  <box className={`sidebar-chat-message-skeletonline ${extraClassName}`} />
+  <box cssClasses={c`${extraClassName}`} cssName={`sidebar-chat-message-skeletonline`} />
 );
 
 export interface LoadingSkeletonProps extends Widget.BoxProps {
@@ -37,7 +38,7 @@ const ChatMessageLoadingSkeleton = (props: LoadingSkeletonProps) => (
     {...props}
     name={props.name}
     vertical
-    className="spacing-v-5"
+    cssName="spacing-v-5"
     children={Array.from({ length: 3 }, (_, id) =>
       TextSkeleton(`sidebar-chat-message-skeletonline-offset${id}`),
     )}
@@ -76,23 +77,24 @@ export const ChatMessage = (props: ChatMessageProps) => {
     displayMessage.set(message.content);
   });
 
-  log.debug("Initial message state", { 
+  log.debug("Initial message state", {
     content: message.content,
-    thinking: thinking.get() 
+    thinking: thinking.get()
   });
   displayMessage.set(message.content);
   return (
-    <box className="sidebar-chat-message">
+    <box cssName="sidebar-chat-message">
       <box vertical>
         <label
           xalign={0}
           halign={Gtk.Align.START}
           wrap
           label={message.role == "user" ? USERNAME : props.modelName}
-          className={`txt txt-bold sidebar-chat-name sidebar-chat-name-${message.role == "user" ? "user" : "bot"}`}
+          cssName="sidebar-chat-name"
+          cssClasses={c`${message.role == "user" ? "user" : "bot"}`}
         />
-        <box homogeneous className="sidebar-chat-messagearea">
-          <stack shown={bind(thinking).as((v) => (v ? "thinking" : "message"))}>
+        <box homogeneous cssName="sidebar-chat-messagearea">
+          <stack visibleChildName={bind(thinking).as((v) => (v ? "thinking" : "message"))}>
             <ChatMessageLoadingSkeleton name="thinking" />
             <ChatMessageContent
               name="message"

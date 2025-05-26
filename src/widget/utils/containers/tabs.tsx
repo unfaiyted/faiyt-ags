@@ -50,7 +50,7 @@ export const TabContainer = (tabContainerProps: TabContainerProps) => {
       cssName="tab-container"
       spacing={8}
     >
-      <box cssName="tab-header-wrapper">
+      <box cssName="tab-header-wrapper" hexpand halign={Gtk.Align.CENTER}>
         <TabHeader {...props}>
           {props.tabs.map((tab, i) => (
             <TabHeaderItem
@@ -87,11 +87,17 @@ export const TabHeader = (tabHeaderProps: TabHeaderProps) => {
   return (
     <box
       cssName="tab-header"
-      homogeneous={true}
-      vertical={props.orientation == Gtk.Orientation.VERTICAL}
-      spacing={4}
+      hexpand
+      halign={Gtk.Align.CENTER}
+      valign={Gtk.Align.CENTER}
     >
-      {children}
+      <box
+        homogeneous={true}
+        vertical={props.orientation == Gtk.Orientation.VERTICAL}
+        spacing={4}
+      >
+        {children}
+      </box>
     </box>
   );
 };

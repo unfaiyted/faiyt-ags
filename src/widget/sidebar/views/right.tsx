@@ -39,7 +39,7 @@ export default function RightSideBar(sideBarProps: RighSideBarProps) {
   log.debug('Enabled tabs', { tabs: sidebarTabs.map(tab => tab.name) });
 
   return (
-    <SideBar {...props} monitorIndex={props.monitorIndex} screenSide={ScreenSide.RIGHT}>
+    <SideBar {...props} monitorIndex={props.monitorIndex} screenSide={ScreenSide.RIGHT} application={App}>
       <box
         cssName="sidebar-right-box"
         cssClasses={c`spacing-v-10`}

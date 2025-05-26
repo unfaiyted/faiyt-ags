@@ -4,7 +4,7 @@ import appCSS from "./app.scss";
 // import iconStyles from "./node_modules/@phosphor-icons/web/src/regular/style.css";
 import Bar from "./widget/bar";
 import { BarMode } from "./widget/bar/types";
-// import SideLeft from "./widget/sidebar/views/left";
+import SideLeft from "./widget/sidebar/views/left";
 import SideRight from "./widget/sidebar/views/right";
 import SystemOverlays from "./widget/overlays";
 import cliRequestHandler from "./handlers/cli";
@@ -41,9 +41,11 @@ App.start({
 
       try {
         Bar({ gdkmonitor: gdkmonitor, index, mode: BarMode.Normal });
-        SideRight({ gdkmonitor: gdkmonitor, monitorIndex: index });
         BarCornerTopLeft({ gdkmonitor: gdkmonitor, index });
         BarCornerTopRight({ gdkmonitor: gdkmonitor, index });
+
+        SideRight({ gdkmonitor: gdkmonitor, monitorIndex: index });
+        SideLeft({ gdkmonitor: gdkmonitor, monitorIndex: index });
         SystemOverlays({ gdkmonitor: gdkmonitor, monitor: index });
         LauncherBar({ gdkmonitor, monitorIndex: index });
 
@@ -59,8 +61,6 @@ App.start({
         }
       }
     });
-
-    // SideLeft({ gdkmonitor: App.get_monitors()[0] });
 
     timer.end("All widgets initialized");
   },

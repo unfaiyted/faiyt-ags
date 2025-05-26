@@ -8,7 +8,6 @@ export const ChatView = (props: Widget.BoxProps) => {
     self.set_hscroll_policy(Gtk.ScrollablePolicy.NATURAL);
     self.set_vscroll_policy(Gtk.ScrollablePolicy.NATURAL);
 
-    // get_style_context().add_class("sidebar-scrollbar");
     const adjustment = self.get_vadjustment();
     if (adjustment) {
       adjustment.connect("changed", () =>
@@ -23,13 +22,15 @@ export const ChatView = (props: Widget.BoxProps) => {
 
   return (
     <box homogeneous>
-      {/* <scrollable */}
-      {/*   vexpand */}
-      {/*   // setup={scrollableSetup} */}
-      {/*   className="sidebar-chat-viewport" */}
-      {/* > */}
-      {/*   <box vertical>{props.children || props.child}</box> */}
-      {/* </scrollable> */}
+      <Gtk.ScrolledWindow
+        cssName="sidebar-chat-wrapper"
+        vscrollbar_policy={Gtk.PolicyType.AUTOMATIC}
+        hscrollbar_policy={Gtk.PolicyType.NEVER}
+        vexpand
+      // setup={scrollableSetup}
+      >
+        <box vertical>{props.children || props.child}</box>
+      </Gtk.ScrolledWindow>
     </box>
   );
 };

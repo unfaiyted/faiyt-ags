@@ -14,7 +14,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
   const { setup, child, ...props } = launcherProps;
 
   log.debug("Creating launcher bar", { monitor: launcherProps.monitor });
-  const isVisible = Variable(true);
+  const isVisible = Variable(false);
   const placeholderText = Variable("Type to Search");
   const searchText = Variable("");
   const selectedIndex = Variable(0);
@@ -63,7 +63,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
         Astal.WindowAnchor.LEFT |
         Astal.WindowAnchor.RIGHT
       }
-      visible={true}
+      visible={false}
       keymode={Astal.Keymode.ON_DEMAND}
       application={App}
       onKeyPressed={(self: Gtk.Window, keyval: number) => {
@@ -106,26 +106,38 @@ export default function LauncherBar(launcherProps: LauncherProps) {
       }}
     >
       <box
-        vertical
-        halign={Gtk.Align.CENTER}
-        valign={Gtk.Align.CENTER}
-        cssClasses={["launcher-container"]}
+        hexpand
+        vexpand
+        cssClasses={["launcher-click-area"]}
         setup={(self: Gtk.Box) => {
-          // Add click gesture for click-outside detection
+          log.debug("Setting up click detection for launcher");
+          // Add click gesture to detect clicks outside launcher
           const clickGesture = new Gtk.GestureClick();
           clickGesture.connect("pressed", (gesture, n_press, x, y) => {
-            // Get the search box allocation
-            const searchBox = self.get_first_child()?.get_next_sibling();
-            if (searchBox) {
-              const allocation = searchBox.get_allocation();
-              const [success, boxX, boxY] = searchBox.translate_coordinates(self, 0, 0);
+            log.debug("Click detected in launcher", { x, y });
+
+            // Get the launcher container (the centered box with actual content)
+            const container = self.get_first_child();
+            if (container) {
+              const allocation = container.get_allocation();
+              const [success, containerX, containerY] = container.translate_coordinates(self, 0, 0);
 
               if (success) {
-                // Check if click is outside the search/results area
-                const isOutside = x < boxX || x > boxX + allocation.width ||
-                  y < boxY || y > boxY + allocation.height;
-                if (isOutside) {
+                log.debug("Launcher container position", {
+                  containerX, containerY,
+                  width: allocation.width,
+                  height: allocation.height
+                });
+
+                // Check if click is within launcher bounds
+                const isInside = x >= containerX && x <= containerX + allocation.width &&
+                  y >= containerY && y <= containerY + allocation.height;
+
+                if (!isInside) {
+                  log.debug("Click outside launcher, closing");
                   closeLauncher();
+                } else {
+                  log.debug("Click inside launcher");
                 }
               }
             }
@@ -133,102 +145,109 @@ export default function LauncherBar(launcherProps: LauncherProps) {
           self.add_controller(clickGesture);
         }}
       >
-        {/* Spacer for top area */}
-        <box vexpand />
-
-        {/* Search Box with gradient border wrapper */}
         <box
-          cssClasses={["launcher-search-box-wrapper"]}
+          vertical
           halign={Gtk.Align.CENTER}
+          valign={Gtk.Align.CENTER}
+          cssClasses={["launcher-container"]}
         >
-          <box 
-            vertical 
-            cssClasses={bind(searchText).as(text => 
-              text.length > 1 ? ["launcher-search-box"] : ["launcher-search-box", "compact"]
-            )} 
+          {/* Spacer for top area */}
+          <box vexpand />
+
+          {/* Search Box with gradient border wrapper */}
+          <box
+            cssClasses={["launcher-search-box-wrapper"]}
+            halign={Gtk.Align.CENTER}
           >
-          <box cssClasses={["search-input-container"]}>
-            <entry
-              cssClasses={["launcher-search-input"]}
-              placeholderText="Search for apps, files, or type a command..."
-              hexpand
-              onNotifyText={(self) => {
-                log.debug("Search text changed", { text: self.text });
-                searchText.set(self.text);
-              }}
-              focusable={true}
-              onActivate={onEnter}
-              setup={(self) => {
-                entryRef = self;
-                hook(self, App, "window-toggled", (self, win) => {
-                  if (win.name !== name) return;
-                  self.grab_focus();
-                  self.set_text("");
-                });
-              }}
-            />
-          </box>
-
-          {/* Search Icon */}
-          <label
-            cssClasses={["search-icon"]}
-            halign={Gtk.Align.START}
-            valign={Gtk.Align.CENTER}
-            sensitive={false}
-          />
-
-          {/* Search Results */}
-          <box cssClasses={["launcher-results-container"]}>
-            <LauncherResults
-              maxResults={maxResults}
-              searchText={searchText}
-              selectedIndex={selectedIndex}
-              selectedApp={selectedApp}
-              ref={(ref: any) => { resultsRef = ref; }}
-            />
-          </box>
-
-          {/* Action Bar */}
-          <box cssClasses={["launcher-action-bar"]} spacing={20}>
-            {/* Left side - App actions */}
-            <box hexpand halign={Gtk.Align.START} spacing={16}>
-              {bind(selectedApp).as(app => app ? (
-                <>
-                  <box spacing={8}>
-                    <KeyboardShortcut keys={["↵"]} compact />
-                    <label label="Open" cssClasses={["action-label"]} />
-                  </box>
-                  <box spacing={8}>
-                    <KeyboardShortcut keys={["Ctrl", "↵"]} compact />
-                    <label label="Open in Terminal" cssClasses={["action-label"]} />
-                  </box>
-                  <box spacing={8}>
-                    <KeyboardShortcut keys={["Alt", "↵"]} compact />
-                    <label label="Show in Files" cssClasses={["action-label"]} />
-                  </box>
-                </>
-              ) : (
-                <label label="Type to search applications" cssClasses={["action-hint"]} />
-              ))}
-            </box>
-
-            {/* Right side - General shortcuts */}
-            <box halign={Gtk.Align.END} spacing={16}>
-              <box spacing={8}>
-                <KeyboardShortcut keys={["Tab"]} compact />
-                <label label="Autocomplete" cssClasses={["action-label"]} />
+            <box
+              vertical
+              cssClasses={bind(searchText).as(text =>
+                text.length > 1 ? ["launcher-search-box"] : ["launcher-search-box", "compact"]
+              )}
+            >
+              <box cssClasses={["search-input-container"]}>
+                <entry
+                  cssClasses={["launcher-search-input"]}
+                  placeholderText="Search for apps, files, or type a command..."
+                  hexpand
+                  onNotifyText={(self) => {
+                    log.debug("Search text changed", { text: self.text });
+                    searchText.set(self.text);
+                  }}
+                  focusable={true}
+                  onActivate={onEnter}
+                  setup={(self) => {
+                    entryRef = self;
+                    hook(self, App, "window-toggled", (self, win) => {
+                      if (win.name !== name) return;
+                      self.grab_focus();
+                      self.set_text("");
+                    });
+                  }}
+                />
               </box>
-              <box spacing={8}>
-                <KeyboardShortcut keys={["Esc"]} compact />
-                <label label="Close" cssClasses={["action-label"]} />
+
+              {/* Search Icon */}
+              <label
+                cssClasses={["search-icon"]}
+                halign={Gtk.Align.START}
+                valign={Gtk.Align.CENTER}
+                sensitive={false}
+              />
+
+              {/* Search Results */}
+              <box cssClasses={["launcher-results-container"]}>
+                <LauncherResults
+                  maxResults={maxResults}
+                  searchText={searchText}
+                  selectedIndex={selectedIndex}
+                  selectedApp={selectedApp}
+                  ref={(ref: any) => { resultsRef = ref; }}
+                />
+              </box>
+
+              {/* Action Bar */}
+              <box cssClasses={["launcher-action-bar"]} spacing={20}>
+                {/* Left side - App actions */}
+                <box hexpand halign={Gtk.Align.START} spacing={16}>
+                  {bind(selectedApp).as(app => app ? (
+                    <>
+                      <box spacing={8}>
+                        <KeyboardShortcut keys={["↵"]} compact />
+                        <label label="Open" cssClasses={["action-label"]} />
+                      </box>
+                      <box spacing={8}>
+                        <KeyboardShortcut keys={["Ctrl", "↵"]} compact />
+                        <label label="Open in Terminal" cssClasses={["action-label"]} />
+                      </box>
+                      <box spacing={8}>
+                        <KeyboardShortcut keys={["Alt", "↵"]} compact />
+                        <label label="Show in Files" cssClasses={["action-label"]} />
+                      </box>
+                    </>
+                  ) : (
+                    <label label="Type to search applications" cssClasses={["action-hint"]} />
+                  ))}
+                </box>
+
+                {/* Right side - General shortcuts */}
+                <box halign={Gtk.Align.END} spacing={16}>
+                  <box spacing={8}>
+                    <KeyboardShortcut keys={["Tab"]} compact />
+                    <label label="Autocomplete" cssClasses={["action-label"]} />
+                  </box>
+                  <box spacing={8}>
+                    <KeyboardShortcut keys={["Esc"]} compact />
+                    <label label="Close" cssClasses={["action-label"]} />
+                  </box>
+                </box>
               </box>
             </box>
           </box>
-        </box>
-        </box>
 
-        {/* Spacer for bottom area */}
-        <box vexpand />
+          {/* Spacer for bottom area */}
+          <box vexpand />
+        </box>
       </box>
     </PopupWindow>
   );

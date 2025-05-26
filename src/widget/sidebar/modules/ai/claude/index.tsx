@@ -10,18 +10,23 @@ import { ClaudeService } from "../../../../../services/claude";
 import { ClaudeCommands, AICommandProps } from "../../../../../handlers/claude-commands";
 import { SystemMessage } from "../components/system-message";
 import ChatView from "../components/chat-view";
+import CommandSuggestions from "../components/command-suggestions";
 import config from "../../../../../utils/config";
 import { parseCommand, enableClickthrough } from "../../../../../utils";
 import { sidebarLogger as log } from "../../../../../utils/logger";
-// import ChatContent from "../components/chat-content";
+import { ChatContent } from "../components/chat-content";
+import PhosphorIcon from "../../../../utils/icons/phosphor";
+import { PhosphorIcons } from "../../../../utils/icons/types";
 
 export interface ClaudeAIProps extends Widget.BoxProps { }
 
 const WelcomeMessage = () => {
   return (
-    <box homogeneous vexpand>
-      <box cssName="spacing-v-15" vertical valign={Gtk.Align.CENTER}>
+    <box cssName="ai-welcome-message" vexpand valign={Gtk.Align.CENTER}>
+      <box cssClasses={["spacing-v-15"]} vertical>
         <label label="Welcome to Claude AI!" />
+        <label label="Type a message to start chatting" />
+        <label label="Use / for commands" />
       </box>
     </box>
   );
@@ -29,24 +34,31 @@ const WelcomeMessage = () => {
 
 export default function ClaudeAI(props: ClaudeAIProps) {
   log.debug("ClaudeAI initializing");
-  const chatContent = new VarMap([
-    [0, <box />],
-    [1, <WelcomeMessage />],
-  ]);
+  const chatContent = new VarMap([]);
 
   const input = Variable("");
-  const reavererIsVisible = Variable(false);
   const updateContent = Variable(false);
+  const inputEntryRef = Variable<Gtk.Entry | null>(null);
+  const showCommandSuggestions = Variable(false);
+  const selectedModel = Variable(0);
 
   log.debug("Starting Claude service");
   const claudeService = new ClaudeService();
+  
+  const availableModels = [
+    { name: "Claude 3.5 Sonnet", value: "claude-3-5-sonnet-20241022" },
+    { name: "Claude 3 Opus", value: "claude-3-opus-20240229" },
+    { name: "Claude 3 Haiku", value: "claude-3-haiku-20240307" },
+  ];
+
+  // The service will emit new-msg for each initial message automatically
 
   claudeService.connect("new-msg", (source: ClaudeService, id: number) => {
     log.debug("Claude service new message", { messageId: id });
     chatContent.set(
       id,
       <ChatMessage
-        modelName="Claude 3.5"
+        modelName="Claude 3.5 Sonnet"
         message={claudeService.getMessage(id)}
       />,
     );
@@ -68,24 +80,29 @@ export default function ClaudeAI(props: ClaudeAIProps) {
   };
 
   const sendMessage = (message: string) => {
-    log.info("Sending message", { message });
-    // Check if text or API key is empty
-    if (message.length == 0) return;
+    const trimmedMessage = message.trim();
+    log.info("Sending message", { message: trimmedMessage });
+    
+    // Check if text is empty
+    if (trimmedMessage.length === 0) return;
+    
+    // Clear input
+    input.set("");
+    
     if (!claudeService.isKeySet()) {
-      // ClaudeService.key = message;
+      claudeService.key = trimmedMessage;
       appendChatContent(
         SystemMessage({
-          content: `Key saved to\n\`${claudeService.keyPath}\``,
+          content: `API Key saved to\n\`${claudeService.keyPath}\``,
           commandName: "API Key",
-          // geminiView,
         }),
       );
-      message = "";
       return;
     }
+    
     // Commands
-    if (message.startsWith("/")) {
-      const { command, args } = parseCommand(message);
+    if (trimmedMessage.startsWith("/")) {
+      const { command, args } = parseCommand(trimmedMessage);
 
       const aiCommand: AICommandProps = {
         args,
@@ -101,17 +118,16 @@ export default function ClaudeAI(props: ClaudeAIProps) {
       if (commandHandler) {
         commandHandler(args);
       } else {
-        log.warn("Invalid command", { command });
+        // Show available commands
         appendChatContent(
           SystemMessage({
-            content: "Invalid command.",
+            content: `Invalid command: "${command}"\n\nAvailable commands:\n/clear - Clear chat history\n/model - Switch AI model\n/help - Show this help`,
             commandName: "Error",
-            // geminiView,
           }),
         );
       }
     } else {
-      claudeService.send(message);
+      claudeService.send(trimmedMessage);
     }
   };
 
@@ -123,10 +139,16 @@ export default function ClaudeAI(props: ClaudeAIProps) {
     sendMessage(input.get());
   };
 
-  const handleInputChanged = () => {
-    reavererIsVisible.set(true);
-    // input.set(self.get_text());
-
+  const handleInputChanged = (text: string) => {
+    input.set(text);
+    // Show command suggestions when typing a command
+    showCommandSuggestions.set(text.startsWith("/"));
+  };
+  
+  const handleCommandSelect = (command: string) => {
+    input.set(command + " ");
+    showCommandSuggestions.set(false);
+    inputEntryRef.get()?.grab_focus();
   };
 
   chatContent.subscribe((content) => {
@@ -150,36 +172,50 @@ export default function ClaudeAI(props: ClaudeAIProps) {
   // });
 
   return (
-    <box {...props} vexpand>
-      {/* <ChatView> */}
-      {/*   <box cssName="spacing-v-10" vertical> */}
-      {/*       <ChatContent content={} /> */}
-      {/*     {bind(chatContent).as((v) => { */}
-      {/*       return v.map(([num, w]) => w); */}
-      {/*     })} */}
-      {/*   </box> */}
-      {/* </ChatView> */}
-      <box cssName="sidebar-chat-textarea" vexpand={false}>
-        {/* <overlay> */}
-        {/*   <revealer */}
-        {/*     visible={reavererIsVisible.get()} */}
-        {/*     transitionType={Gtk.RevealerTransitionType.CROSSFADE} transitionDuration={config.animations.durationLarge}> */}
-        {/*     <ChatInput */}
-        {/*       autoFocus={true} */}
-        {/*       aiName={AIName.CLAUDE} */}
-        {/*       handleSubmit={sendMessageReturn} */}
-        {/*       onChanged={handleInputChanged} */}
-        {/*     /> */}
-        {/*   </revealer> */}
-        {/*   <ChatInput */}
-        {/*     autoFocus={true} */}
-        {/*     aiName={AIName.CLAUDE} */}
-        {/*     handleSubmit={sendMessageReturn} */}
-        {/*     onChanged={handleInputChanged} */}
-        {/*   /> */}
-        {/* </overlay> */}
-        <box cssName="width-10" />
-        {/* <ChatSendButton onClicked={sendMessageClick} /> */}
+    <box {...props} vertical vexpand cssName="ai-chat-container">
+      {/* Model selector header */}
+      <box cssName="ai-chat-header" vexpand={false}>
+        <button
+          cssName="ai-model-selector"
+          onClicked={() => {
+            // Cycle through models
+            selectedModel.set((selectedModel.get() + 1) % availableModels.length);
+          }}
+        >
+          <box cssClasses={["spacing-h-10"]}>
+            <PhosphorIcon iconName={PhosphorIcons.Robot} size={16} />
+            <label label={bind(selectedModel).as(idx => availableModels[idx].name)} />
+            <PhosphorIcon iconName={PhosphorIcons.CaretDown} size={12} />
+          </box>
+        </button>
+      </box>
+      
+      <ChatView>
+        <box cssName="spacing-v-10" vertical>
+          {bind(chatContent).as((v) => {
+            return v.map(([num, w]) => w);
+          })}
+        </box>
+      </ChatView>
+      
+      <box vertical vexpand={false}>
+        <CommandSuggestions
+          query={input}
+          visible={showCommandSuggestions}
+          onSelect={handleCommandSelect}
+        />
+        <box cssName="sidebar-chat-textarea" valign={Gtk.Align.END}>
+          <ChatInput
+            autoFocus={true}
+            aiName={AIName.CLAUDE}
+            handleSubmit={sendMessageReturn}
+            handleChanged={handleInputChanged}
+            entryRef={inputEntryRef}
+            value={input}
+            hexpand
+          />
+          <ChatSendButton onClicked={sendMessageClick} />
+        </box>
       </box>
     </box>
   );

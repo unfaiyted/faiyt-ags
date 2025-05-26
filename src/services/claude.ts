@@ -281,8 +281,18 @@ export class ClaudeService extends GObject.Object {
     else this._messages = this._assistantPrompt ? [...initMessages] : [];
 
     log.debug("Initial messages loaded", { count: this._messages.length });
+    
+    // Emit new-msg for each initial message
+    this._messages.forEach((msg, index) => {
+      this.emit("new-msg", index);
+    });
+    
     log.info("ClaudeService initialized");
     this.emit("initialized");
+  }
+  
+  getMessages() {
+    return this._messages;
   }
 
   get modelName() {

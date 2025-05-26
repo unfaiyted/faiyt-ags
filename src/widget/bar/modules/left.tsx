@@ -3,7 +3,9 @@ import SideModule from "./side";
 import { actions } from "../../../utils/actions";
 import { UIWindows } from "../../../types";
 
-export interface LeftSideModuleProps extends Widget.BoxProps { }
+export interface LeftSideModuleProps extends Widget.BoxProps {
+  monitorIndex?: number;
+}
 
 export default function LeftSideModule(
   leftSideModuleProps: LeftSideModuleProps,
@@ -14,8 +16,14 @@ export default function LeftSideModule(
   props.onScrollDown = () => actions.brightness.decrease();
   props.onPrimaryClick = () => actions.window.toggle(UIWindows.SIDEBAR_LEFT);
 
+  const monitorSuffix = props.monitorIndex !== undefined ? `-${props.monitorIndex}` : '';
+  const sideBarName: string = `sidebar-left${monitorSuffix}`;
+
+
   return (
     <box homogeneous={false}>
+
+      <button onClicked={() => actions.window.toggle(sideBarName)} />
       <box cssName="bar-corner-spacing" />
       <overlay>
         <box hexpand={true} >

@@ -3,6 +3,7 @@ import { cycleMode } from "../widget/bar/utils";
 import { Variable } from "astal";
 import { execAsync } from "astal/process";
 import { serviceLogger as log } from "../utils/logger";
+import Hypr from "gi://AstalHyprland";
 
 type WindowPosition = "left" | "right" | "top" | "bottom";
 type SystemAction = "sleep" | "shutdown" | "restart" | "logout";
@@ -98,7 +99,29 @@ function handleWindowCommand(
     );
   }
 
-  const windowName = `${position}`;
+  let windowName = `${position}`;
+  
+  // For toggle/show/hide actions, if window name doesn't include monitor suffix, add it based on focused monitor
+  if ((action === "toggle" || action === "show" || action === "hide" || action === "close") 
+      && position && !position.match(/-\d+$/)) {
+    try {
+      const hypr = Hypr.get_default();
+      const focusedMonitor = hypr.get_focused_monitor();
+      const monitorId = focusedMonitor?.id ?? 0;
+      windowName = `${position}-${monitorId}`;
+      log.debug("Added monitor suffix to window name", { 
+        originalName: position, 
+        windowName, 
+        monitorId,
+        action
+      });
+    } catch (error) {
+      log.error("Failed to get focused monitor", { error });
+      // Fall back to monitor 0 if we can't get the focused monitor
+      windowName = `${position}-0`;
+    }
+  }
+  
   const window = App?.get_window(windowName);
 
   if (!window) {

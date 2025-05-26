@@ -80,7 +80,7 @@ export default function WindowTitle() {
   return (
     <BarGroup>
       <box
-        cssName="spacing-h-4"
+        cssClasses={["bar-win-title"]}
         valign={Gtk.Align.CENTER}
         tooltipText=""
         setup={(box) => {

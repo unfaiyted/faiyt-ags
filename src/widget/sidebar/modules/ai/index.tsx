@@ -1,16 +1,17 @@
-import { Widget, Gtk, Astal } from "astal/gtk4";
+import { Widget, Gtk } from "astal/gtk4";
 import TabContainer, {
   TabContent,
 } from "../../../utils/containers/tabs";
 import ClaudeAI from "./claude";
 import { PhosphorIcons } from "../../../utils/icons/types";
+import PhosphorIcon from "../../../utils/icons/phosphor";
 
 export enum AIName {
   CLAUDE = "claude",
   GEMINI = "gemini",
   GPT = "gpt",
   OLLAMA = "ollama",
-  WAIFU = "waifu",
+  // WAIFU = "waifu",
 }
 
 export interface AIItem {
@@ -28,27 +29,27 @@ export const EXPAND_INPUT_THRESHOLD = 30;
 export const AI_TABS: Record<AIName, TabContent> = {
   [AIName.CLAUDE]: {
     name: AIName.CLAUDE,
-    content: <ClaudeAI />,
+    content: ClaudeAI,
     icon: PhosphorIcons.Brain,
   },
   [AIName.GEMINI]: {
     name: AIName.GEMINI,
-    content: <ClaudeAI />,
+    content: ClaudeAI,
     icon: PhosphorIcons.Diamond,
   },
   [AIName.GPT]: {
     name: AIName.GPT,
-    content: <ClaudeAI />,
+    content: ClaudeAI,
     icon: PhosphorIcons.Chat,
   },
-  [AIName.WAIFU]: {
-    name: AIName.WAIFU,
-    content: <ClaudeAI />,
-    icon: PhosphorIcons.Onigiri,
-  },
+  // [AIName.WAIFU]: {
+  //   name: AIName.WAIFU,
+  //   content: ClaudeAI,
+  //   icon: PhosphorIcons.Onigiri,
+  // },
   [AIName.OLLAMA]: {
     name: AIName.OLLAMA,
-    content: <ClaudeAI />,
+    content: ClaudeAI,
     icon: PhosphorIcons.Alien,
   },
 };
@@ -57,11 +58,12 @@ export const ChatSendButton = (props: Widget.ButtonProps) => {
   return (
     <button
       valign={Gtk.Align.END}
-      tooltipText={props.name}
-      onClicked={props.onClick}
-      label="arrow_upward"
-      cssName={`sidebar-chat-send txt-norm icon-material ${props.cssName}`}
-    />
+      tooltipText={props.name || "Send message"}
+      onClicked={props.onClicked}
+      cssName={`sidebar-chat-send ${props.cssName || ''}`}
+    >
+      <PhosphorIcon iconName={PhosphorIcons.PaperPlaneTilt} size={20} />
+    </button>
   );
 };
 
@@ -71,11 +73,14 @@ export default function AIModules(props: AIModulesProps) {
   const aiTabsArray: TabContent[] = Object.values(AI_TABS);
 
   return (
-    <box>
+    <box
+      cssName="ai-module"
+    >
       <TabContainer
         {...props}
-        cssName="margin-top-5"
-        orientation={Gtk.Orientation.VERTICAL}
+
+        cssClasses={["margin-top-5"]}
+        orientation={Gtk.Orientation.HORIZONTAL}
         tabs={aiTabsArray}
         hideLabels
         active={0}

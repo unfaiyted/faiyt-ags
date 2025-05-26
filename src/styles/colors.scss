@@ -1,4 +1,5 @@
 @use 'sass:map';
+@use 'sass:color';
 /* Rosé Pine Theme Colors */
 $current-theme: rose-pine;
 
@@ -155,8 +156,7 @@ $themes: (
 }
 
 @function darken($color, $amount) {
-
-  @return scale-color(c($color), $lightness: -($amount));
+  @return color.scale(c($color), $lightness: -($amount));
 }
 
 @function lighten($color, $amount) {

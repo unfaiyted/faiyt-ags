@@ -1,6 +1,7 @@
 import { Widget, Gtk, Gdk } from "astal/gtk4";
 import { ChatMessageContent } from "./chat-message-content";
 import { ClaudeMessage } from "../../../../../services/claude";
+import { c } from "../../../../../utils/style";
 
 export interface SystemMessageProps extends Widget.BoxProps {
   commandName: string;
@@ -16,7 +17,8 @@ export const SystemMessage = (props: SystemMessageProps) => {
           halign={Gtk.Align.START}
           wrap
           label={`System  •  ${props.commandName}`}
-          cssName="txt txt-bold sidebar-chat-name sidebar-chat-name-system"
+          cssName="sidebar-chat-name"
+          cssClasses={c`chat-name-system`}
         />
         {<ChatMessageContent content={props.content} />}
       </box>
