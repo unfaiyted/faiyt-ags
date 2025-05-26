@@ -45,15 +45,17 @@ App.start({
         BarCornerTopLeft({ gdkmonitor: gdkmonitor, index });
         BarCornerTopRight({ gdkmonitor: gdkmonitor, index });
         SystemOverlays({ gdkmonitor: gdkmonitor, monitor: index });
-        LauncherBar({ gdkmonitor, monitor: index });
+        LauncherBar({ gdkmonitor, monitorIndex: index });
 
         log.info(`Monitor ${index} setup complete`);
       } catch (error) {
         // Pass the error object directly to leverage source mapping
         if (error instanceof Error) {
-          log.error(error, "App", { monitor: index });
+          log.error(error, { monitor: index });
         } else {
-          log.error(`Failed to setup monitor ${index}`, "App", { error: String(error) });
+          log.error(`Failed to setup monitor ${index}`, {
+            error: String(error),
+          });
         }
       }
     });

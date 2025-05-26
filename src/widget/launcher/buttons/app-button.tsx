@@ -1,10 +1,12 @@
-import { Widget, Gtk, Gdk } from "astal/gtk4";
+import { Widget, App, Gtk, Gdk } from "astal/gtk4";
 import LauncherButton from "./index";
 import Apps from "gi://AstalApps";
+import { Variable, Binding } from "astal";
 
 export interface AppButtonProps extends Widget.ButtonProps {
   app: Apps.Application;
   index: number;
+  selected?: Binding<boolean>;
 }
 
 export default function AppButton(props: AppButtonProps) {
@@ -23,10 +25,18 @@ export default function AppButton(props: AppButtonProps) {
   return (
     <LauncherButton
       name={props.app.name}
-      icon={<image iconName={props.app.iconName || "application-x-executable"} pixelSize={24} />}
-      content={props.app.name}
+      icon={<image iconName={props.app.iconName || "application-x-executable"} pixelSize={32} />}
+      content={props.app.description || props.app.comment || ""}
+      selected={props.selected}
       // onKeyPressEvent={handleKeyPress}
-      onClicked={() => props.app.launch()}
+      onClicked={() => {
+        props.app.launch();
+        // Close launcher after launching
+        const window = App.get_window("launcher");
+        if (window) {
+          window.hide();
+        }
+      }}
       {...props}
     />
   );

@@ -1,12 +1,13 @@
-import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk4";
+import { App, Astal, Gtk, Gdk, hook } from "astal/gtk4";
 import PopupWindow, { PopupWindowProps } from "../utils/popup-window";
 import { Variable, bind } from "astal";
 import config from "../../utils/config";
 import LauncherResults from "./launcher-results";
 import { launcherLogger as log } from "../../utils/logger";
+import KeyboardShortcut from "../utils/keyboard-shortcut";
 
 export interface LauncherProps extends PopupWindowProps {
-  monitor: number;
+  monitorIndex: number;
 }
 
 export default function LauncherBar(launcherProps: LauncherProps) {
@@ -16,49 +17,46 @@ export default function LauncherBar(launcherProps: LauncherProps) {
   const isVisible = Variable(true);
   const placeholderText = Variable("Type to Search");
   const searchText = Variable("");
+  const selectedIndex = Variable(0);
+  const selectedApp = Variable<any>(null);
+  const maxResults = config.launcher?.maxResults || 5;
   let entryRef: Gtk.Entry | null = null;
+  let resultsRef: any = null;
+  const monitorSuffix = props.monitorIndex !== undefined ? `-${props.monitorIndex}` : '';
 
   // Close the launcher
   const closeLauncher = () => {
     log.debug("Closing launcher");
-    const window = App.get_window("launcher");
+    const window = App.get_window(`launcher${monitorSuffix}`);
     if (window) {
       window.hide();
     }
   };
 
-  // Handle text changes in the entry
-  const handleTextChange = (text: string) => {
+  // Handle text changes
+  searchText.subscribe((text) => {
     if (text.length === 0) {
       placeholderText.set("Type to Search");
-      searchText.set("");
     } else {
       placeholderText.set("");
-      searchText.set(text);
+    }
+  });
+
+  // Handle text changes in the entry
+  const onEnter = () => {
+    if (resultsRef) {
+      resultsRef.activateSelected();
     }
   };
 
-  // Reset state when window visibility changes
-  isVisible.subscribe((v) => {
-    if (v) {
-      log.info("Launcher opened");
-      searchText.set("");
-      placeholderText.set("Type to Search");
-      // Focus entry when shown
-      if (entryRef) {
-        entryRef.grab_focus();
-      }
-    } else {
-      log.info("Launcher closed");
-    }
-  });
+  const name: string = `launcher${monitorSuffix}`;
 
   return (
     <PopupWindow
       {...props}
-      name="launcher"
+      name={name}
       cssName="launcher"
-      layer={Astal.Layer.TOP}
+      layer={Astal.Layer.OVERLAY}
       anchor={
         Astal.WindowAnchor.TOP |
         Astal.WindowAnchor.BOTTOM |
@@ -69,23 +67,49 @@ export default function LauncherBar(launcherProps: LauncherProps) {
       keymode={Astal.Keymode.ON_DEMAND}
       application={App}
       onKeyPressed={(self: Gtk.Window, keyval: number) => {
+        log.debug("Key pressed", { key: keyval });
         if (keyval === Gdk.KEY_Escape) {
           closeLauncher();
           return true;
         }
+
+        // Handle navigation keys
+        switch (keyval) {
+          case Gdk.KEY_Down:
+          case Gdk.KEY_KP_Down:
+            if (resultsRef) {
+              resultsRef.selectNext();
+            }
+            return true;
+          case Gdk.KEY_Up:
+          case Gdk.KEY_KP_Up:
+            if (resultsRef) {
+              resultsRef.selectPrevious();
+            }
+            return true;
+          case Gdk.KEY_Return:
+          case Gdk.KEY_KP_Enter:
+            if (resultsRef) {
+              resultsRef.activateSelected();
+            }
+            return true;
+        }
+
         return false;
       }}
-      setup={(self: Gtk.Window) => {
-        // Connect window visibility to our variable
-        self.connect("show", () => isVisible.set(true));
-        self.connect("hide", () => isVisible.set(false));
+      setup={(self) => {
+        hook(self, App, "window-toggled", (self, win) => {
+          if (win.name !== name) return;
+          searchText.set("");
+          selectedApp.set(null);
+        });
       }}
     >
       <box
         vertical
         halign={Gtk.Align.CENTER}
         valign={Gtk.Align.CENTER}
-        cssName="launcher-container"
+        cssClasses={["launcher-container"]}
         setup={(self: Gtk.Box) => {
           // Add click gesture for click-outside detection
           const clickGesture = new Gtk.GestureClick();
@@ -112,57 +136,95 @@ export default function LauncherBar(launcherProps: LauncherProps) {
         {/* Spacer for top area */}
         <box vexpand />
 
-        {/* Search Box */}
-        <box vertical cssName="launcher-search-box" halign={Gtk.Align.CENTER}>
-          <overlay>
-            <box cssName="search-input-container">
-              <entry
-                cssName="launcher-search-input"
-                placeholderText="Type to Search"
-                halign={Gtk.Align.CENTER}
-                hexpand
-                setup={(self: Gtk.Entry) => {
-                  entryRef = self;
-                  // Focus when window shows
-                  self.get_root()?.connect("show", () => {
-                    self.grab_focus();
-                  });
-                }}
-                onChanged={(self: Gtk.Entry) => {
-                  handleTextChange(self.get_text());
-                }}
-              />
-            </box>
-
-            {/* Search Icon */}
-            <label
-              cssName="search-icon"
-              label="🔍"
-              halign={Gtk.Align.START}
-              valign={Gtk.Align.CENTER}
-              sensitive={false}
+        {/* Search Box with gradient border wrapper */}
+        <box
+          cssClasses={["launcher-search-box-wrapper"]}
+          halign={Gtk.Align.CENTER}
+        >
+          <box 
+            vertical 
+            cssClasses={bind(searchText).as(text => 
+              text.length > 1 ? ["launcher-search-box"] : ["launcher-search-box", "compact"]
+            )} 
+          >
+          <box cssClasses={["search-input-container"]}>
+            <entry
+              cssClasses={["launcher-search-input"]}
+              placeholderText="Search for apps, files, or type a command..."
+              hexpand
+              onNotifyText={(self) => {
+                log.debug("Search text changed", { text: self.text });
+                searchText.set(self.text);
+              }}
+              focusable={true}
+              onActivate={onEnter}
+              setup={(self) => {
+                entryRef = self;
+                hook(self, App, "window-toggled", (self, win) => {
+                  if (win.name !== name) return;
+                  self.grab_focus();
+                  self.set_text("");
+                });
+              }}
             />
+          </box>
 
-            {/* Placeholder (shown when empty) */}
-            <revealer
-              transitionType={Gtk.RevealerTransitionType.CROSSFADE}
-              transitionDuration={config.animations.durationSmall}
-              revealChild={bind(placeholderText).as(t => t.length > 0)}
-              halign={Gtk.Align.CENTER}
-              valign={Gtk.Align.CENTER}
-              sensitive={false}
-            >
-              <label
-                cssName="search-placeholder"
-                label={bind(placeholderText)}
-              />
-            </revealer>
-          </overlay>
+          {/* Search Icon */}
+          <label
+            cssClasses={["search-icon"]}
+            halign={Gtk.Align.START}
+            valign={Gtk.Align.CENTER}
+            sensitive={false}
+          />
 
           {/* Search Results */}
-          <box cssName="launcher-results-container">
-            <LauncherResults maxResults={10} searchText={searchText} />
+          <box cssClasses={["launcher-results-container"]}>
+            <LauncherResults
+              maxResults={maxResults}
+              searchText={searchText}
+              selectedIndex={selectedIndex}
+              selectedApp={selectedApp}
+              ref={(ref: any) => { resultsRef = ref; }}
+            />
           </box>
+
+          {/* Action Bar */}
+          <box cssClasses={["launcher-action-bar"]} spacing={20}>
+            {/* Left side - App actions */}
+            <box hexpand halign={Gtk.Align.START} spacing={16}>
+              {bind(selectedApp).as(app => app ? (
+                <>
+                  <box spacing={8}>
+                    <KeyboardShortcut keys={["↵"]} compact />
+                    <label label="Open" cssClasses={["action-label"]} />
+                  </box>
+                  <box spacing={8}>
+                    <KeyboardShortcut keys={["Ctrl", "↵"]} compact />
+                    <label label="Open in Terminal" cssClasses={["action-label"]} />
+                  </box>
+                  <box spacing={8}>
+                    <KeyboardShortcut keys={["Alt", "↵"]} compact />
+                    <label label="Show in Files" cssClasses={["action-label"]} />
+                  </box>
+                </>
+              ) : (
+                <label label="Type to search applications" cssClasses={["action-hint"]} />
+              ))}
+            </box>
+
+            {/* Right side - General shortcuts */}
+            <box halign={Gtk.Align.END} spacing={16}>
+              <box spacing={8}>
+                <KeyboardShortcut keys={["Tab"]} compact />
+                <label label="Autocomplete" cssClasses={["action-label"]} />
+              </box>
+              <box spacing={8}>
+                <KeyboardShortcut keys={["Esc"]} compact />
+                <label label="Close" cssClasses={["action-label"]} />
+              </box>
+            </box>
+          </box>
+        </box>
         </box>
 
         {/* Spacer for bottom area */}

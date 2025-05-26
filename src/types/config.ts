@@ -200,6 +200,9 @@ export interface ConfigOptions {
     modes: BarMode[];
     default: BarMode;
   };
+  launcher: {
+    maxResults: number;
+  };
   dir: {
     scripts: string;
     home: string;

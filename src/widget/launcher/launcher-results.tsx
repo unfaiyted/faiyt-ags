@@ -8,27 +8,13 @@ import config from "../../utils/config";
 import actions from "../../utils/actions";
 import AppButton from "./buttons/app-button";
 
-const debounce = <T extends (...args: any[]) => void>(
-  func: T,
-  delay: number,
-) => {
-  let timeoutId: number;
-
-  return (...args: Parameters<T>) => {
-    if (timeoutId) {
-      GLib.source_remove(timeoutId);
-    }
-
-    timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, () => {
-      func(...args);
-      return false;
-    });
-  };
-};
 
 export interface LauncherResultsProps extends Widget.BoxProps {
   searchText: Variable<string>;
   maxResults: number;
+  selectedIndex: Variable<number>;
+  selectedApp?: Variable<any>;
+  ref?: (ref: any) => void;
 }
 
 const apps = new Apps.Apps({
@@ -38,38 +24,79 @@ const apps = new Apps.Apps({
 });
 
 export default function LauncherResults(props: LauncherResultsProps) {
-  const appResults = Variable<Apps.Application[]>([]);
-  const revealResults = Variable(false);
+  const selectedIndex = props.selectedIndex || Variable(0);
 
-  const updateResults = (searchText: string) => {
-    if (searchText.length > 1) {
-      const resultApps = apps.fuzzy_query(searchText);
-      const limitedResults = resultApps.slice(0, props.maxResults);
-      appResults.set(limitedResults);
-      revealResults.set(limitedResults.length > 0);
-    } else {
-      appResults.set([]);
-      revealResults.set(false);
+  const list = props.searchText((text) => {
+    if (text.length > 1) {
+      const results = apps.fuzzy_query(text).slice(0, props.maxResults);
+      selectedIndex.set(0); // Reset selection when results change
+      if (props.selectedApp && results.length > 0) {
+        props.selectedApp.set(results[0]);
+      } else if (props.selectedApp) {
+        props.selectedApp.set(null);
+      }
+      return results;
+    }
+    if (props.selectedApp) {
+      props.selectedApp.set(null);
+    }
+    return [];
+  });
+
+  // Navigation methods
+  const selectNext = () => {
+    const results = list.get();
+    if (results.length > 0) {
+      const current = selectedIndex.get();
+      const newIndex = (current + 1) % results.length;
+      selectedIndex.set(newIndex);
+      if (props.selectedApp) {
+        props.selectedApp.set(results[newIndex]);
+      }
     }
   };
 
-  // Debounced update function
-  const debouncedUpdate = debounce(updateResults, 200);
+  const selectPrevious = () => {
+    const results = list.get();
+    if (results.length > 0) {
+      const current = selectedIndex.get();
+      const newIndex = current === 0 ? results.length - 1 : current - 1;
+      selectedIndex.set(newIndex);
+      if (props.selectedApp) {
+        props.selectedApp.set(results[newIndex]);
+      }
+    }
+  };
 
-  // Subscribe to search text changes
-  const cleanup = props.searchText.subscribe(debouncedUpdate);
+  const activateSelected = () => {
+    const results = list.get();
+    const index = selectedIndex.get();
+    if (results.length > 0 && index >= 0 && index < results.length) {
+      results[index].launch();
+      // Close launcher after launching
+      const window = App.get_window("launcher");
+      if (window) {
+        window.hide();
+      }
+    }
+  };
 
-  // Clear results when hidden
-  revealResults.subscribe((v) => {
-    if (!v) appResults.set([]);
-  });
+  // Expose methods via ref
+  if (props.ref) {
+    props.ref({
+      selectNext,
+      selectPrevious,
+      activateSelected
+    });
+  }
+
 
   return (
     <revealer
       transitionDuration={config.animations.durationLarge}
-      revealChild={bind(revealResults)}
+      revealChild={list.as((l) => l.length > 0)}
       transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-      halign={Gtk.Align.CENTER}
+      halign={Gtk.Align.START}
     >
       <box
         cssName="launcher-results"
@@ -78,15 +105,19 @@ export default function LauncherResults(props: LauncherResultsProps) {
       >
         <Gtk.ScrolledWindow
           hexpand
-          vscrollbar_policy={Gtk.PolicyType.AUTOMATIC}
+          vscrollbar_policy={Gtk.PolicyType.NEVER}
           hscrollbar_policy={Gtk.PolicyType.NEVER}
-          vexpand
-          maxContentHeight={400}
+          vexpand={false}
+          maxContentHeight={list.as(apps => Math.min(apps.length * 60, 360))}
         >
           <box vertical cssName="launcher-results-list">
-            {bind(appResults).as((apps) =>
+            {list.as((apps) =>
               apps.map((app, index) => (
-                <AppButton index={index} app={app} />
+                <AppButton
+                  index={index}
+                  app={app}
+                  selected={bind(selectedIndex).as(i => i === index)}
+                />
               ))
             )}
           </box>

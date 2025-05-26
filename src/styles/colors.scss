@@ -144,10 +144,12 @@ $themes: (
 
 @function c($color, $opacity: 1) {
   $color-value: map.get(map.get($themes, $current-theme), $color);
-  
-  @if $opacity == 1 {
+
+  @if $opacity ==1 {
     @return $color-value;
-  } @else {
+  }
+
+  @else {
     @return rgba($color-value, $opacity);
   }
 }

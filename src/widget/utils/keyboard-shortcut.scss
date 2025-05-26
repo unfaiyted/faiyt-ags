@@ -1,0 +1,57 @@
+@use "../../styles/colors";
+
+// Keyboard shortcut container
+.keyboard-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+// Individual keyboard key
+.keyboard-key {
+  background: linear-gradient(135deg,
+      colors.c(surface, 0.9) 0%,
+      colors.c(overlay, 0.8) 100%);
+  border: 1px solid colors.c(border-alt, 0.4);
+  border-radius: 6px;
+  padding: 4px 8px;
+  min-width: 28px;
+  box-shadow:
+    0 2px 4px colors.c(base, 0.1),
+    inset 0 1px 0 colors.c(surface, 0.2),
+    inset 0 -1px 0 colors.c(base, 0.1);
+  transition: all 150ms ease;
+
+  &:hover {
+    background: linear-gradient(135deg,
+        colors.c(surface, 0.85) 0%,
+        colors.c(surface, 0.9) 100%);
+    transform: translateY(-1px);
+    box-shadow:
+      0 3px 6px colors.c(base, 0.15),
+      inset 0 1px 0 colors.c(surface, 0.3),
+      inset 0 -1px 0 colors.c(base, 0.15);
+  }
+
+  &.compact {
+    padding: 2px 6px;
+    min-width: 24px;
+    border-radius: 4px;
+  }
+}
+
+// Key label
+.keyboard-key-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: colors.c(foreground-alt);
+  text-align: center;
+  font-family: monospace;
+}
+
+// Plus sign between keys
+.keyboard-shortcut-plus {
+  font-size: 12px;
+  color: colors.c(foreground-alt, 0.5);
+  margin: 0 2px;
+}
