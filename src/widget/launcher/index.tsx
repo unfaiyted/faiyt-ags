@@ -66,7 +66,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
       visible={false}
       keymode={Astal.Keymode.ON_DEMAND}
       application={App}
-      onKeyPressed={(self: Gtk.Window, keyval: number) => {
+      onKeyPressed={(_self: Gtk.Window, keyval: number) => {
         log.debug("Key pressed", { key: keyval });
         if (keyval === Gdk.KEY_Escape) {
           closeLauncher();
@@ -98,7 +98,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
         return false;
       }}
       setup={(self) => {
-        hook(self, App, "window-toggled", (self, win) => {
+        hook(self, App, "window-toggled", (_self, win) => {
           if (win.name !== name) return;
           searchText.set("");
           selectedApp.set(null);
@@ -113,7 +113,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
           log.debug("Setting up click detection for launcher");
           // Add click gesture to detect clicks outside launcher
           const clickGesture = new Gtk.GestureClick();
-          clickGesture.connect("pressed", (gesture, n_press, x, y) => {
+          clickGesture.connect("pressed", (_gesture, _n_press, x, y) => {
             log.debug("Click detected in launcher", { x, y });
 
             // Get the launcher container (the centered box with actual content)

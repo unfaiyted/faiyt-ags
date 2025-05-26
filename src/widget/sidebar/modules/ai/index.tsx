@@ -3,6 +3,7 @@ import TabContainer, {
   TabContent,
 } from "../../../utils/containers/tabs";
 import ClaudeAI from "./claude";
+import AISettings from "./settings";
 import { PhosphorIcons } from "../../../utils/icons/types";
 import PhosphorIcon from "../../../utils/icons/phosphor";
 
@@ -11,7 +12,7 @@ export enum AIName {
   GEMINI = "gemini",
   GPT = "gpt",
   OLLAMA = "ollama",
-  // WAIFU = "waifu",
+  SETTINGS = "settings",
 }
 
 export interface AIItem {
@@ -42,15 +43,15 @@ export const AI_TABS: Record<AIName, TabContent> = {
     content: ClaudeAI,
     icon: PhosphorIcons.Chat,
   },
-  // [AIName.WAIFU]: {
-  //   name: AIName.WAIFU,
-  //   content: ClaudeAI,
-  //   icon: PhosphorIcons.Onigiri,
-  // },
   [AIName.OLLAMA]: {
     name: AIName.OLLAMA,
     content: ClaudeAI,
     icon: PhosphorIcons.Alien,
+  },
+  [AIName.SETTINGS]: {
+    name: AIName.SETTINGS,
+    content: (props) => AISettings(props),
+    icon: PhosphorIcons.Gear,
   },
 };
 
@@ -78,11 +79,10 @@ export default function AIModules(props: AIModulesProps) {
     >
       <TabContainer
         {...props}
-
         cssClasses={["margin-top-5"]}
         orientation={Gtk.Orientation.HORIZONTAL}
         tabs={aiTabsArray}
-        hideLabels
+        // hideLabels
         active={0}
       />
     </box>
