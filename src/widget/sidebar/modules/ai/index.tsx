@@ -3,6 +3,8 @@ import TabContainer, {
   TabContent,
 } from "../../../utils/containers/tabs";
 import ClaudeAI from "./claude";
+
+import { setupCursorHover } from "../../../utils/buttons";
 import AISettings from "./settings";
 import { PhosphorIcons } from "../../../utils/icons/types";
 import PhosphorIcon from "../../../utils/icons/phosphor";
@@ -62,6 +64,7 @@ export const ChatSendButton = (props: Widget.ButtonProps) => {
       tooltipText={props.name || "Send message"}
       marginStart={10}
       marginEnd={10}
+      setup={setupCursorHover}
       onClicked={props.onClicked}
       cssName={`sidebar-chat-send`}
     >

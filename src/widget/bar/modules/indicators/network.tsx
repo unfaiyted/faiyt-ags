@@ -1,9 +1,11 @@
 import Network from "gi://AstalNetwork";
-// import GLib from "gi://GLib";
 import config from "../../../../utils/config";
 import { Widget, Gtk } from "astal/gtk4";
 import { Variable, bind } from "astal";
-
+import PhosphorIcon from "../../../utils/icons/phosphor";
+import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
+import { c } from "../../../../utils/style"
+import { theme } from "../../../../utils/color"
 const network = Network.get_default();
 
 const NetworkWiredIndicator = (props: Widget.StackProps) => {
@@ -23,25 +25,25 @@ const NetworkWiredIndicator = (props: Widget.StackProps) => {
       transitionDuration={config.animations.durationSmall}
       visibleChildName={"unknown"}
     >
-      <label
+      <PhosphorIcon
         name="unknown"
-        cssName="txt-norm icon-material"
-        label="wifi_off"
+        style={PhosphorIconStyle.Duotone}
+        iconName={PhosphorIcons.Question}
       />
-      <label
+      <PhosphorIcon
         name={Network.Internet.DISCONNECTED.toString()}
-        cssName="txt-norm icon-material"
-        label="signal_wifi_off"
+        iconName={PhosphorIcons.WifiSlash}
       />
-      <label
+      <PhosphorIcon
         name={Network.Internet.CONNECTED.toString()}
-        cssName="txt-norm icon-material"
-        label="lan"
+        style={PhosphorIconStyle.Duotone}
+        iconName={PhosphorIcons.Network}
       />
-      <label
+      <PhosphorIcon
         name={Network.Internet.CONNECTING.toString()}
-        cssName="txt-norm icon-material"
-        label="settings_ethernet"
+        iconName={PhosphorIcons.Network}
+        style={PhosphorIconStyle.Duotone}
+        color={theme.gold}
       />
       <SimpleNetworkIndicator name="simple" />
     </stack>
@@ -95,45 +97,44 @@ export const NetworkWifiIndicator = (props: NetworkWifiIndicatorProps) => {
       transitionDuration={config.animations.durationSmall}
       visibleChildName={bind(shown).as((v) => v.toString())}
     >
-      <label
+
+      <PhosphorIcon
         name="disabled"
-        cssName="txt-norm icon-material"
-        label="wifi_off"
+        style={PhosphorIconStyle.Duotone}
+        iconName={PhosphorIcons.WifiSlash}
       />
-      <label
+      <PhosphorIcon
         name={Network.Internet.DISCONNECTED.toString()}
-        cssName="txt-norm icon-material"
-        label="signal_wifi_off"
+        iconName={PhosphorIcons.WifiX}
       />
-      <label
+      <PhosphorIcon
         name={Network.Internet.CONNECTING.toString()}
-        cssName="txt-norm icon-material"
-        label="settings_ethernet"
+        iconName={PhosphorIcons.Network}
       />
-      <label
+      <PhosphorIcon
         name="0"
-        cssName="txt-norm icon-material"
-        label="signal_wifi_0_bar"
+        style={PhosphorIconStyle.Duotone}
+        iconName={PhosphorIcons.WifiNone}
       />
-      <label
+      <PhosphorIcon
         name="1"
-        cssName="txt-norm icon-material"
-        label="network_wifi_1_bar"
+        style={PhosphorIconStyle.Duotone}
+        iconName={PhosphorIcons.WifiLow}
       />
-      <label
+      <PhosphorIcon
         name="2"
-        cssName="txt-norm icon-material"
-        label="network_wifi_2_bar"
+        style={PhosphorIconStyle.Duotone}
+        iconName={PhosphorIcons.WifiMedium}
       />
-      <label
+      <PhosphorIcon
         name="3"
-        cssName="txt-norm icon-material"
-        label="network_wifi_3_bar"
+        style={PhosphorIconStyle.Duotone}
+        iconName={PhosphorIcons.WifiMedium}
       />
-      <label
+      <PhosphorIcon
         name="4"
-        cssName="txt-norm icon-material"
-        label="signal_wifi_4_bar"
+        style={PhosphorIconStyle.Duotone}
+        iconName={PhosphorIcons.WifiHigh}
       />
     </stack>
   );

@@ -1,6 +1,6 @@
 import { Widget, Gtk, Gdk } from "astal/gtk4";
 
-export function setupCursorHover(button: Gtk.Button) {
+export function setupCursorHover(button: Gtk.Button | Gtk.Switch) {
   const motionController = new Gtk.EventControllerMotion();
   // Hand pointing cursor on hover
   const display = Gdk.Display.get_default();

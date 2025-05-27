@@ -1,7 +1,9 @@
 import { Widget, Gtk, Gdk, astalify } from "astal/gtk4";
 import Notifd from "gi://AstalNotifd";
-import { bind, Variable } from "astal";
+import { setupCursorHover } from "../utils/buttons";
+import { Variable } from "astal";
 import GLib from "gi://GLib";
+import { PhosphorIcons } from "../utils/icons/types";
 import getNotifd from "../../utils/notification-helper";
 import { createLogger } from "../../utils/logger";
 import { PhosphorIcon } from "../utils/icons/phosphor";
@@ -53,7 +55,7 @@ const PopupNotification = ({ notification, onClose, stackPosition, ...props }: P
           {notification.app_icon ? (
             <image iconName={notification.app_icon} pixelSize={24} />
           ) : (
-            <PhosphorIcon icon="bell" size={24} />
+            <PhosphorIcon iconName={PhosphorIcons.Bell} size={24} />
           )}
         </box>
 
@@ -65,7 +67,6 @@ const PopupNotification = ({ notification, onClose, stackPosition, ...props }: P
               cssClasses={["popup-notification-title"]}
               label={notification.summary || notification.appName || "Notification"}
               xalign={0}
-              truncate
               maxWidthChars={30}
             />
             <box hexpand />
@@ -78,7 +79,7 @@ const PopupNotification = ({ notification, onClose, stackPosition, ...props }: P
                 onClose();
               }}
             >
-              <PhosphorIcon icon="x" size={16} />
+              <PhosphorIcon iconName={PhosphorIcons.X} size={16} />
             </button>
           </box>
 
@@ -98,7 +99,7 @@ const PopupNotification = ({ notification, onClose, stackPosition, ...props }: P
             <box cssClasses={["popup-notification-actions"]} spacing={8}>
               {notification.actions.map((action, i) => (
                 <button
-                  key={i}
+                  setup={setupCursorHover}
                   cssClasses={["popup-notification-action"]}
                   onClicked={() => {
                     if (timeoutId) {
@@ -175,7 +176,7 @@ export const PopupNotifications = (props: Widget.BoxProps) => {
     // Add only the last 5 notifications
     const startIndex = Math.max(0, notifs.length - 5);
     const visibleNotifs = notifs.slice(startIndex);
-    
+
     // Clear all widgets if we're showing a different set
     if (notifs.length > 5) {
       widgetMap.forEach((widget) => fixed.remove(widget));

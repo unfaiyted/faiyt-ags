@@ -1,5 +1,5 @@
 import { BaseWorkspacesProps } from "../types";
-import { Widget, Gtk } from "astal/gtk4";
+import { Widget, Gtk, Gdk } from "astal/gtk4";
 import { Variable } from "astal";
 
 import { getFontWeightName } from "../../../../../utils/font";
@@ -65,7 +65,33 @@ export default function NormalModeWorkspaces(
     }
   };
 
+  function setupCursorHover(self: Gtk.DrawingArea) {
+    const motionController = new Gtk.EventControllerMotion();
+    // Hand pointing cursor on hover
+    const display = Gdk.Display.get_default();
+
+    motionController.connect("enter", () => {
+      if (display) {
+        const cursor = Gdk.Cursor.new_from_name("pointer", null);
+        self.set_cursor(cursor);
+      } else {
+        throw new Error("Could not get display");
+      }
+    });
+
+    motionController.connect("leave", () => {
+      if (display) {
+        const cursor = Gdk.Cursor.new_from_name("default", null);
+        self.set_cursor(cursor);
+      }
+    });
+
+    self.add_controller(motionController);
+  }
+
+
   const contentSetup = (self: Gtk.DrawingArea) => {
+    setupCursorHover(self);
     // Initial setup
     updateMask();
     updateWorkspaceGroup();

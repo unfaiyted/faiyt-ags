@@ -1,8 +1,6 @@
 /* Base styles for the bar */
 @use "../../styles/colors";
 
-
-
 top-bar {
   background-color: colors.c(background);
   color: colors.c(foreground);
@@ -142,6 +140,20 @@ bar-sidemodule {
   background-color: colors.c(background-elevated);
 }
 
+bar-sidemodule-btn {
+  background: transparent;
+  border-radius: 6px;
+  padding: 4px;
+
+  &:hover {
+    background: colors.c(hover);
+  }
+
+  &:active {
+    background: colors.c(active);
+  }
+}
+
 bar-group-margin {
   margin: 4px;
 }
@@ -153,6 +165,6 @@ bar-corner-spacing {
 }
 
 bar-space-button {
-  padding-top: 5px;
+  padding-top: 2px;
   padding-left: 10px;
 }

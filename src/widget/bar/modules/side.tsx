@@ -41,7 +41,9 @@ export default function SideModule(sideModuleProps: SideModuleProps) {
   };
 
   return (
-    <box onScroll={handleScroll} >
+    <box
+      widthRequest={props.widthRequest}
+      onScroll={handleScroll} >
       {/* <box homogeneous={false}> */}
       <box cssName="bar-sidemodule" hexpand={true}>
         {/* <box className="bar-corner-spacing" /> */}

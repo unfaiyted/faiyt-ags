@@ -2,6 +2,7 @@ import { Widget, Gtk } from "astal/gtk4";
 import { c } from "../../../utils/style";
 import { truncateText } from "../../../utils";
 import { Variable, Binding, bind } from "astal";
+import { setupCursorHover } from "../../utils/buttons";
 
 export interface LauncherButtonProps extends Widget.ButtonProps {
   icon: Gtk.Widget | Widget.ImageProps;
@@ -23,6 +24,7 @@ export default function LauncherButton(props: LauncherButtonProps) {
       cssClasses={bind(selected).as(s =>
         c`overview-search-result-btn txt ${s ? 'selected' : ''} ${props.cssName || ''}`
       )}
+      setup={setupCursorHover}
       onClicked={props.onClick}
     >
       <box spacing={12}>

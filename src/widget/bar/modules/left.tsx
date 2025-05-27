@@ -2,6 +2,7 @@ import { Widget } from "astal/gtk4";
 import SideModule from "./side";
 import { actions } from "../../../utils/actions";
 import { UIWindows } from "../../../types";
+import { setupCursorHover } from "../../utils/buttons";
 
 export interface LeftSideModuleProps extends Widget.BoxProps {
   monitorIndex?: number;
@@ -21,19 +22,23 @@ export default function LeftSideModule(
 
 
   return (
-    <box homogeneous={false}>
+    <box homogeneous={false}
 
-      <button onClicked={() => actions.window.toggle(sideBarName)} />
+    >
+
+      <button
+        setup={setupCursorHover}
+        widthRequest={12}
+        onClicked={() => actions.window.toggle(sideBarName)}
+        cssName="bar-sidemodule-btn" />
       <box cssName="bar-corner-spacing" />
-      <overlay>
-        <box hexpand={true} >
-          <SideModule>
-            <box vertical cssName="bar-space-button">
-              {child}
-            </box>
-          </SideModule>
-        </box>
-      </overlay>
+      <box hexpand={true} >
+        <SideModule widthRequest={300}>
+          <box vertical cssName="bar-space-button">
+            {child}
+          </box>
+        </SideModule>
+      </box>
     </box>
   );
 }

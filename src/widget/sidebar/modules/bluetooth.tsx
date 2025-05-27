@@ -4,6 +4,7 @@ import Bluetooth from "gi://AstalBluetooth";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../utils/icons/types";
 import BluetoothScanner from "../../../services/bluetooth-scanner";
+import { setupCursorHover } from "../../utils/buttons";
 import { createLogger } from "../../../utils/logger";
 
 const log = createLogger('BluetoothModule');
@@ -96,6 +97,7 @@ const BluetoothStatus = () => {
         </box>
         <box marginBottom={24} cssName="bluetooth-switch">
           <switch
+            setup={setupCursorHover}
             active={bind(isPowered)}
             onActivate={(self) => {
               toggleBluetooth();
@@ -174,6 +176,7 @@ const BluetoothDeviceItem = ({ device }: { device: BluetoothDevice }) => {
       <button
         cssName="bluetooth-item-button"
         cssClasses={[device.connected ? "connected" : "", device.paired ? "paired" : ""]}
+        setup={setupCursorHover}
         onClicked={handleConnect}
         hexpand
       >
@@ -236,6 +239,7 @@ const BluetoothDeviceItem = ({ device }: { device: BluetoothDevice }) => {
       {device.paired && (
         <button
           cssName="bluetooth-remove-btn"
+          setup={setupCursorHover}
           onClicked={handleRemove}
           tooltip_text="Remove device"
         >
@@ -306,6 +310,7 @@ const BluetoothDeviceList = () => {
         <label label="Devices" hexpand />
         <button
           cssName="bluetooth-filter-btn"
+          setup={setupCursorHover}
           onClicked={() => showAll.set(!showAll.get())}
           tooltip_text={bind(showAll).as(s => s ? "Show paired only" : "Show all devices")}
         >
@@ -317,6 +322,7 @@ const BluetoothDeviceList = () => {
         <button
           cssName="bluetooth-scan-btn"
           cssClasses={bind(scanner.scanning).as(d => d ? ["scanning"] : [])}
+          setup={setupCursorHover}
           onClicked={toggleDiscovery}
           tooltip_text={bind(scanner.scanning).as(d => d ? "Stop scanning" : "Scan for devices")}
         >

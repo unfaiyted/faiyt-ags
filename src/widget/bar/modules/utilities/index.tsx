@@ -3,11 +3,12 @@ import { Widget, Gtk } from "astal/gtk4";
 import UtilitiesButton from "./utilities-button";
 import { actions } from "../../../../utils/actions";
 import BarGroup from "../../utils/bar-group";
+import { PhosphorIcons } from "../../../utils/icons/types";
 
 export interface UtilitiesModuleProps extends Widget.BoxProps { }
 
 export interface Utility {
-  icon: string;
+  icon: PhosphorIcons;
   name: string;
   onClicked: () => void;
 }

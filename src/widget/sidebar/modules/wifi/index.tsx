@@ -5,6 +5,7 @@ import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../../utils/icons/types";
 import { c } from "../../../../utils/style";
 import { sidebarLogger as log } from "../../../../utils/logger";
+import { setupCursorHover } from "../../../utils/buttons";
 
 const network = Network.get_default();
 
@@ -58,7 +59,7 @@ const WifiStatus = () => {
           cssName="wifi-switch"
         >
           <switch
-            // cssClasses={bind(isEnabled).as(enabled => enabled ? ['wifi-active'] : ['wifi-inactive'])}
+            setup={setupCursorHover}
             active={bind(isEnabled)}
             onActivate={(self) => {
               if (self.active) {
@@ -126,6 +127,7 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
 
   return (
     <button
+      setup={setupCursorHover}
       cssName={"wifi-item"}
       cssClasses={c`wifi-item ${wifiNetwork.connected ? 'connected' : ''}`}
       onClicked={handleConnect}
@@ -216,6 +218,7 @@ const WifiList = () => {
       <box cssName="wifi-list-header" spacing={8}>
         <label label="Available Networks" hexpand />
         <button
+          setup={setupCursorHover}
           cssName="wifi-refresh-btn"
           onClicked={scanNetworks}
           tooltip_text="Refresh network list"

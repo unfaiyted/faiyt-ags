@@ -1,5 +1,4 @@
 import { Widget, Gtk, Gdk } from "astal/gtk4";
-import GLib from "gi://GLib";
 import Gio from "gi://Gio";
 import Pango from "gi://Pango";
 import { Variable, Binding, bind, execAsync } from "astal";
@@ -35,7 +34,7 @@ export interface NotificationExpandProps extends Widget.BoxProps {
 }
 
 interface NotificationIconWithDetectionProps extends NotificationIconProps {
-  onImageDetected?: (path: string | null) => void;
+  handleImageDetected?: (path: string | null) => void;
 }
 
 const NotificationIconWithDetection = (props: NotificationIconWithDetectionProps) => {
@@ -90,8 +89,8 @@ const NotificationIconWithDetection = (props: NotificationIconWithDetectionProps
   }
 
   // Report detected path
-  if (props.onImageDetected) {
-    props.onImageDetected(detectedPath);
+  if (props.handleImageDetected) {
+    props.handleImageDetected(detectedPath);
   }
 
   return result;
@@ -339,6 +338,7 @@ export const NotificationText = (props: NotificationTextProps) => {
 export const NotificationExpandButton = (props: NotificationExpandProps) => {
   return (
     <button
+      setup={setupCursorHover}
       valign={Gtk.Align.START}
       cssClasses={["notification-expand-btn"]}
       onClicked={props.toggleExpand}
@@ -349,12 +349,6 @@ export const NotificationExpandButton = (props: NotificationExpandProps) => {
 };
 
 export default function Notification(props: NotificationProps) {
-  const close = Variable(false);
-  const dragging = Variable(false);
-  const held = Variable(false);
-  const hovered = Variable(false);
-  const id = props.notification.id;
-  const notification = props.notification;
   const isExpanded = Variable(false);
 
   // Track detected image path
@@ -389,7 +383,7 @@ export default function Notification(props: NotificationProps) {
         >
           <NotificationIconWithDetection
             notification={props.notification}
-            onImageDetected={(path) => detectedImagePath.set(path)}
+            handleImageDetected={(path) => detectedImagePath.set(path)}
           />
           <NotificationText
             notification={props.notification}
@@ -414,6 +408,7 @@ export default function Notification(props: NotificationProps) {
               <box cssClasses={["notification-image-actions"]}>
                 <button
                   hexpand
+                  setup={setupCursorHover}
                   cssClasses={["notification-action", "image-action"]}
                   onClicked={async () => {
                     try {

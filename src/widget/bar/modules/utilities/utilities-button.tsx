@@ -25,8 +25,8 @@ export default function UtilitiesButton(props: UtilitiesButtonProps) {
       setup={setupCursorHover}
       cursor={cursor}
       cssName="bar-util-btn"
-      marginStart={7}
-      marginEnd={7}
+      marginStart={8}
+      marginEnd={8}
     >
       <PhosphorIcon
         iconName={icon}

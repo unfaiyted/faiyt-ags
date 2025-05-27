@@ -1,20 +1,22 @@
 /* Utilities buttons styling */
 @use "../../../../styles/colors";
 
-.bar-util-btn {
+bar-util-btn {
   background-color: transparent;
   border: none;
   border-radius: 6px;
   padding: 2px;
-  
+
   &:hover {
     background-color: colors.c(hover);
+    transform: scale(1.1);
+    // grow
   }
-  
+
   &:active {
     background-color: colors.c(active);
   }
-  
+
   &:focus {
     box-shadow: 0 0 0 2px colors.c(focus);
   }

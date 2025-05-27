@@ -4,6 +4,7 @@ import { Variable, Binding, bind } from "astal";
 import PhosphorIcon from "../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../utils/icons/types";
 import { c } from "../../../utils/style";
+import { setupCursorHover } from "../../utils/buttons";
 
 export interface TabContent {
   name: string;
@@ -133,6 +134,7 @@ export const TabHeaderItem = (tabHeaderItemProps: TabHeaderItemProps) => {
     <button
       cssName="tab-btn"
       cssClasses={bind(isActive).as(act => act ? ['active'] : [])}
+      setup={setupCursorHover}
       onClicked={handleClick}
     >
       <box

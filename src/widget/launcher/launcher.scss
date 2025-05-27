@@ -26,7 +26,7 @@ launcher-container {
   border-radius: 16px;
   padding: 0px;
   width: 100%;
-  max-width: 900px;
+  max-width: 800px;
   animation: gradientRotate 12s linear infinite;
   box-shadow:
     0 8px 32px colors.c(base, 0.4),
@@ -75,6 +75,7 @@ launcher-container {
   margin: 0;
   position: relative;
   transition: all 200ms ease;
+  width: 900px; // Fixed width
 
   &:focus-within {
     background-color: colors.c(overlay, 0.05);
@@ -91,8 +92,6 @@ launcher-container {
   color: colors.c(foreground);
   min-height: 36px;
   caret-color: colors.c(accent);
-  width: 100%;
-  min-width: 850px;
   outline: none;
   box-shadow: none;
 
@@ -112,6 +111,36 @@ launcher-container {
 // Search icon
 .search-icon {
   display: none; // Hide the icon since it's causing layout issues
+}
+
+// Evaluator result display (math, units, etc.)
+.evaluator-result {
+  font-size: 18px;
+  font-weight: 400;
+  color: colors.c(accent);
+  opacity: 0.9;
+  padding: 0 8px;
+  white-space: nowrap;
+  animation: fadeIn 200ms ease-out;
+  max-width: 250px; // Limit width to prevent expansion
+}
+
+// Color preview box
+.color-preview {
+  margin-right: 16px;
+  animation: fadeIn 200ms ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  to {
+    opacity: 0.9;
+    transform: translateX(0);
+  }
 }
 
 // Results container

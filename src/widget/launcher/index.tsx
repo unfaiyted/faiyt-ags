@@ -5,6 +5,8 @@ import config from "../../utils/config";
 import LauncherResults from "./launcher-results";
 import { launcherLogger as log } from "../../utils/logger";
 import KeyboardShortcut from "../utils/keyboard-shortcut";
+import { evaluatorManager, type EvaluatorResult } from "../../utils/evaluators";
+import ColorPreview from "./components/color-preview";
 
 export interface LauncherProps extends PopupWindowProps {
   monitorIndex: number;
@@ -14,7 +16,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
   const { setup, child, ...props } = launcherProps;
 
   log.debug("Creating launcher bar", { monitor: launcherProps.monitor });
-  const isVisible = Variable(false);
+  // const isVisible = Variable(false);
   const placeholderText = Variable("Type to Search");
   const searchText = Variable("");
   const selectedIndex = Variable(0);
@@ -23,6 +25,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
   let entryRef: Gtk.Entry | null = null;
   let resultsRef: any = null;
   const monitorSuffix = props.monitorIndex !== undefined ? `-${props.monitorIndex}` : '';
+  const evaluatorResult = Variable<EvaluatorResult | null>(null);
 
   // Close the launcher
   const closeLauncher = () => {
@@ -33,18 +36,39 @@ export default function LauncherBar(launcherProps: LauncherProps) {
     }
   };
 
+
   // Handle text changes
   searchText.subscribe((text) => {
     if (text.length === 0) {
       placeholderText.set("Type to Search");
+      evaluatorResult.set(null);
     } else {
       placeholderText.set("");
+      // Try to evaluate with all registered evaluators
+      const result = evaluatorManager.evaluate(text);
+      evaluatorResult.set(result);
     }
   });
 
   // Handle text changes in the entry
   const onEnter = () => {
-    if (resultsRef) {
+    // If we have an evaluator result, handle it
+    const currentResult = evaluatorResult.get();
+    if (currentResult) {
+      if (currentResult.onActivate) {
+        // Use custom activation handler if provided
+        currentResult.onActivate();
+      } else {
+        // Default: copy the result to clipboard
+        const clipboard = Gdk.Display.get_default()?.get_clipboard();
+        if (clipboard) {
+          clipboard.set(currentResult.value);
+        }
+      }
+      // Close the launcher after handling
+      closeLauncher();
+    } else if (resultsRef) {
+      // Otherwise, activate the selected app
       resultsRef.activateSelected();
     }
   };
@@ -100,8 +124,11 @@ export default function LauncherBar(launcherProps: LauncherProps) {
       setup={(self) => {
         hook(self, App, "window-toggled", (_self, win) => {
           if (win.name !== name) return;
-          searchText.set("");
+          // Don't clear searchText to preserve equations/conversions
+          // searchText.set("");
           selectedApp.set(null);
+          // Don't clear evaluatorResult either to keep showing the result
+          // evaluatorResult.set(null);
         });
       }}
     >
@@ -157,6 +184,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
           {/* Search Box with gradient border wrapper */}
           <box
             cssClasses={["launcher-search-box-wrapper"]}
+            widthRequest={800}
             halign={Gtk.Align.CENTER}
           >
             <box
@@ -165,14 +193,16 @@ export default function LauncherBar(launcherProps: LauncherProps) {
                 text.length > 1 ? ["launcher-search-box"] : ["launcher-search-box", "compact"]
               )}
             >
-              <box cssClasses={["search-input-container"]}>
+              <box cssClasses={["search-input-container"]} spacing={12}>
                 <entry
                   cssClasses={["launcher-search-input"]}
                   placeholderText="Search for apps, files, or type a command..."
-                  hexpand
+                  hexpand={true}
+                  halign={Gtk.Align.FILL}
                   onNotifyText={(self) => {
                     log.debug("Search text changed", { text: self.text });
                     searchText.set(self.text);
+                    // Don't do any selection here - just update the variable
                   }}
                   focusable={true}
                   onActivate={onEnter}
@@ -180,11 +210,40 @@ export default function LauncherBar(launcherProps: LauncherProps) {
                     entryRef = self;
                     hook(self, App, "window-toggled", (self, win) => {
                       if (win.name !== name) return;
-                      self.grab_focus();
-                      self.set_text("");
+                      if (win.visible) {
+                        self.grab_focus();
+                        // Only select all text when window is shown, not on every toggle
+                        // And only if there's text to select
+                        if (self.text.length > 0) {
+                          self.select_region(0, -1);
+                        }
+                      }
                     });
                   }}
                 />
+                <box
+                  halign={Gtk.Align.END}
+                  valign={Gtk.Align.CENTER}
+                  spacing={8}
+                  visible={bind(evaluatorResult).as(result => result !== null)}
+                  hexpand={false}
+                >
+                  <label
+                    label={bind(evaluatorResult).as(result => result ? `= ${result.value}` : "")}
+                    cssClasses={["evaluator-result"]}
+                    hexpand={false}
+                    ellipsize={3} // PANGO_ELLIPSIZE_END
+                    maxWidthChars={30}
+                  />
+                  {bind(evaluatorResult).as(result =>
+                    result?.metadata?.type === 'color' && result.metadata.color ? (
+                      <ColorPreview
+                        color={result.metadata.color}
+                        cssClasses={["color-preview"]}
+                      />
+                    ) : <box />
+                  )}
+                </box>
               </box>
 
               {/* Search Icon */}
@@ -210,24 +269,35 @@ export default function LauncherBar(launcherProps: LauncherProps) {
               <box cssClasses={["launcher-action-bar"]} spacing={20}>
                 {/* Left side - App actions */}
                 <box hexpand halign={Gtk.Align.START} spacing={16}>
-                  {bind(selectedApp).as(app => app ? (
-                    <>
-                      <box spacing={8}>
-                        <KeyboardShortcut keys={["↵"]} compact />
-                        <label label="Open" cssClasses={["action-label"]} />
-                      </box>
-                      <box spacing={8}>
-                        <KeyboardShortcut keys={["Ctrl", "↵"]} compact />
-                        <label label="Open in Terminal" cssClasses={["action-label"]} />
-                      </box>
-                      <box spacing={8}>
-                        <KeyboardShortcut keys={["Alt", "↵"]} compact />
-                        <label label="Show in Files" cssClasses={["action-label"]} />
-                      </box>
-                    </>
-                  ) : (
-                    <label label="Type to search applications" cssClasses={["action-hint"]} />
-                  ))}
+                  {bind(Variable.derive([evaluatorResult, selectedApp], (evalResult, app) => {
+                    if (evalResult) {
+                      return (
+                        <box spacing={8}>
+                          <KeyboardShortcut keys={["↵"]} compact />
+                          <label label={evalResult.hint || "Copy result to clipboard"} cssClasses={["action-label"]} />
+                        </box>
+                      );
+                    } else if (app) {
+                      return (
+                        <>
+                          <box spacing={8}>
+                            <KeyboardShortcut keys={["↵"]} compact />
+                            <label label="Open" cssClasses={["action-label"]} />
+                          </box>
+                          <box spacing={8}>
+                            <KeyboardShortcut keys={["Ctrl", "↵"]} compact />
+                            <label label="Open in Terminal" cssClasses={["action-label"]} />
+                          </box>
+                          <box spacing={8}>
+                            <KeyboardShortcut keys={["Alt", "↵"]} compact />
+                            <label label="Show in Files" cssClasses={["action-label"]} />
+                          </box>
+                        </>
+                      );
+                    } else {
+                      return <label label="Type to search, calculate, or convert units" cssClasses={["action-hint"]} />;
+                    }
+                  }))}
                 </box>
 
                 {/* Right side - General shortcuts */}

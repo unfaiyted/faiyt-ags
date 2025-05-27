@@ -95,7 +95,6 @@ export default function WindowTitle() {
               box.set_tooltip_text(`Workspace ${workspace.get().id}`);
             }
           });
-
           motionController.connect("leave", () => {
             box.set_tooltip_text("");
           });
@@ -146,7 +145,7 @@ export default function WindowTitle() {
 
               let displayText: string;
               if (currentClient && currentClient.title && currentClient.title.length > 0) {
-                displayText = truncateText(currentClient.title, 30);
+                displayText = truncateText(currentClient.title, 40);
               } else {
                 displayText = `Workspace ${currentWorkspace.id}`;
               }

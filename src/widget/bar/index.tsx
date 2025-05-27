@@ -54,7 +54,7 @@ export default function Bar(barProps: BarProps) {
   return (
     <window
       cssName="Bar"
-      name={`bar${index}`}
+      name={`bar-${index}`}
       gdkmonitor={gdkmonitor}
       // Layer shell properties
       exclusivity={Astal.Exclusivity.EXCLUSIVE}

@@ -5,6 +5,7 @@ import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../utils/icons/types";
 import { truncateText } from "../../../utils";
 import { createLogger } from "../../../utils/logger";
+import { setupCursorHover } from "../../utils/buttons";
 
 const log = createLogger("AudioModule");
 
@@ -60,6 +61,7 @@ const VolumeSlider = ({
       {onMuteToggle && (
         <button
           cssName="volume-mute-btn"
+          setup={setupCursorHover}
           onClicked={onMuteToggle}
           tooltip_text={muted ? "Unmute" : "Mute"}
         >
@@ -316,6 +318,7 @@ const AudioDevices = () => {
       <box cssName="audio-device-item" vertical spacing={8}>
         <box spacing={12}>
           <button
+            setup={setupCursorHover}
             cssName="audio-device-select"
             cssClasses={bind(isDefault).as(def => def ? ["default"] : [])}
             onClicked={handleSetDefault}
@@ -514,6 +517,7 @@ const AppVolumeMixer = () => {
       <box cssName="audio-section-header">
         <label cssName="audio-section-title" xalign={0} label="App Volume" hexpand />
         <button
+          setup={setupCursorHover}
           cssName="audio-filter-btn"
           onClicked={() => showAll.set(!showAll.get())}
           tooltip_text={bind(showAll).as(s => s ? "Show playing only" : "Show all streams")}

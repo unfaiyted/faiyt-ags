@@ -1427,6 +1427,7 @@ header-module {
     &:hover {
       background: colors.c(background, 0.8);
       border-color: colors.c(border);
+      transform: scale(1.1);
 
       image {
         color: colors.c(foreground);
@@ -1437,23 +1438,23 @@ header-module {
       background: colors.c(background);
     }
 
-    &.power-button {
-      background: colors.c(error, 0.1);
-
-      image {
-        color: colors.c(error);
-      }
-
-      &:hover {
-        background: colors.c(error, 0.15);
-        border-color: colors.c(error, 0.2);
-      }
-
-      &:active {
-        background: colors.c(error, 0.2);
-      }
-    }
   }
+}
+
+
+power-button {
+
+  image {
+    color: colors.c(error);
+  }
+
+  &:hover {
+    transform: scale(1.1);
+    // glow
+  }
+
+  &:active {}
+
 }
 
 // Toggle Indicator Styles

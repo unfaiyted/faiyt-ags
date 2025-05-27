@@ -3,9 +3,7 @@ import Apps from "gi://AstalApps";
 import PopupWindow, { PopupWindowProps } from "../utils/popup-window";
 import CloseRegion from "../utils/containers/close-region";
 import { Variable, bind } from "astal";
-import GLib from "gi://GLib";
 import config from "../../utils/config";
-import actions from "../../utils/actions";
 import AppButton from "./buttons/app-button";
 
 

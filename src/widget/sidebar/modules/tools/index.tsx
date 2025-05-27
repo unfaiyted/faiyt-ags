@@ -4,7 +4,7 @@ import { execAsync } from "astal/process";
 import { PhosphorIcons } from "../../../utils/icons/types";
 import PhosphorIcon from "../../../utils/icons/phosphor";
 import { createLogger } from "../../../../utils/logger";
-import { c } from "../../../../utils/style";
+import { setupCursorHover } from "../../../utils/buttons";
 
 const log = createLogger('ToolsModule');
 
@@ -265,6 +265,7 @@ export default function ToolModules(props: Widget.BoxProps) {
       <box cssName="tools-categories" cssClasses={["spacing-h-5"]}>
         {categories.map(cat => (
           <button
+            setup={setupCursorHover}
             cssName="tools-category-btn"
             cssClasses={bind(selectedCategory).as(selected =>
               selected === cat.id ? ["active"] : []
@@ -298,6 +299,7 @@ export default function ToolModules(props: Widget.BoxProps) {
                   return (
                     <box vertical cssName="tool-container">
                       <button
+                        setup={setupCursorHover}
                         cssName="tool-item"
                         onClicked={() => executeTool(tool)}
                       >
@@ -348,6 +350,7 @@ export default function ToolModules(props: Widget.BoxProps) {
                                 hexpand
                               />
                               <button
+                                setup={setupCursorHover}
                                 cssName="tool-execute-btn"
                                 onClicked={() => executeTool(tool, true)}
                               >
