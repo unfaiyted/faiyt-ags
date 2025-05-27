@@ -58,12 +58,14 @@ export const AI_TABS: Record<AIName, TabContent> = {
 export const ChatSendButton = (props: Widget.ButtonProps) => {
   return (
     <button
-      valign={Gtk.Align.END}
+      valign={Gtk.Align.CENTER}
       tooltipText={props.name || "Send message"}
+      marginStart={10}
+      marginEnd={10}
       onClicked={props.onClicked}
-      cssName={`sidebar-chat-send ${props.cssName || ''}`}
+      cssName={`sidebar-chat-send`}
     >
-      <PhosphorIcon iconName={PhosphorIcons.PaperPlaneTilt} size={20} />
+      <PhosphorIcon iconName={PhosphorIcons.PaperPlaneTilt} size={32} />
     </button>
   );
 };

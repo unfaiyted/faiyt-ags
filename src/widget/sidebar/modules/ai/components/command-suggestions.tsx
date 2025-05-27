@@ -1,5 +1,5 @@
 import { Widget, Gtk } from "astal/gtk4";
-import { Variable, bind } from "astal";
+import { Variable, Binding, bind } from "astal";
 import PhosphorIcon from "../../../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../../../utils/icons/types";
 
@@ -19,30 +19,30 @@ const availableCommands: Command[] = [
 ];
 
 export interface CommandSuggestionsProps extends Widget.BoxProps {
-  query: Variable<string>;
-  visible: Variable<boolean>;
-  onSelect: (command: string) => void;
+  query: Binding<string>;
+  visible: Binding<boolean>;
+  handleSelect: (command: string) => void;
 }
 
 export const CommandSuggestions = (props: CommandSuggestionsProps) => {
   const { query, visible, onSelect, ...boxProps } = props;
-  
+
   const filteredCommands = Variable.derive([query], (q) => {
     if (!q.startsWith("/")) return [];
-    
+
     const searchTerm = q.toLowerCase();
-    
+
     // If only "/" is typed, show all commands (up to 5)
     if (q === "/") {
       return availableCommands.slice(0, 5);
     }
-    
+
     // Otherwise filter based on the search term
     return availableCommands
       .filter(cmd => cmd.name.toLowerCase().startsWith(searchTerm))
       .slice(0, 5);
   });
-  
+
   return (
     <revealer
       revealChild={bind(visible)}
@@ -54,14 +54,14 @@ export const CommandSuggestions = (props: CommandSuggestionsProps) => {
         cssName="command-suggestions"
         vertical
       >
-        {bind(filteredCommands).as(commands => 
+        {bind(filteredCommands).as(commands =>
           commands.length > 0 ? (
             <>
               {commands.map((cmd, index) => (
                 <button
                   cssName="command-suggestion-item"
                   cssClasses={index === 0 ? ["active"] : []}
-                  onClicked={() => onSelect(cmd.name)}
+                  onClicked={() => props.handleSelect(cmd.name)}
                 >
                   <box cssClasses={["spacing-h-10"]}>
                     <PhosphorIcon iconName={cmd.icon} size={16} cssName="command-icon" />

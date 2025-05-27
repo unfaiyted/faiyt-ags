@@ -33,7 +33,7 @@ export default function LeftSideBar(sideBarProps: LeftSideBarProps) {
   return (
     <SideBar {...props} monitorIndex={props.monitorIndex} screenSide={ScreenSide.LEFT} application={App}>
       <box cssName="sidebar-left"
-        cssClasses={c`spacing-v-10`}
+        cssClasses={c``}
       >
         <box vexpand={true} >
           <Tabs tabs={sidebarTabs} active={0} />

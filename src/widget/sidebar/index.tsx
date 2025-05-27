@@ -2,6 +2,7 @@ import { Widget, App, Astal, Gtk, Gdk } from "astal/gtk4";
 import { ScreenSide } from "./types";
 import { Variable, bind } from "astal";
 import { createLogger } from "../../utils/logger";
+import { c } from "../../utils/style";
 
 const log = createLogger('Sidebar');
 
@@ -75,6 +76,7 @@ export default function SideBar(sideBarProps: SideBarProps) {
       visible={false}
       keymode={keymode}
       cssName="sidebar-fullscreen"
+      cssClasses={c`${props.cssClasses || ''} ${screenSide}`}
       decorated={false}
       exclusivity={Astal.Exclusivity.NORMAL}
       application={App}
@@ -86,6 +88,20 @@ export default function SideBar(sideBarProps: SideBarProps) {
           log.debug(`Window shown, triggering slide animation`, { name });
           setTimeout(() => {
             revealSidebar.set(true);
+            // Give the revealer time to complete animation before focusing
+            setTimeout(() => {
+              // Find and focus the first focusable input element
+              const focusInput = () => {
+                const entries = self.get_entries ? self.get_entries() : [];
+                if (entries.length > 0) {
+                  entries[0].grab_focus();
+                }
+              };
+              
+              // Try to focus immediately and after a short delay
+              focusInput();
+              setTimeout(focusInput, 100);
+            }, 350); // Match the reveal animation duration
           }, 40);
         });
 
@@ -135,8 +151,8 @@ export default function SideBar(sideBarProps: SideBarProps) {
 
               if (sidebar) {
                 const allocation = sidebar.get_allocation();
-                log.debug('Sidebar allocation', { 
-                  name, 
+                log.debug('Sidebar allocation', {
+                  name,
                   allocation: { x: allocation.x, y: allocation.y, width: allocation.width, height: allocation.height },
                   containerSize: { width: self.get_width(), height: self.get_height() }
                 });

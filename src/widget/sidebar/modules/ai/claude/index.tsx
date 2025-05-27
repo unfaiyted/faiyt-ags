@@ -44,7 +44,7 @@ export default function ClaudeAI(props: ClaudeAIProps) {
 
   log.debug("Starting Claude service");
   const claudeService = new ClaudeService();
-  
+
   const availableModels = [
     { name: "Claude 3.5 Sonnet", value: "claude-3-5-sonnet-20241022" },
     { name: "Claude 3 Opus", value: "claude-3-opus-20240229" },
@@ -82,13 +82,13 @@ export default function ClaudeAI(props: ClaudeAIProps) {
   const sendMessage = (message: string) => {
     const trimmedMessage = message.trim();
     log.info("Sending message", { message: trimmedMessage });
-    
+
     // Check if text is empty
     if (trimmedMessage.length === 0) return;
-    
+
     // Clear input
     input.set("");
-    
+
     if (!claudeService.isKeySet()) {
       claudeService.key = trimmedMessage;
       appendChatContent(
@@ -99,7 +99,7 @@ export default function ClaudeAI(props: ClaudeAIProps) {
       );
       return;
     }
-    
+
     // Commands
     if (trimmedMessage.startsWith("/")) {
       const { command, args } = parseCommand(trimmedMessage);
@@ -144,7 +144,7 @@ export default function ClaudeAI(props: ClaudeAIProps) {
     // Show command suggestions when typing a command
     showCommandSuggestions.set(text.startsWith("/"));
   };
-  
+
   const handleCommandSelect = (command: string) => {
     input.set(command + " ");
     showCommandSuggestions.set(false);
@@ -172,7 +172,20 @@ export default function ClaudeAI(props: ClaudeAIProps) {
   // });
 
   return (
-    <box {...props} vertical vexpand cssName="ai-chat-container">
+    <box {...props} vertical cssName="ai-chat-container"
+      setup={(self) => {
+        // Focus the input when the AI tab becomes visible
+        self.connect("map", () => {
+          log.debug("AI chat container mapped, focusing input");
+          setTimeout(() => {
+            const entry = inputEntryRef.get();
+            if (entry) {
+              entry.grab_focus();
+            }
+          }, 100);
+        });
+      }}
+    >
       {/* Model selector header */}
       <box cssName="ai-chat-header" vexpand={false}>
         <button
@@ -189,7 +202,7 @@ export default function ClaudeAI(props: ClaudeAIProps) {
           </box>
         </button>
       </box>
-      
+
       <ChatView>
         <box cssName="spacing-v-10" vertical>
           {bind(chatContent).as((v) => {
@@ -197,7 +210,7 @@ export default function ClaudeAI(props: ClaudeAIProps) {
           })}
         </box>
       </ChatView>
-      
+
       <box vertical vexpand={false}>
         <CommandSuggestions
           query={input}
