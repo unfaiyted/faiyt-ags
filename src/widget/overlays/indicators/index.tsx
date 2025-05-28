@@ -123,7 +123,7 @@ export const IndicatorsContainer = (props: IndicatorContainerProps) => {
       cssName="indicator-wrapper"
       // cssClasses={bind(indicatorVisibility).as((v) => (v ? ["show"] : ["hide"]))}
       transitionDuration={300}
-      transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
+      transitionType={Gtk.RevealerTransitionType.SLIDE_UP}
       revealChild={bind(indicatorVisibility)}
 
     >

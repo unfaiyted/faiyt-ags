@@ -8,6 +8,7 @@ export interface AppButtonProps extends Widget.ButtonProps {
   app: Apps.Application;
   index: number;
   selected?: Binding<boolean>;
+  ref?: (button: Gtk.Button) => void;
 }
 
 export default function AppButton(props: AppButtonProps) {
@@ -37,6 +38,12 @@ export default function AppButton(props: AppButtonProps) {
         const window = App.get_window("launcher");
         if (window) {
           window.hide();
+        }
+      }}
+      setup={(self: Gtk.Button) => {
+        if (props.ref) {
+          print("Setting up AppButton ref");
+          props.ref(self);
         }
       }}
       {...props}

@@ -126,11 +126,43 @@ export const actions = {
     wifi: () =>
       execAsync(["bash", "-c", `${config.apps.network}`]).catch(print),
     screenSnip: () => {
-      execAsync(`${config.dir.scripts}/grimblast.sh copy area`);
+      execAsync(`${config.dir.scripts}/screen-capture.sh screenshot selection`);
       // TODO: can we have a notification here? Showing or at least saying that it was copied to clipboard?
     },
     colorPicker: () => {
       execAsync(`${config.dir.scripts}/color_generation/switchwall.sh`);
+    },
+    record: {
+      toggle: () => {
+        // Check if recording is active
+        const isRecording = actions.app.record.isActive();
+
+        if (isRecording) {
+          execAsync(`${config.dir.scripts}/screen-capture.sh record stop`);
+        } else {
+          execAsync(`${config.dir.scripts}/screen-capture.sh record selection`);
+        }
+      },
+      start: (target: string = "selection") => {
+        execAsync(`${config.dir.scripts}/screen-capture.sh record ${target}`);
+      },
+      stop: () => {
+        execAsync(`${config.dir.scripts}/screen-capture.sh record stop`);
+      },
+      isActive: () => {
+        try {
+          // Run the status command and check the output
+          const result = exec(`${config.dir.scripts}/screen-capture.sh status`);
+          // The last line will be the exit code
+          const lines = result.trim().split("\n");
+          const exitCode = lines[lines.length - 1];
+          return exitCode === "true";
+        } catch (e) {
+          print("Error checking recording status", e);
+          // If exec throws, recording is not active
+          return false;
+        }
+      },
     },
   },
 };

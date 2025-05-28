@@ -14,8 +14,8 @@ export interface LauncherButtonProps extends Widget.ButtonProps {
 export default function LauncherButton(props: LauncherButtonProps) {
 
 
-  const name = (props.name) ? truncateText(props.name) : "";
-  const content = (props.content) ? truncateText(props.content) : "";
+  const name = (props.name) ? truncateText(props.name, 30) : "";
+  const content = (props.content) ? truncateText(props.content, 50) : "";
   const selected = props.selected || Variable(false);
 
   return (
@@ -24,7 +24,12 @@ export default function LauncherButton(props: LauncherButtonProps) {
       cssClasses={bind(selected).as(s =>
         c`overview-search-result-btn txt ${s ? 'selected' : ''} ${props.cssName || ''}`
       )}
-      setup={setupCursorHover}
+      setup={(self: Gtk.Button) => {
+        setupCursorHover(self);
+        if (props.setup) {
+          props.setup(self);
+        }
+      }}
       onClicked={props.onClick}
     >
       <box spacing={12}>

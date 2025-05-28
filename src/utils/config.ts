@@ -244,7 +244,7 @@ let defaultConfigOptions: ConfigOptions = {
     default: BarMode.Normal,
   },
   dir: {
-    scripts: `/home/${USERNAME}/codebase/faiyt-ags-ui/scripts`,
+    scripts: `/home/${USERNAME}/.config/ags/scripts`,
     home: GLib.get_home_dir(),
     cache: GLib.get_user_cache_dir(),
     config: GLib.get_user_config_dir(),

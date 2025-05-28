@@ -18,6 +18,39 @@ bar-util-btn {
   }
 
   &:focus {
-    box-shadow: 0 0 0 2px colors.c(focus);
+    // TODO: figure out how to unfocus after a bit of time.
+    // box-shadow: 0 0 0 2px colors.c(focus);
+  }
+
+  &.recording {
+    animation: pulse-recording 2.5s ease-in-out infinite;
+
+    &:focus {
+      box-shadow: none;
+    }
+
+    &:hover {
+      animation: pulse-recording 0.8s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes pulse-recording {
+  0% {
+    background-color: rgba(255, 0, 0, 0.1);
+    border-radius: 24px;
+    transform: scale(1);
+  }
+
+  50% {
+    background-color: rgba(255, 0, 0, 0.3);
+    border-radius: 24px;
+    transform: scale(1.05);
+  }
+
+  100% {
+    background-color: rgba(255, 0, 0, 0.1);
+    border-radius: 24px;
+    transform: scale(1);
   }
 }

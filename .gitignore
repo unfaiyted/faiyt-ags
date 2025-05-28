@@ -2,6 +2,7 @@ node_modules/
 @girs/
 dist/
 astal/
+user/
 .claude/
 logs/
 ./src/output.css

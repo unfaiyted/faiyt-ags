@@ -1,8 +1,13 @@
 @use "styles/colors";
 
-system-overlays {
+popup-notifications-window,
+indicators-window {
   background-color: transparent;
   border: none;
+}
+
+indicators-window {
+  margin-bottom: 20px;
 }
 
 indicator-wrapper {
@@ -20,10 +25,10 @@ indicator-wrapper {
 
 indicator-container {
   margin: 8px;
-  border-radius: 8px;
-  background-color: colors.c(background-alt);
-  padding: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  background-color: colors.c(background-elevated);
+  padding: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   border: 1px solid colors.c(border);
 
   .show {
@@ -113,22 +118,75 @@ osd-value-txt {
 
 // Popup notification specific styles
 .popup-notifications-container {
-  margin: 5px;
-  pointer-events: none;
-
-  >* {
-    pointer-events: auto;
-  }
+  margin: 0;
+  padding: 10px 0 0 0;
+  background: transparent;
 }
 
+// Notification hover container - sized to fit notifications
+.notification-hover-container {
+  min-width: 430px;
+  min-height: 100px;
+  
+  &:hover {
+    min-height: 480px; // Expand height when hovering to accommodate fanned layout
+  }
+  
+  transition: min-height 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+// Base notification item styling
 .notification-stack-item {
-  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+// Notification positions - these are wrapper boxes in the overlay
+.notification-position-0,
+.notification-position-1, 
+.notification-position-2,
+.notification-position-3 {
+  transition: all 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+// Stacked state - notifications overlap
+.notification-position-0.stacked {
+  margin-top: 0;
+}
+
+.notification-position-1.stacked {
+  margin-top: 10px;  // Small offset to show stacking
+}
+
+.notification-position-2.stacked {
+  margin-top: 20px;
+}
+
+.notification-position-3.stacked {
+  margin-top: 30px;
+}
+
+// Fanned out state - notifications spread out  
+.notification-position-0.fanned {
+  margin-top: 0;
+}
+
+.notification-position-1.fanned {
+  margin-top: 110px;
+}
+
+.notification-position-2.fanned {
+  margin-top: 220px;
+}
+
+.notification-position-3.fanned {
+  margin-top: 330px;
 }
 
 .popup-notification {
   min-width: 400px;
-  max-width: 500px;
+  max-width: 420px;
   margin-bottom: 2px;
+  margin-right: 10px;
   background-color: colors.c(background-elevated);
   background-image: linear-gradient(135deg,
       colors.c(surface, 1) 0%,
@@ -241,6 +299,18 @@ osd-value-txt {
   from {
     opacity: 0;
     transform: translateY(-100px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100px);
   }
 
   to {

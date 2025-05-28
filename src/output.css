@@ -6,16 +6,12 @@
   visibility: visible;
 }
 
+.collapse {
+  visibility: collapse;
+}
+
 .static {
   position: static;
-}
-
-.\!fixed {
-  position: fixed !important;
-}
-
-.fixed {
-  position: fixed;
 }
 
 .absolute {

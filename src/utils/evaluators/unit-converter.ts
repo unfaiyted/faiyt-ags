@@ -86,7 +86,7 @@ export class UnitConverter implements Evaluator {
     // Volume
     {
       name: "volume",
-      units: new Set(["ml", "l", "gal", "qt", "pt", "cup", "cups", "fl oz", "floz", "oz", "liter", "liters", "gallon", "gallons", "quart", "quarts", "pint", "pints", "ounce", "ounces"]),
+      units: new Set(["ml", "l", "gal", "qt", "pt", "cup", "cups", "fl oz", "floz", "oz", "liter", "liters", "gallon", "gallons", "quart", "quarts", "pint", "pints", "ounce", "ounces", "tsp", "tbsp", "teaspoon", "teaspoons", "tablespoon", "tablespoons"]),
       conversions: [
         // Metric
         { from: "ml", to: "l", factor: 0.001 },
@@ -110,6 +110,13 @@ export class UnitConverter implements Evaluator {
         { from: "oz", to: "l", factor: 0.0295735 }, // oz for fluid ounces in volume context
         { from: "ounce", to: "l", factor: 0.0295735 },
         { from: "ounces", to: "l", factor: 0.0295735 },
+        // Cooking/Baking measurements
+        { from: "tsp", to: "l", factor: 0.00492892 },
+        { from: "teaspoon", to: "l", factor: 0.00492892 },
+        { from: "teaspoons", to: "l", factor: 0.00492892 },
+        { from: "tbsp", to: "l", factor: 0.0147868 },
+        { from: "tablespoon", to: "l", factor: 0.0147868 },
+        { from: "tablespoons", to: "l", factor: 0.0147868 },
       ]
     },
     // Data
@@ -133,6 +140,26 @@ export class UnitConverter implements Evaluator {
         { from: "terabyte", to: "b", factor: 1024 * 1024 * 1024 * 1024 },
         { from: "terabytes", to: "b", factor: 1024 * 1024 * 1024 * 1024 },
         { from: "pb", to: "b", factor: 1024 * 1024 * 1024 * 1024 * 1024 },
+      ]
+    },
+    // Cooking/Baking Special Measurements
+    {
+      name: "cooking",
+      units: new Set(["stick", "sticks", "stick of butter", "sticks of butter", "pinch", "pinches", "dash", "dashes", "smidgen", "drop", "drops"]),
+      conversions: [
+        // Butter measurements (US stick of butter = 1/2 cup = 8 tbsp)
+        { from: "stick", to: "l", factor: 0.118294 }, // 1/2 cup in liters
+        { from: "sticks", to: "l", factor: 0.118294 },
+        { from: "stick of butter", to: "l", factor: 0.118294 },
+        { from: "sticks of butter", to: "l", factor: 0.118294 },
+        // Small measurements (approximate)
+        { from: "pinch", to: "l", factor: 0.000308 }, // ~1/16 tsp
+        { from: "pinches", to: "l", factor: 0.000308 },
+        { from: "dash", to: "l", factor: 0.000616 }, // ~1/8 tsp
+        { from: "dashes", to: "l", factor: 0.000616 },
+        { from: "smidgen", to: "l", factor: 0.000154 }, // ~1/32 tsp
+        { from: "drop", to: "l", factor: 0.00005 }, // ~0.05 ml
+        { from: "drops", to: "l", factor: 0.00005 },
       ]
     }
   ];
@@ -187,11 +214,30 @@ export class UnitConverter implements Evaluator {
   }
 
   private findCategory(fromUnit: string, toUnit: string): UnitCategory | null {
+    // First check if both units are in the same category
     for (const category of this.categories) {
       if (category.units.has(fromUnit) && category.units.has(toUnit)) {
         return category;
       }
     }
+    
+    // Allow conversions between volume and cooking categories
+    const volumeCategory = this.categories.find(c => c.name === "volume");
+    const cookingCategory = this.categories.find(c => c.name === "cooking");
+    
+    if (volumeCategory && cookingCategory) {
+      const fromInVolume = volumeCategory.units.has(fromUnit);
+      const fromInCooking = cookingCategory.units.has(fromUnit);
+      const toInVolume = volumeCategory.units.has(toUnit);
+      const toInCooking = cookingCategory.units.has(toUnit);
+      
+      // If one unit is in volume and the other in cooking, we can convert
+      if ((fromInVolume && toInCooking) || (fromInCooking && toInVolume)) {
+        // Return volume category as base since both categories convert to liters
+        return volumeCategory;
+      }
+    }
+    
     return null;
   }
 
@@ -201,9 +247,25 @@ export class UnitConverter implements Evaluator {
       return this.convertTemperature(value, fromUnit, toUnit);
     }
 
-    // Find conversion factors
-    const fromConversion = category.conversions.find(c => c.from === fromUnit);
-    const toConversion = category.conversions.find(c => c.from === toUnit);
+    // Find conversion factors - check both volume and cooking categories if needed
+    let fromConversion = category.conversions.find(c => c.from === fromUnit);
+    let toConversion = category.conversions.find(c => c.from === toUnit);
+
+    // If we don't find conversions in the given category, check related categories
+    if (!fromConversion || !toConversion) {
+      const volumeCategory = this.categories.find(c => c.name === "volume");
+      const cookingCategory = this.categories.find(c => c.name === "cooking");
+      
+      if (!fromConversion) {
+        fromConversion = volumeCategory?.conversions.find(c => c.from === fromUnit) || 
+                        cookingCategory?.conversions.find(c => c.from === fromUnit);
+      }
+      
+      if (!toConversion) {
+        toConversion = volumeCategory?.conversions.find(c => c.from === toUnit) || 
+                      cookingCategory?.conversions.find(c => c.from === toUnit);
+      }
+    }
 
     if (!fromConversion || !toConversion) return null;
 

@@ -2,7 +2,7 @@ import { App, Astal, Gtk, Gdk, hook } from "astal/gtk4";
 import PopupWindow, { PopupWindowProps } from "../utils/popup-window";
 import { Variable, bind } from "astal";
 import config from "../../utils/config";
-import LauncherResults from "./launcher-results";
+import UnifiedResults, { type UnifiedResultsRef } from "./components/unified-results";
 import { launcherLogger as log } from "../../utils/logger";
 import KeyboardShortcut from "../utils/keyboard-shortcut";
 import { evaluatorManager, type EvaluatorResult } from "../../utils/evaluators";
@@ -20,12 +20,12 @@ export default function LauncherBar(launcherProps: LauncherProps) {
   const placeholderText = Variable("Type to Search");
   const searchText = Variable("");
   const selectedIndex = Variable(0);
-  const selectedApp = Variable<any>(null);
+  const selectedItem = Variable<any>(null);
   const maxResults = config.launcher?.maxResults || 5;
   let entryRef: Gtk.Entry | null = null;
-  let resultsRef: any = null;
   const monitorSuffix = props.monitorIndex !== undefined ? `-${props.monitorIndex}` : '';
   const evaluatorResult = Variable<EvaluatorResult | null>(null);
+
 
   // Close the launcher
   const closeLauncher = () => {
@@ -35,6 +35,52 @@ export default function LauncherBar(launcherProps: LauncherProps) {
       window.hide();
     }
   };
+
+  const unifiedResultsRef = Variable<UnifiedResultsRef | null>(null);
+  const setupNavigation = (self: Gtk.Window) => {   // Add keyboard event controller
+    const keyController = new Gtk.EventControllerKey();
+    log.debug("Setting up UnifiedResults key controller");
+
+    keyController.connect('key-pressed', (_controller, keyval, _keycode, state) => {
+      log.debug("UnifiedResults key pressed", { keyval, state });
+
+      // Check if Ctrl is pressed
+      const ctrlPressed = (state & Gdk.ModifierType.CONTROL_MASK) !== 0;
+
+      switch (keyval) {
+        case Gdk.KEY_Down:
+        case Gdk.KEY_KP_Down:
+        case Gdk.KEY_j:
+          if ((keyval === Gdk.KEY_j && ctrlPressed) || keyval !== Gdk.KEY_j) {
+            log.debug("Calling selectNext from UnifiedResults");
+            unifiedResultsRef.get()?.selectNext();
+            return true;
+          }
+          break;
+        case Gdk.KEY_Up:
+        case Gdk.KEY_KP_Up:
+        case Gdk.KEY_k:
+          if ((keyval === Gdk.KEY_k && ctrlPressed) || keyval !== Gdk.KEY_k) {
+            log.debug("Calling selectPrevious from UnifiedResults");
+            unifiedResultsRef.get()?.selectPrevious();
+            return true;
+          }
+          break;
+        case Gdk.KEY_Return:
+        case Gdk.KEY_KP_Enter:
+          log.debug("Calling activateSelected from UnifiedResults");
+          unifiedResultsRef.get()?.activateSelected();
+          return true;
+      }
+
+      return false;
+    });
+
+    self.add_controller(keyController);
+  }
+
+
+
 
 
   // Handle text changes
@@ -67,9 +113,13 @@ export default function LauncherBar(launcherProps: LauncherProps) {
       }
       // Close the launcher after handling
       closeLauncher();
-    } else if (resultsRef) {
+    } else {
       // Otherwise, activate the selected app
-      resultsRef.activateSelected();
+      const ref = unifiedResultsRef.get();
+      log.debug("Calling activateSelected", { hasRef: !!ref });
+      if (ref) {
+        ref.activateSelected();
+      }
     }
   };
 
@@ -90,43 +140,25 @@ export default function LauncherBar(launcherProps: LauncherProps) {
       visible={false}
       keymode={Astal.Keymode.ON_DEMAND}
       application={App}
-      onKeyPressed={(_self: Gtk.Window, keyval: number) => {
-        log.debug("Key pressed", { key: keyval });
+      onKeyPressed={(self: Gtk.Window, keyval: number, _keycode: number, state: Gdk.ModifierType) => {
+
+        log.debug("Key pressed", { key: keyval, state });
         if (keyval === Gdk.KEY_Escape) {
+          log.debug("Closing launcher");
           closeLauncher();
           return true;
         }
 
-        // Handle navigation keys
-        switch (keyval) {
-          case Gdk.KEY_Down:
-          case Gdk.KEY_KP_Down:
-            if (resultsRef) {
-              resultsRef.selectNext();
-            }
-            return true;
-          case Gdk.KEY_Up:
-          case Gdk.KEY_KP_Up:
-            if (resultsRef) {
-              resultsRef.selectPrevious();
-            }
-            return true;
-          case Gdk.KEY_Return:
-          case Gdk.KEY_KP_Enter:
-            if (resultsRef) {
-              resultsRef.activateSelected();
-            }
-            return true;
-        }
-
+        // Don't handle navigation keys here - let them propagate to child components
         return false;
       }}
       setup={(self) => {
+        setupNavigation(self);
         hook(self, App, "window-toggled", (_self, win) => {
           if (win.name !== name) return;
           // Don't clear searchText to preserve equations/conversions
           // searchText.set("");
-          selectedApp.set(null);
+          selectedItem.set(null);
           // Don't clear evaluatorResult either to keep showing the result
           // evaluatorResult.set(null);
         });
@@ -137,6 +169,8 @@ export default function LauncherBar(launcherProps: LauncherProps) {
         vexpand
         cssClasses={["launcher-click-area"]}
         setup={(self: Gtk.Box) => {
+
+
           log.debug("Setting up click detection for launcher");
           // Add click gesture to detect clicks outside launcher
           const clickGesture = new Gtk.GestureClick();
@@ -196,7 +230,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
               <box cssClasses={["search-input-container"]} spacing={12}>
                 <entry
                   cssClasses={["launcher-search-input"]}
-                  placeholderText="Search for apps, files, or type a command..."
+                  placeholderText="Search apps, use prefixes (app: sc: screen:) or calculate..."
                   hexpand={true}
                   halign={Gtk.Align.FILL}
                   onNotifyText={(self) => {
@@ -211,12 +245,15 @@ export default function LauncherBar(launcherProps: LauncherProps) {
                     hook(self, App, "window-toggled", (self, win) => {
                       if (win.name !== name) return;
                       if (win.visible) {
-                        self.grab_focus();
-                        // Only select all text when window is shown, not on every toggle
-                        // And only if there's text to select
-                        if (self.text.length > 0) {
-                          self.select_region(0, -1);
-                        }
+                        // Use a small delay to ensure proper focus
+                        setTimeout(() => {
+                          self.grab_focus();
+                          // Only select all text when window is shown, not on every toggle
+                          // And only if there's text to select
+                          if (self.text.length > 0) {
+                            self.select_region(0, -1);
+                          }
+                        }, 10);
                       }
                     });
                   }}
@@ -256,12 +293,15 @@ export default function LauncherBar(launcherProps: LauncherProps) {
 
               {/* Search Results */}
               <box cssClasses={["launcher-results-container"]}>
-                <LauncherResults
+                <UnifiedResults
                   maxResults={maxResults}
                   searchText={searchText}
                   selectedIndex={selectedIndex}
-                  selectedApp={selectedApp}
-                  ref={(ref: any) => { resultsRef = ref; }}
+                  selectedItem={selectedItem}
+                  refs={(ref: UnifiedResultsRef) => {
+                    log.debug("Setting UnifiedResults ref in variable");
+                    unifiedResultsRef.set(ref);
+                  }}
                 />
               </box>
 
@@ -269,7 +309,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
               <box cssClasses={["launcher-action-bar"]} spacing={20}>
                 {/* Left side - App actions */}
                 <box hexpand halign={Gtk.Align.START} spacing={16}>
-                  {bind(Variable.derive([evaluatorResult, selectedApp], (evalResult, app) => {
+                  {bind(Variable.derive([evaluatorResult, selectedItem], (evalResult, app) => {
                     if (evalResult) {
                       return (
                         <box spacing={8}>

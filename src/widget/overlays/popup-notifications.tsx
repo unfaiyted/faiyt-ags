@@ -1,14 +1,12 @@
 import { Widget, Gtk, Gdk, astalify } from "astal/gtk4";
 import Notifd from "gi://AstalNotifd";
 import { setupCursorHover } from "../utils/buttons";
-import { Variable } from "astal";
+import { Variable, bind } from "astal";
 import GLib from "gi://GLib";
 import { PhosphorIcons } from "../utils/icons/types";
 import getNotifd from "../../utils/notification-helper";
 import { createLogger } from "../../utils/logger";
 import { PhosphorIcon } from "../utils/icons/phosphor";
-
-const Fixed = astalify(Gtk.Fixed);
 
 const log = createLogger("PopupNotifications");
 const notifd = getNotifd();
@@ -37,16 +35,26 @@ const PopupNotification = ({ notification, onClose, stackPosition, ...props }: P
     <box
       {...props}
       cssClasses={["popup-notification", urgencyClass, "notification-stack-item"]}
+      cssName="popup-notification-wrapper"
       setup={(self) => {
         // Add click handler to dismiss
         const clickGesture = new Gtk.GestureClick();
         clickGesture.connect("pressed", () => {
           if (timeoutId) {
             GLib.source_remove(timeoutId);
+            timeoutId = null;
           }
           onClose();
         });
         self.add_controller(clickGesture);
+
+        // Clean up timeout on destroy
+        self.connect("destroy", () => {
+          if (timeoutId) {
+            GLib.source_remove(timeoutId);
+            timeoutId = null;
+          }
+        });
       }}
     >
       <box cssClasses={["popup-notification-content"]} spacing={12}>
@@ -75,6 +83,7 @@ const PopupNotification = ({ notification, onClose, stackPosition, ...props }: P
               onClicked={() => {
                 if (timeoutId) {
                   GLib.source_remove(timeoutId);
+                  timeoutId = null;
                 }
                 onClose();
               }}
@@ -104,6 +113,7 @@ const PopupNotification = ({ notification, onClose, stackPosition, ...props }: P
                   onClicked={() => {
                     if (timeoutId) {
                       GLib.source_remove(timeoutId);
+                      timeoutId = null;
                     }
                     notification.invoke(action.id);
                     onClose();
@@ -120,10 +130,15 @@ const PopupNotification = ({ notification, onClose, stackPosition, ...props }: P
   );
 };
 
+const NotificationOverlay = astalify(Gtk.Overlay);
+
 export const PopupNotifications = (props: Widget.BoxProps) => {
   log.debug("Creating popup notifications widget");
   const notifications = Variable<Array<[number, Notifd.Notification]>>([]);
-  const fixedRef = Variable<Gtk.Fixed | null>(null);
+  const isHovered = Variable(false);
+
+  // Transition timing
+  let transitionTimeout: number | null = null;
 
   // Only set up notification handling if notifd was initialized successfully
   if (notifd) {
@@ -156,77 +171,105 @@ export const PopupNotifications = (props: Widget.BoxProps) => {
     log.warn("Notification service not available");
   }
 
-  // Map to track widget references
-  const widgetMap = new Map<number, Gtk.Widget>();
-
-  // Update Fixed container when notifications change
-  notifications.subscribe((notifs) => {
-    const fixed = fixedRef.get();
-    if (!fixed) return;
-
-    // Remove widgets for notifications that no longer exist
-    const currentIds = new Set(notifs.map(([id]) => id));
-    for (const [id, widget] of widgetMap.entries()) {
-      if (!currentIds.has(id)) {
-        fixed.remove(widget);
-        widgetMap.delete(id);
-      }
-    }
-
-    // Add only the last 5 notifications
-    const startIndex = Math.max(0, notifs.length - 5);
-    const visibleNotifs = notifs.slice(startIndex);
-
-    // Clear all widgets if we're showing a different set
-    if (notifs.length > 5) {
-      widgetMap.forEach((widget) => fixed.remove(widget));
-      widgetMap.clear();
-    }
-
-    visibleNotifs.forEach(([id, notification], index) => {
-      // Only create widget if it doesn't exist
-      if (!widgetMap.has(id)) {
-        const widget = (
-          <PopupNotification
-            notification={notification}
-            stackPosition={index}
-            onClose={() => {
-              log.debug("Closing notification", { id });
-              // Remove from our tracking immediately
-              notifications.set(notifications.get().filter(([nId]) => nId !== id));
-              notification.dismiss();
-            }}
-          />
-        ) as Gtk.Widget;
-
-        widgetMap.set(id, widget);
-        fixed.put(widget, 10, 10 + (index * 10));
-      } else {
-        // Reposition existing widget
-        const widget = widgetMap.get(id)!;
-        fixed.move(widget, 10, 10 + (index * 10));
-      }
-    });
-  });
-
   return (
-    <Fixed
-      halign={Gtk.Align.CENTER}
+    <box
+      halign={Gtk.Align.FILL}
       valign={Gtk.Align.START}
-      cssClasses={["popup-notifications-container"]}
-      setup={(self) => {
-        self.set_size_request(450, 150);
-        fixedRef.set(self);
-      }}
+      cssClasses={bind(isHovered).as(hovered => 
+        ["popup-notifications-container", hovered ? "fanned-out" : "stacked"]
+      )}
+      widthRequest={440}
+      heightRequest={520}
       onDestroy={() => {
-        // Clean up all widgets
-        widgetMap.forEach((widget) => {
-          widget.destroy();
-        });
-        widgetMap.clear();
+        if (transitionTimeout) {
+          GLib.source_remove(transitionTimeout);
+          transitionTimeout = null;
+        }
       }}
       {...props}
-    />
+    >
+      {bind(notifications).as(notifs => {
+        // Show only the last 4 notifications
+        const startIndex = Math.max(0, notifs.length - 4);
+        const visibleNotifs = notifs.slice(startIndex);
+
+        if (visibleNotifs.length === 0) {
+          return <box />;
+        }
+
+        // Create overlay stack
+        let overlayStack = (
+          <NotificationOverlay
+            halign={Gtk.Align.END}
+            valign={Gtk.Align.START}
+            cssClasses={["notification-hover-container"]}
+            setup={(self) => {
+              // Set up hover detection for the entire notification area
+              const motionController = new Gtk.EventControllerMotion();
+              motionController.connect("enter", () => {
+                log.debug("Mouse entered notification container");
+                
+                // Cancel any pending transition
+                if (transitionTimeout) {
+                  GLib.source_remove(transitionTimeout);
+                  transitionTimeout = null;
+                }
+                
+                isHovered.set(true);
+              });
+              
+              motionController.connect("leave", () => {
+                log.debug("Mouse left notification container");
+                
+                // Delay the collapse slightly for smoother UX
+                if (transitionTimeout) {
+                  GLib.source_remove(transitionTimeout);
+                }
+                
+                transitionTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, () => {
+                  isHovered.set(false);
+                  transitionTimeout = null;
+                  return false;
+                });
+              });
+              
+              self.add_controller(motionController);
+            }}
+          >
+            <box /> {/* Base child required for overlay */}
+          </NotificationOverlay>
+        ) as Gtk.Overlay;
+
+        // Add notifications as overlay children
+        visibleNotifs.forEach(([id, notification], index) => {
+          const notificationWidget = (
+            <box
+              halign={Gtk.Align.END}
+              valign={Gtk.Align.START}
+              cssClasses={bind(isHovered).as(hovered => 
+                hovered ? [`notification-position-${index}`, "fanned"] : [`notification-position-${index}`, "stacked"]
+              )}
+            >
+              <PopupNotification
+                notification={notification}
+                stackPosition={index}
+                onClose={() => {
+                  log.debug("Closing notification", { id });
+                  // Remove from our tracking
+                  notifications.set(notifications.get().filter(([nId]) => nId !== id));
+                  // Dismiss from notification daemon
+                  notification.dismiss();
+                }}
+              />
+            </box>
+          ) as Gtk.Widget;
+
+          overlayStack.add_overlay(notificationWidget);
+        });
+
+        return overlayStack;
+      })}
+    </box>
   );
 };
 

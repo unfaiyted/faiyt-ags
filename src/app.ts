@@ -6,7 +6,8 @@ import Bar from "./widget/bar";
 import { BarMode } from "./widget/bar/types";
 import SideLeft from "./widget/sidebar/views/left";
 import SideRight from "./widget/sidebar/views/right";
-import SystemOverlays from "./widget/overlays";
+import PopupNotificationsWindow from "./widget/overlays/popup-notifications-window";
+import IndicatorsWindow from "./widget/overlays/indicators-window";
 import cliRequestHandler from "./handlers/cli";
 import LauncherBar from "./widget/launcher";
 import {
@@ -18,7 +19,7 @@ import { logSystemInfo } from "./services/logger";
 
 // Set log level from environment or default to info
 import { GLib } from "astal";
-setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.INFO);
+setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.DEBUG);
 
 // Init shell modes for all active monitors
 initialMonitorShellModes();
@@ -46,7 +47,8 @@ App.start({
 
         SideRight({ gdkmonitor: gdkmonitor, monitorIndex: index });
         SideLeft({ gdkmonitor: gdkmonitor, monitorIndex: index });
-        SystemOverlays({ gdkmonitor: gdkmonitor, monitor: index });
+        PopupNotificationsWindow({ gdkmonitor: gdkmonitor, monitor: index });
+        IndicatorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
         LauncherBar({ gdkmonitor, monitorIndex: index });
 
         log.info(`Monitor ${index} setup complete`);
