@@ -23,6 +23,17 @@ export const SEARCH_PREFIXES: Record<string, SearchType> = {
   's:': SearchType.SCREENCAPTURE,
   'capture:': SearchType.SCREENCAPTURE,
   'record:': SearchType.SCREENCAPTURE,
+  'cmd:': SearchType.COMMANDS,
+  'command:': SearchType.COMMANDS,
+  'run:': SearchType.COMMANDS,
+  '$:': SearchType.COMMANDS,
+  '>:': SearchType.COMMANDS,
+  'sys:': SearchType.SYSTEM,
+  'system:': SearchType.SYSTEM,
+  'action:': SearchType.SYSTEM,
+  'clip:': SearchType.CLIPBOARD,
+  'clipboard:': SearchType.CLIPBOARD,
+  'cb:': SearchType.CLIPBOARD,
 };
 
 export interface ParsedSearch {

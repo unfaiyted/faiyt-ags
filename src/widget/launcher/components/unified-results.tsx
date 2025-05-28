@@ -11,6 +11,12 @@ import { ScreenButtonResult } from "./screen-capture-results";
 import ScreenCaptureButton from "../buttons/screen-capture-button";
 import { AppButtonResult } from "./app-results";
 import { parseSearchText } from "../utils";
+import getCommandResults, { CommandButtonResult } from "./command-results";
+import getSystemResults, { SystemButtonResult } from "./system-results";
+import getClipboardResults, { ClipboardButtonResult } from "./clipboard-results";
+import CommandButton from "../buttons/command-button";
+import SystemButton from "../buttons/system-button";
+import ClipboardButton from "../buttons/clipboard-button";
 
 export interface UnifiedResultsRef {
   selectNext: () => void;
@@ -30,6 +36,9 @@ export interface UnifiedResultsListProps extends Widget.BoxProps {
 interface UnifiedResults {
   apps: AppButtonResult[];
   screenCaptures: ScreenButtonResult[];
+  commands: CommandButtonResult[];
+  system: SystemButtonResult[];
+  clipboard: ClipboardButtonResult[];
   total: number;
 }
 
@@ -45,7 +54,14 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
 
   // State for debounced search and results
   const debouncedSearchText = Variable("");
-  const searchResults = Variable<UnifiedResults>({ apps: [], screenCaptures: [], total: 0 });
+  const searchResults = Variable<UnifiedResults>({ 
+    apps: [], 
+    screenCaptures: [], 
+    commands: [],
+    system: [],
+    clipboard: [],
+    total: 0 
+  });
   const MIN_SEARCH_LENGTH = 2;
   const DEBOUNCE_DELAY = 175; // milliseconds
 
@@ -75,7 +91,14 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     // Allow single character for potential prefixes
     if (text.length < 1) {
       debouncedSearchText.set("");
-      searchResults.set({ apps: [], screenCaptures: [], total: 0 });
+      searchResults.set({ 
+        apps: [], 
+        screenCaptures: [], 
+        commands: [],
+        system: [],
+        clipboard: [],
+        total: 0 
+      });
       activeResultType.set(SearchType.ALL);
       return;
     }
@@ -100,7 +123,14 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         hasPrefix: parsed.hasPrefix
       });
       debouncedSearchText.set("");
-      searchResults.set({ apps: [], screenCaptures: [], total: 0 });
+      searchResults.set({ 
+        apps: [], 
+        screenCaptures: [], 
+        commands: [],
+        system: [],
+        clipboard: [],
+        total: 0 
+      });
       activeResultType.set(SearchType.ALL);
       return;
     }
@@ -117,6 +147,9 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       // Perform the search based on type
       let appList: AppButtonResult[] = [];
       let screenList: ScreenButtonResult[] = [];
+      let commandList: CommandButtonResult[] = [];
+      let systemList: SystemButtonResult[] = [];
+      let clipboardList: ClipboardButtonResult[] = [];
 
       switch (parsed.type) {
         case SearchType.APPS:
@@ -127,24 +160,46 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
           log.debug("Searching screen captures only", { query: parsed.query });
           screenList = getScreenCaptureResults(parsed.query, true);
           break;
+        case SearchType.COMMANDS:
+          log.debug("Searching commands only", { query: parsed.query });
+          commandList = getCommandResults(parsed.query, true);
+          break;
+        case SearchType.SYSTEM:
+          log.debug("Searching system actions only", { query: parsed.query });
+          systemList = getSystemResults(parsed.query, true);
+          break;
+        case SearchType.CLIPBOARD:
+          log.debug("Searching clipboard only", { query: parsed.query });
+          clipboardList = getClipboardResults(parsed.query, true);
+          break;
         case SearchType.ALL:
         default:
           log.debug("Searching all types", { query: parsed.query });
           appList = getAppResults(parsed.query);
           screenList = getScreenCaptureResults(parsed.query, false);
+          // Don't search commands/system/clipboard in ALL mode unless explicitly triggered
           break;
       }
+
+      const total = appList.length + screenList.length + commandList.length + 
+                    systemList.length + clipboardList.length;
 
       log.debug("Search results", {
         appCount: appList.length,
         screenCaptureCount: screenList.length,
-        total: appList.length + screenList.length
+        commandCount: commandList.length,
+        systemCount: systemList.length,
+        clipboardCount: clipboardList.length,
+        total
       });
 
       searchResults.set({
         apps: appList,
         screenCaptures: screenList,
-        total: appList.length + screenList.length
+        commands: commandList,
+        system: systemList,
+        clipboard: clipboardList,
+        total
       });
     }, DEBOUNCE_DELAY);
   });
@@ -273,13 +328,84 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
 
                     <ResultGroupWrapper
                       groupName="Screen Captures"
-                      revealed={((type === SearchType.ALL || type === SearchType.SCREENCAPTURE))}
+                      revealed={(results.screenCaptures.length > 0 && (type === SearchType.ALL || type === SearchType.SCREENCAPTURE))}
                     >
                       {results.screenCaptures.map((screenResult, index) => {
                         const adjustedIndex = results.apps.length + index;
                         return (
                           <ScreenCaptureButton
                             option={screenResult.screenCapture}
+                            index={adjustedIndex}
+                            selected={bind(selectedIndex).as(i => i === adjustedIndex)}
+                            ref={(button: Gtk.Button) => {
+                              buttonRefs.push(button);
+                            }}
+                          />
+                        );
+                      })}
+                    </ResultGroupWrapper>
+
+                    <ResultGroupWrapper
+                      groupName="Commands"
+                      revealed={(results.commands.length > 0 && (type === SearchType.ALL || type === SearchType.COMMANDS))}
+                    >
+                      {results.commands.map((cmdResult, index) => {
+                        if (!cmdResult || !cmdResult.command) {
+                          log.error("Invalid command result", { cmdResult, index });
+                          return null;
+                        }
+                        const adjustedIndex = results.apps.length + results.screenCaptures.length + index;
+                        return (
+                          <CommandButton
+                            option={cmdResult.command}
+                            index={adjustedIndex}
+                            selected={bind(selectedIndex).as(i => i === adjustedIndex)}
+                            ref={(button: Gtk.Button) => {
+                              buttonRefs.push(button);
+                            }}
+                          />
+                        );
+                      })}
+                    </ResultGroupWrapper>
+
+                    <ResultGroupWrapper
+                      groupName="System Actions"
+                      revealed={(results.system.length > 0 && (type === SearchType.ALL || type === SearchType.SYSTEM))}
+                    >
+                      {results.system.map((sysResult, index) => {
+                        if (!sysResult || !sysResult.action) {
+                          log.error("Invalid system result", { sysResult, index });
+                          return null;
+                        }
+                        const adjustedIndex = results.apps.length + results.screenCaptures.length + 
+                                             results.commands.length + index;
+                        return (
+                          <SystemButton
+                            action={sysResult.action}
+                            index={adjustedIndex}
+                            selected={bind(selectedIndex).as(i => i === adjustedIndex)}
+                            ref={(button: Gtk.Button) => {
+                              buttonRefs.push(button);
+                            }}
+                          />
+                        );
+                      })}
+                    </ResultGroupWrapper>
+
+                    <ResultGroupWrapper
+                      groupName="Clipboard History"
+                      revealed={(results.clipboard.length > 0 && (type === SearchType.ALL || type === SearchType.CLIPBOARD))}
+                    >
+                      {results.clipboard.map((clipResult, index) => {
+                        if (!clipResult || !clipResult.entry) {
+                          log.error("Invalid clipboard result", { clipResult, index });
+                          return null;
+                        }
+                        const adjustedIndex = results.apps.length + results.screenCaptures.length + 
+                                             results.commands.length + results.system.length + index;
+                        return (
+                          <ClipboardButton
+                            entry={clipResult.entry}
                             index={adjustedIndex}
                             selected={bind(selectedIndex).as(i => i === adjustedIndex)}
                             ref={(button: Gtk.Button) => {

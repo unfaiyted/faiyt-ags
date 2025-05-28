@@ -16,6 +16,7 @@ import {
 } from "./widget/bar/utils/bar-corners";
 import { systemLogger, log, setLogLevel, LogLevel } from "./utils/logger";
 import { logSystemInfo } from "./services/logger";
+import "./services/clipboard-manager"; // Initialize clipboard manager
 
 // Set log level from environment or default to info
 import { GLib } from "astal";

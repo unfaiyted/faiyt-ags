@@ -2,6 +2,9 @@ export enum SearchType {
   ALL = "all",
   APPS = "apps",
   SCREENCAPTURE = "screencapture",
+  COMMANDS = "commands",
+  SYSTEM = "system",
+  CLIPBOARD = "clipboard",
 }
 
 // Keywords that trigger screen capture options

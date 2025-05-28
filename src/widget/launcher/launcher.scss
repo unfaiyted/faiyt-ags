@@ -66,6 +66,19 @@ launcher-container {
   }
 }
 
+// Pulse animation for loading state
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
 // Search input container
 .search-input-container {
   background-color: transparent;
@@ -171,7 +184,7 @@ launcher-container {
 }
 
 // Launcher result button
-.overview-search-result-btn {
+overview-search-result-btn {
   width: 100%;
   padding: 16px 24px;
   background-color: transparent;
@@ -207,7 +220,7 @@ launcher-container {
       background-color: colors.c(accent);
     }
 
-    .overview-search-results-txt {
+    overview-search-results-txt {
       color: colors.c(foreground);
 
       &.txt-subtext {
@@ -332,7 +345,7 @@ launcher-container {
 // Screen capture results styling
 .screen-capture-results {
   margin-top: 8px;
-  
+
   .results-category-label {
     font-size: 11px;
     font-weight: 600;
@@ -341,5 +354,197 @@ launcher-container {
     margin-left: 24px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+  }
+}
+
+// Enhanced clipboard image styling without overlay
+.clipboard-image-container {
+  position: relative;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  object-fit: cover;
+}
+
+.clipboard-image-frame {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 14px;
+  background: colors.c(surface, 0.05);
+  border: 2px solid colors.c(border, 0.15);
+  box-shadow:
+    0 4px 12px colors.c(base, 0.15),
+    0 2px 6px colors.c(base, 0.1);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 2px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .clipboard-image-preview {
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+// Badge container positioned below image
+.clipboard-image-badge-container {
+  margin-top: -12px;
+  z-index: 1;
+  padding: 0 8px;
+}
+
+// Format badge (PNG, JPG, etc.)
+.clipboard-format-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: colors.c(background);
+  background: linear-gradient(135deg,
+      colors.c(accent) 0%,
+      colors.c(accent, 0.8) 100%);
+  padding: 3px 10px;
+  border-radius: 10px;
+  border: 1px solid colors.c(background, 0.2);
+  box-shadow:
+    0 2px 8px colors.c(accent, 0.3),
+    0 1px 3px colors.c(base, 0.2);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+// Clipboard entry specific styling
+.clipboard-entry {
+  &.image-entry {
+    min-height: 96px; // Account for larger image preview with badge
+
+    &:hover {
+      .clipboard-image-frame {
+        transform: translateY(-2px);
+        box-shadow:
+          0 8px 20px colors.c(base, 0.25),
+          0 4px 10px colors.c(base, 0.2);
+        background: colors.c(surface, 0.1);
+        border-color: colors.c(accent, 0.3);
+
+        drawingarea {
+          transform: scale(1.05);
+        }
+      }
+
+      .clipboard-format-badge {
+        transform: translateY(-2px);
+        box-shadow:
+          0 4px 12px colors.c(accent, 0.4),
+          0 2px 6px colors.c(base, 0.3);
+      }
+    }
+
+    &.selected {
+      .clipboard-image-frame {
+        background: colors.c(accent, 0.1);
+        border-color: colors.c(accent, 0.5);
+        box-shadow:
+          0 6px 16px colors.c(accent, 0.3),
+          0 3px 8px colors.c(accent, 0.2);
+      }
+
+      .clipboard-format-badge {
+        background: linear-gradient(135deg,
+            colors.c(success) 0%,
+            colors.c(success, 0.85) 100%);
+        box-shadow:
+          0 4px 12px colors.c(success, 0.4),
+          0 2px 6px colors.c(base, 0.3);
+      }
+
+      drawingarea {
+        transform: scale(1.02);
+      }
+    }
+  }
+}
+
+// Clipboard metadata styling
+.clipboard-metadata {
+  .separator {
+    opacity: 0.3;
+    margin: 0 2px;
+  }
+
+  .image-dimensions {
+    color: colors.c(iris, 0.8);
+    font-weight: 500;
+  }
+
+  .image-size {
+    color: colors.c(rose, 0.8);
+    font-weight: 500;
+  }
+}
+
+// Clipboard content text
+.clipboard-content-text {
+  font-weight: 400;
+
+  &.image-entry {
+    font-weight: 500;
+    color: colors.c(foreground);
+  }
+}
+
+// Regular icon container
+.launcher-result-icon-container {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg,
+      colors.c(overlay, 0.08) 0%,
+      colors.c(overlay, 0.03) 100%);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid colors.c(border, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 200ms ease;
+
+  &:hover {
+    background: linear-gradient(135deg,
+        colors.c(overlay, 0.12) 0%,
+        colors.c(overlay, 0.06) 100%);
+    border-color: colors.c(border, 0.2);
+  }
+
+  .launcher-result-icon {
+    font-size: 24px;
+    color: colors.c(foreground, 0.8);
+  }
+}
+
+// Type badge
+.clipboard-type-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: colors.c(accent, 0.15);
+  color: colors.c(accent);
+  border: 1px solid colors.c(accent, 0.2);
+  letter-spacing: 0.5px;
+}
+
+// Enhance selected state for clipboard items
+overview-search-result-btn.selected {
+  .clipboard-image-container {
+    border-color: colors.c(accent, 0.3);
+    box-shadow:
+      0 4px 16px colors.c(accent, 0.15),
+      inset 0 1px 1px colors.c(success, 0.2);
+  }
+
+  .launcher-result-icon-container {
+    background: linear-gradient(135deg,
+        colors.c(accent, 0.15) 0%,
+        colors.c(accent, 0.08) 100%);
+    border-color: colors.c(accent, 0.25);
   }
 }

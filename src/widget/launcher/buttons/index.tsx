@@ -21,8 +21,9 @@ export default function LauncherButton(props: LauncherButtonProps) {
   return (
     <button
       {...props}
+      cssName="overview-search-result-btn"
       cssClasses={bind(selected).as(s =>
-        c`overview-search-result-btn txt ${s ? 'selected' : ''} ${props.cssName || ''}`
+        c`txt ${s ? 'selected' : ''} ${props.cssName || ''}`
       )}
       setup={(self: Gtk.Button) => {
         setupCursorHover(self);
@@ -38,13 +39,15 @@ export default function LauncherButton(props: LauncherButtonProps) {
           <label
             halign={Gtk.Align.START}
             label={name}
-            cssClasses={c`overview-search-results-txt txt-norm`}
+            cssName="overview-search-results-txt"
+            cssClasses={c` txt-norm`}
           />
           {content && content !== name && (
             <label
               halign={Gtk.Align.START}
               label={content}
-              cssClasses={c`overview-search-results-txt txt-smallie txt-subtext`}
+              cssName="overview-search-results-txt"
+              cssClasses={c`txt-smallie txt-subtext`}
             />
           )}
         </box>

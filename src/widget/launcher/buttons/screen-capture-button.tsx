@@ -1,6 +1,6 @@
 import { Widget, App, Gtk, Gdk } from "astal/gtk4";
 import LauncherButton from "./index";
-import { Variable, Binding } from "astal";
+import { Binding } from "astal";
 import { exec, execAsync } from "astal/process";
 import { launcherLogger as log } from "../../../utils/logger";
 import actions from "../../../utils/actions";
