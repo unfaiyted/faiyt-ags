@@ -13,13 +13,20 @@ export const BluetoothToggle = (props: BluetoothToggleProps) => {
   const tooltipText = Variable("Bluetooth | Right-Click to configure");
 
   bt.connect("notify", (_bt: Bluetooth.Bluetooth) => {
+    print("BT", _bt.isPowered);
     isEnabled.set(_bt.isPowered);
   });
+
+  const handleClick = () => {
+    print("handleClick-BT", isEnabled.get());
+    actions.bluetooth.toggle();
+
+  };
 
   return (
     <ToggleIcon
       tooltipText={bind(tooltipText)}
-      handleClick={actions.bluetooth.toggle}
+      handleClick={handleClick}
       handleRightClick={actions.app.bluetooth}
       indicator={BluetoothIndicator}
       active={bind(isEnabled)}

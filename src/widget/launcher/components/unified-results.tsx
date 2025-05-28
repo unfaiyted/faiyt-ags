@@ -2,10 +2,11 @@ import { Widget, Gtk } from "astal/gtk4";
 import { Variable, bind, } from "astal";
 import config from "../../../utils/config";
 import AppButton from "../buttons/app-button";
+import CustomAppButton from "../buttons/custom-app-button";
 import ResultGroupWrapper from "./result-group-wrapper";
 import { SearchType } from "../types";
 import { launcherLogger as log } from "../../../utils/logger";
-import getAppResults from "./app-results";
+import getAppResults, { createAppButton } from "./app-results";
 import getScreenCaptureResults from "./screen-capture-results";
 import { ScreenButtonResult } from "./screen-capture-results";
 import ScreenCaptureButton from "../buttons/screen-capture-button";
@@ -54,13 +55,13 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
 
   // State for debounced search and results
   const debouncedSearchText = Variable("");
-  const searchResults = Variable<UnifiedResults>({ 
-    apps: [], 
-    screenCaptures: [], 
+  const searchResults = Variable<UnifiedResults>({
+    apps: [],
+    screenCaptures: [],
     commands: [],
     system: [],
     clipboard: [],
-    total: 0 
+    total: 0
   });
   const MIN_SEARCH_LENGTH = 2;
   const DEBOUNCE_DELAY = 175; // milliseconds
@@ -91,13 +92,13 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     // Allow single character for potential prefixes
     if (text.length < 1) {
       debouncedSearchText.set("");
-      searchResults.set({ 
-        apps: [], 
-        screenCaptures: [], 
+      searchResults.set({
+        apps: [],
+        screenCaptures: [],
         commands: [],
         system: [],
         clipboard: [],
-        total: 0 
+        total: 0
       });
       activeResultType.set(SearchType.ALL);
       return;
@@ -123,13 +124,13 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         hasPrefix: parsed.hasPrefix
       });
       debouncedSearchText.set("");
-      searchResults.set({ 
-        apps: [], 
-        screenCaptures: [], 
+      searchResults.set({
+        apps: [],
+        screenCaptures: [],
         commands: [],
         system: [],
         clipboard: [],
-        total: 0 
+        total: 0
       });
       activeResultType.set(SearchType.ALL);
       return;
@@ -181,8 +182,8 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
           break;
       }
 
-      const total = appList.length + screenList.length + commandList.length + 
-                    systemList.length + clipboardList.length;
+      const total = appList.length + screenList.length + commandList.length +
+        systemList.length + clipboardList.length;
 
       log.debug("Search results", {
         appCount: appList.length,
@@ -269,6 +270,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
   return (
     <box
       vertical
+      margin_top={0}
       setup={(self) => {
         if (props.refs) {
           log.debug("Setting up UnifiedResults refs");
@@ -289,6 +291,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       >
         <box
           cssName="launcher-results"
+          widthRequest={400}
           vertical
           hexpand
         >
@@ -314,16 +317,15 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
                       groupName="Apps"
                       revealed={(results.apps.length > 0 && (type === SearchType.ALL || type === SearchType.APPS))}
                     >
-                      {results.apps.map((appResult, index) => (
-                        <AppButton
-                          app={appResult.app}
-                          index={index}
-                          selected={bind(selectedIndex).as(i => i === index)}
-                          ref={(button: Gtk.Button) => {
+                      {results.apps.map((appResult, index) =>
+                        createAppButton(appResult, {
+                          index,
+                          selected: bind(selectedIndex).as(i => i === index),
+                          ref: (button: Gtk.Button) => {
                             buttonRefs.push(button);
-                          }}
-                        />
-                      ))}
+                          }
+                        })
+                      )}
                     </ResultGroupWrapper>
 
                     <ResultGroupWrapper
@@ -377,8 +379,8 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
                           log.error("Invalid system result", { sysResult, index });
                           return null;
                         }
-                        const adjustedIndex = results.apps.length + results.screenCaptures.length + 
-                                             results.commands.length + index;
+                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                          results.commands.length + index;
                         return (
                           <SystemButton
                             action={sysResult.action}
@@ -401,8 +403,8 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
                           log.error("Invalid clipboard result", { clipResult, index });
                           return null;
                         }
-                        const adjustedIndex = results.apps.length + results.screenCaptures.length + 
-                                             results.commands.length + results.system.length + index;
+                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                          results.commands.length + results.system.length + index;
                         return (
                           <ClipboardButton
                             entry={clipResult.entry}

@@ -113,7 +113,7 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
 
       // Scale to desired size
       const scaledPixbuf = croppedPixbuf.scale_simple(size, size, GdkPixbuf.InterpType.BILINEAR);
-      
+
       return scaledPixbuf;
     } catch (error) {
       log.debug("Failed to create square thumbnail", { imagePath, error });
@@ -203,6 +203,7 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
       )}
       onClicked={handleActivate}
       focusable={false}
+      widthRequest={250}
       hexpand={true}
       setup={(self: Gtk.Button) => {
         if (buttonRef) {
@@ -211,7 +212,7 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
       }}
       {...rest}
     >
-      <box spacing={16} valign={Gtk.Align.CENTER}>
+      <box spacing={16} valign={Gtk.Align.CENTER} widthRequest={245}>
         {isImage ? (
           <box vertical cssClasses={["clipboard-image-container"]} spacing={0}>
             <box cssClasses={["clipboard-image-frame"]}>
@@ -248,7 +249,6 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
               cssName="overview-search-results-txt"
               cssClasses={["clipboard-content-text"]}
               halign={Gtk.Align.START}
-              maxWidthChars={120}
               ellipsize={3} // PANGO_ELLIPSIZE_END
             />
           </box>

@@ -126,12 +126,13 @@ osd-value-txt {
 // Notification hover container - sized to fit notifications
 .notification-hover-container {
   min-width: 430px;
-  min-height: 100px;
-  
+  min-height: 150px;
+  height: 150px;
+
   &:hover {
     min-height: 480px; // Expand height when hovering to accommodate fanned layout
   }
-  
+
   transition: min-height 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -142,7 +143,7 @@ osd-value-txt {
 
 // Notification positions - these are wrapper boxes in the overlay
 .notification-position-0,
-.notification-position-1, 
+.notification-position-1,
 .notification-position-2,
 .notification-position-3 {
   transition: all 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -154,7 +155,7 @@ osd-value-txt {
 }
 
 .notification-position-1.stacked {
-  margin-top: 10px;  // Small offset to show stacking
+  margin-top: 10px; // Small offset to show stacking
 }
 
 .notification-position-2.stacked {
@@ -321,4 +322,349 @@ osd-value-txt {
 
 .popup-notification {
   animation: slideDown 300ms ease-out;
+}
+
+// Music Overlay Styles
+music-overlay-window {
+  background: transparent;
+}
+
+music-overlay-container {
+  padding: 0;
+  margin: 0;
+}
+
+music-overlay-empty {
+  margin: 0 16px;
+  padding: 12px 20px;
+  background: colors.c(background-elevated, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-radius: 20px;
+  border: 1px solid colors.c(border, 0.15);
+  box-shadow:
+    0 20px 60px colors.c(base, 0.6),
+    0 8px 24px colors.c(base, 0.4),
+    0 2px 8px colors.c(base, 0.2),
+    inset 0 1px 0 colors.c(text, 0.05),
+    inset 0 -1px 0 colors.c(base, 0.3);
+
+  .phosphor-icon {
+    color: colors.c(primary, 0.8);
+  }
+
+  label {
+    color: colors.c(foreground-alt);
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+music-controls {
+  margin-left: 0;
+  margin-right: 16px;
+  padding: 16px;
+  background: colors.c(background-elevated, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-radius: 20px;
+  border: 1px solid colors.c(border, 0.15);
+  box-shadow:
+    0 20px 60px colors.c(base, 0.6),
+    0 8px 24px colors.c(base, 0.4),
+    0 2px 8px colors.c(base, 0.2),
+    inset 0 1px 0 colors.c(text, 0.05),
+    inset 0 -1px 0 colors.c(base, 0.3);
+  min-width: 380px;
+  max-width: 420px;
+
+  // Subtle glass shimmer effect
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        colors.c(text, 0.03) 50%,
+        transparent 100%);
+    animation: shimmer 8s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+
+  0%,
+  100% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(200%);
+  }
+}
+
+music-album-art-container {
+  min-width: 100px;
+  min-height: 100px;
+  margin-right: 12px;
+  border-radius: 14px;
+}
+
+music-album-art {
+  min-width: 100px;
+  min-height: 100px;
+  max-width: 100px;
+  max-height: 100px;
+  border-radius: 14px;
+  box-shadow:
+    0 10px 24px colors.c(base, 0.4),
+    0 3px 10px colors.c(base, 0.2);
+  border: 1px solid colors.c(border, 0.2);
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.03);
+  }
+}
+
+music-album-art-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 14px;
+  background: linear-gradient(135deg,
+      colors.c(primary, 0.1) 0%,
+      colors.c(secondary, 0.05) 100%);
+  border: 1px solid colors.c(border, 0.2);
+  box-shadow:
+    0 6px 18px colors.c(base, 0.3),
+    inset 0 1px 0 colors.c(text, 0.05);
+
+  .phosphor-icon {
+    color: colors.c(primary, 0.6);
+  }
+}
+
+music-info-controls {
+  min-width: 240px;
+  padding-left: 6px;
+}
+
+music-track-info {
+  margin-bottom: 8px;
+}
+
+music-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: colors.c(text);
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+music-artist {
+  font-size: 13px;
+  font-weight: 500;
+  color: colors.c(subtle);
+  margin-bottom: 2px;
+}
+
+music-album {
+  font-size: 11px;
+  color: colors.c(muted);
+  font-weight: 400;
+}
+
+
+music-progress-bar {
+  min-height: 6px;
+  background: colors.c(muted, 0.4);
+  border-radius: 3px;
+  min-width: 200px;
+  border: 1px solid colors.c(border, 0.15);
+  box-shadow:
+    inset 0 1px 3px colors.c(base, 0.4),
+    0 1px 0 colors.c(surface, 0.15);
+}
+
+music-progress-fill {
+  min-height: 6px;
+  max-height: 6px;
+  background: linear-gradient(90deg,
+      colors.c(primary) 0%,
+      colors.c(accent) 100%);
+  border-radius: 3px;
+  transition: min-width 0.3s ease;
+  box-shadow:
+    0 0 10px colors.c(primary, 0.5),
+    0 2px 4px colors.c(base, 0.3),
+    inset 0 1px 0 colors.c(accent, 0.4);
+  margin: 0;
+  padding: 0;
+}
+
+music-time-labels {
+  margin-top: 2px;
+  min-width: 150px; // Match the progress bar width
+}
+
+music-time {
+  font-size: 10px;
+  color: colors.c(subtle);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+music-progress-section {
+  min-height: 32px; // Ensure consistent height
+  transform: translateY(-6px);
+
+}
+
+music-progress-wrapper {
+  min-width: 150px;
+
+  fixed {
+    min-width: 150px;
+
+
+    min-height: 6px;
+  }
+}
+
+music-control-buttons {
+  padding: 0;
+  // border: 1px solid red;
+  background: transparent;
+  transform: translateY(-10px);
+}
+
+music-control-button {
+  padding: 8px;
+  background: colors.c(surface, 0.3);
+  border: 1px solid colors.c(border, 0.15);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 6px colors.c(base, 0.2),
+    0 1px 2px colors.c(base, 0.1);
+
+  &:hover:not(:disabled) {
+    background: colors.c(overlay, 0.4);
+    border-color: colors.c(primary, 0.3);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow:
+      0 4px 12px colors.c(base, 0.3),
+      0 2px 4px colors.c(base, 0.2);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+    box-shadow:
+      0 1px 4px colors.c(base, 0.2),
+      inset 0 1px 2px colors.c(base, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .phosphor-icon {
+    color: colors.c(text);
+  }
+}
+
+
+music-control-button-small {
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  background: colors.c(surface, 0.25);
+  border: 1px solid colors.c(border, 0.12);
+  border-radius: 32px; // Half of width/height
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 1px 3px colors.c(base, 0.15),
+    0 1px 2px colors.c(base, 0.08);
+
+  box {
+    padding: 6px;
+  }
+
+  &:hover:not(:disabled) {
+    background: colors.c(overlay, 0.35);
+    border-color: colors.c(primary, 0.25);
+    transform: scale(1.08);
+    box-shadow:
+      0 2px 6px colors.c(base, 0.25),
+      0 1px 3px colors.c(base, 0.15);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+    box-shadow:
+      0 1px 2px colors.c(base, 0.15),
+      inset 0 1px 2px colors.c(base, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .phosphor-icon {
+    color: colors.c(text);
+  }
+
+  &.music-play-pause {
+    background: linear-gradient(135deg,
+        colors.c(primary, 0.9) 0%,
+        colors.c(accent, 0.9) 100%);
+    border-color: colors.c(primary, 0.2);
+    border-radius: 16px;
+
+    box {
+      padding: 6px;
+    }
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg,
+          colors.c(primary) 0%,
+          colors.c(accent) 100%);
+      box-shadow:
+        0 3px 8px colors.c(primary, 0.35),
+        0 1px 3px colors.c(base, 0.2);
+    }
+
+    .phosphor-icon {
+      color: colors.c(on-primary);
+    }
+  }
+}
+
+music-close-button {
+  padding: 4px;
+  background: colors.c(surface, 0.2);
+  border: 1px solid colors.c(border, 0.1);
+  border-radius: 6px;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  margin-left: 4px;
+
+  &:hover {
+    opacity: 1;
+    background: colors.c(overlay, 0.3);
+    border-color: colors.c(border, 0.2);
+    transform: scale(1.05);
+  }
+
+  .phosphor-icon {
+    color: colors.c(subtle);
+  }
 }

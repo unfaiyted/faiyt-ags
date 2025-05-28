@@ -1,4 +1,4 @@
-import { Widget, Astal, Gtk, Gdk } from "astal/gtk4";
+import { Widget, Gtk, Gdk } from "astal/gtk4";
 import { Binding, bind } from "astal";
 import { setupCursorHover } from "../../../utils/buttons";
 import { sidebarLogger as log } from "../../../../utils/logger";
@@ -6,6 +6,7 @@ import { sidebarLogger as log } from "../../../../utils/logger";
 export interface TogglesModuleProps extends Widget.ButtonProps {
   handleClick: () => void;
   handleRightClick?: () => void;
+  handleMiddleClick?: () => void;
   indicator: () => Gtk.Widget;
   active: Binding<boolean>;
   label?: string;
@@ -13,35 +14,13 @@ export interface TogglesModuleProps extends Widget.ButtonProps {
 
 export const ToggleIcon = (props: TogglesModuleProps) => {
   const gestureClick = new Gtk.GestureClick();
-
-  gestureClick.connect('pressed', (gesture, nPress, x, y) => {
-    const button = gesture.get_button();
-
-    switch (button) {
-      case Gdk.BUTTON_PRIMARY:
-        log.debug("Toggle primary button pressed");
-        props.handleClick();
-        break;
-      case Gdk.BUTTON_SECONDARY:
-        log.debug("Toggle secondary button pressed");
-        if (props.handleRightClick) {
-          props.handleRightClick();
-        }
-        break;
-      case Gdk.BUTTON_MIDDLE:
-        break;
-      default:
-        break;
-    }
-  })
-
-
-  gestureClick.connect('released', (gesture, nPress, x, y) => {
-  });
+  // Set to 0 to handle all mouse buttons
+  gestureClick.set_button(0);
 
 
   const toggleButton = <button
     cssName="toggle-button"
+    onClicked={props.handleClick}
     cssClasses={bind(props.active).as(active => active ? ['active'] : [""])}
     tooltipText={props.tooltipText}
     setup={setupCursorHover}
@@ -68,27 +47,32 @@ export const ToggleIcon = (props: TogglesModuleProps) => {
     </box>
   </button>
 
+
+  gestureClick.connect('released', (gesture, nPress, x, y) => {
+    const button = gesture.get_current_button();
+    log.info("Toggle button released", { button, nPress, x, y });
+
+    switch (button) {
+      case Gdk.BUTTON_SECONDARY:
+        log.info("Toggle secondary button released");
+        if (props.handleRightClick) {
+          props.handleRightClick();
+        }
+        break;
+      case Gdk.BUTTON_MIDDLE:
+        log.info("Toggle middle button released");
+        if (props.handleMiddleClick) {
+          props.handleMiddleClick();
+        }
+        break;
+      default:
+        log.info("Toggle button released with unknown button", { button });
+        break;
+    }
+  })
+
+
   toggleButton.add_controller(gestureClick);
-
-  // Create a gesture for the toggle switch as well
-  const switchGesture = new Gtk.GestureClick();
-  switchGesture.connect('pressed', () => {
-    log.debug("Toggle switch clicked");
-    props.handleClick();
-  });
-
-  const toggleSwitch = <box
-    cssName="toggle-switch"
-    cssClasses={bind(props.active).as(active => active ? ['active'] : [""])}
-
-  >
-    <box
-      cssName="toggle-switch-thumb"
-      cssClasses={bind(props.active).as(active => active ? ['active'] : [""])}
-    />
-  </box>
-
-  toggleSwitch.add_controller(switchGesture);
 
   return (
     <box
@@ -97,9 +81,13 @@ export const ToggleIcon = (props: TogglesModuleProps) => {
       spacing={4}
     >
       {toggleButton}
-      <box cssName="toggle-switch-container" halign={Gtk.Align.CENTER}>
-        {toggleSwitch}
-      </box>
+      <box
+        cssName="toggle-switch-container"
+        halign={Gtk.Align.CENTER}
+        widthRequest={20}
+        cssClasses={bind(props.active).as(active => active ? ['active'] : [""])}
+        heightRequest={8}
+      />
     </box>
   );
 };

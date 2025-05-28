@@ -1,13 +1,10 @@
-import { Widget, Astal, Gtk } from "astal/gtk4";
-import { ClickButtonPressed } from "../../../../types";
 import { actions } from "../../../../utils/actions";
-import { setupCursorHover } from "../../../utils/buttons";
 import Network from "gi://AstalNetwork";
-import { Variable, bind, Binding } from "astal";
+import { Variable, bind } from "astal";
 import { NetworkIndicator } from "./indicators";
 import { ToggleIcon } from "./toggle-icon";
 
-export const NetworkToggle = (props: Widget.ButtonProps) => {
+export const NetworkToggle = () => {
   const network = Network.get_default();
   const isEnabled = Variable(network.get_wifi()?.get_enabled() ?? false);
   const tooltipText = Variable("Wifi | Right-Click to configure");

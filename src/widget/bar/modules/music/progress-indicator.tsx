@@ -1,26 +1,17 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { Binding } from "astal";
-import { CircularProgressProps, CircularProgress } from "../../../utils/circular-progress"
+import { CircularProgressProps, CircularProgress } from "../../../utils/circular-progress";
 
 
 export interface TrackProgressProps extends CircularProgressProps {
   value: Binding<number>;
-  // startAt: Binding<number>;
-  // endAt: Binding<number>;
 }
 
 export const TrackProgress = (props: TrackProgressProps) => {
-  // const _updateProgress = (circprog: Widget.CircularProgress) => {
-  //   // first player?
-  //   const player = mpris.get_players()[0];
-  //   if (!player) return;
-  //   // Set circular progress value
-  //   circprog.css = `font-size: ${Math.max((player.position / player.length) * 100, 0)}px;`;
-  // };
-
+  // Use the value prop that's already being passed from the parent
   return (
     <CircularProgress
-      percentage={props.percentage}
+      percentage={props.value}
       opacity={0.4}
       cssName="bar-music-circprog"
       halign={Gtk.Align.START}

@@ -149,11 +149,11 @@ let defaultConfigOptions: ConfigOptions = {
     dateFormat: "%d/%m", // On notif time
   },
   weather: {
-    city: "",
+    city: "San Antonio TX",
     preferredUnit: "C", // Either C or F
   },
   workspaces: {
-    shown: 10,
+    shown: 5,
   },
   dock: {
     enabled: false,

@@ -292,7 +292,9 @@ export default function LauncherBar(launcherProps: LauncherProps) {
               />
 
               {/* Search Results */}
-              <box cssClasses={["launcher-results-container"]}>
+              <box
+                cssName="launcher-results-container"
+              >
                 <UnifiedResults
                   maxResults={maxResults}
                   searchText={searchText}

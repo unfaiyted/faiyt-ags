@@ -12,6 +12,11 @@ launcher-container {
   min-width: 1200px;
   padding: 120px 0px 0px 0px;
   transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  &box {
+    margin-top: 0;
+    padding-top: 0;
+  }
 }
 
 // Search box wrapper with gradient border
@@ -163,10 +168,11 @@ launcher-container {
 }
 
 // Results box
-.launcher-results {
+launcher-results {
   background: transparent;
   border: none;
   overflow: hidden;
+  border-right: 1px solid colors.c(accent, 0.1);
 }
 
 // Results list
@@ -195,6 +201,7 @@ overview-search-result-btn {
   transition: all 150ms ease;
   border-bottom: 1px solid colors.c(border, 0.1);
 
+
   &:last-child {
     border-bottom: none;
   }
@@ -202,6 +209,11 @@ overview-search-result-btn {
   &:hover {
     background-color: colors.c(overlay, 0.08);
     padding-left: 28px;
+  }
+
+  &:focus {
+    outline: colors.c(accent, 0.3) solid 2px;
+    background-color: colors.c(overlay, 0.8);
   }
 
   &.selected {
@@ -307,12 +319,15 @@ overview-search-result-btn {
 }
 
 // Dynamic results animation
-.launcher-results-container {
+launcher-results-container {
+  margin-top: 0;
+  padding-top: 0;
+
   &.animating {
     overflow: visible;
   }
 
-  .launcher-results {
+  launcher-results {
     animation: slideDown 200ms ease-out;
   }
 }
@@ -343,8 +358,7 @@ overview-search-result-btn {
 }
 
 // Screen capture results styling
-.screen-capture-results {
-  margin-top: 8px;
+screen-capture-results {
 
   .results-category-label {
     font-size: 11px;

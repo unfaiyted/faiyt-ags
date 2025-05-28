@@ -1,4 +1,4 @@
-import { Widget, Gtk, Gdk, astalify } from "astal/gtk4";
+import { Widget, Gtk, astalify } from "astal/gtk4";
 import Notifd from "gi://AstalNotifd";
 import { setupCursorHover } from "../utils/buttons";
 import { Variable, bind } from "astal";
@@ -24,7 +24,7 @@ const PopupNotification = ({ notification, onClose, stackPosition, ...props }: P
 
   // Auto-dismiss after timeout (except critical)
   if (urgency !== 2) {
-    const timeout = notification.timeout || 5000;
+    const timeout = 5000;
     timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, timeout, () => {
       onClose();
       return false;
@@ -106,7 +106,7 @@ const PopupNotification = ({ notification, onClose, stackPosition, ...props }: P
           {/* Actions */}
           {notification.actions && notification.actions.length > 0 && (
             <box cssClasses={["popup-notification-actions"]} spacing={8}>
-              {notification.actions.map((action, i) => (
+              {notification.actions.map((action, _i) => (
                 <button
                   setup={setupCursorHover}
                   cssClasses={["popup-notification-action"]}
@@ -132,7 +132,12 @@ const PopupNotification = ({ notification, onClose, stackPosition, ...props }: P
 
 const NotificationOverlay = astalify(Gtk.Overlay);
 
-export const PopupNotifications = (props: Widget.BoxProps) => {
+interface PopupNotificationsProps extends Widget.BoxProps {
+  handleHoverChanged?: (hovered: boolean) => void;
+  onNotificationCountChanged?: (count: number) => void;
+}
+
+export const PopupNotifications = ({ handleHoverChanged, onNotificationCountChanged, ...props }: PopupNotificationsProps) => {
   log.debug("Creating popup notifications widget");
   const notifications = Variable<Array<[number, Notifd.Notification]>>([]);
   const isHovered = Variable(false);
@@ -160,12 +165,16 @@ export const PopupNotifications = (props: Widget.BoxProps) => {
       });
 
       // Add to notifications array
-      notifications.set([...notifications.get(), [id, notification]]);
+      const newNotifications = [...notifications.get(), [id, notification]];
+      notifications.set(newNotifications);
+      onNotificationCountChanged?.(newNotifications.length);
     });
 
     notifd.connect("resolved", (_notifd: Notifd.Notifd, id: number) => {
       log.debug("Removing notification popup", { id });
-      notifications.set(notifications.get().filter(([nId]) => nId !== id));
+      const newNotifications = notifications.get().filter(([nId]) => nId !== id);
+      notifications.set(newNotifications);
+      onNotificationCountChanged?.(newNotifications.length);
     });
   } else {
     log.warn("Notification service not available");
@@ -175,11 +184,9 @@ export const PopupNotifications = (props: Widget.BoxProps) => {
     <box
       halign={Gtk.Align.FILL}
       valign={Gtk.Align.START}
-      cssClasses={bind(isHovered).as(hovered => 
+      cssClasses={bind(isHovered).as(hovered =>
         ["popup-notifications-container", hovered ? "fanned-out" : "stacked"]
       )}
-      widthRequest={440}
-      heightRequest={520}
       onDestroy={() => {
         if (transitionTimeout) {
           GLib.source_remove(transitionTimeout);
@@ -190,7 +197,7 @@ export const PopupNotifications = (props: Widget.BoxProps) => {
     >
       {bind(notifications).as(notifs => {
         // Show only the last 4 notifications
-        const startIndex = Math.max(0, notifs.length - 4);
+        const startIndex = Math.max(0, notifs.length - 5);
         const visibleNotifs = notifs.slice(startIndex);
 
         if (visibleNotifs.length === 0) {
@@ -207,32 +214,34 @@ export const PopupNotifications = (props: Widget.BoxProps) => {
               // Set up hover detection for the entire notification area
               const motionController = new Gtk.EventControllerMotion();
               motionController.connect("enter", () => {
-                log.debug("Mouse entered notification container");
-                
+                log.info("Mouse entered notification container");
+
                 // Cancel any pending transition
                 if (transitionTimeout) {
                   GLib.source_remove(transitionTimeout);
                   transitionTimeout = null;
                 }
-                
+
                 isHovered.set(true);
+                handleHoverChanged?.(true);
               });
-              
+
               motionController.connect("leave", () => {
-                log.debug("Mouse left notification container");
-                
+                log.info("Mouse left notification container");
+
                 // Delay the collapse slightly for smoother UX
                 if (transitionTimeout) {
                   GLib.source_remove(transitionTimeout);
                 }
-                
+
                 transitionTimeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, () => {
                   isHovered.set(false);
+                  handleHoverChanged?.(false);
                   transitionTimeout = null;
                   return false;
                 });
               });
-              
+
               self.add_controller(motionController);
             }}
           >
@@ -246,7 +255,7 @@ export const PopupNotifications = (props: Widget.BoxProps) => {
             <box
               halign={Gtk.Align.END}
               valign={Gtk.Align.START}
-              cssClasses={bind(isHovered).as(hovered => 
+              cssClasses={bind(isHovered).as(hovered =>
                 hovered ? [`notification-position-${index}`, "fanned"] : [`notification-position-${index}`, "stacked"]
               )}
             >
@@ -256,9 +265,12 @@ export const PopupNotifications = (props: Widget.BoxProps) => {
                 onClose={() => {
                   log.debug("Closing notification", { id });
                   // Remove from our tracking
-                  notifications.set(notifications.get().filter(([nId]) => nId !== id));
+                  const newNotifications = notifications.get().filter(([nId]) => nId !== id);
+                  notifications.set(newNotifications);
+                  onNotificationCountChanged?.(newNotifications.length);
                   // Dismiss from notification daemon
                   notification.dismiss();
+                  // Don't manually remove overlay - let reactive binding handle it
                 }}
               />
             </box>

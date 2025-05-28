@@ -8,6 +8,7 @@ import SideLeft from "./widget/sidebar/views/left";
 import SideRight from "./widget/sidebar/views/right";
 import PopupNotificationsWindow from "./widget/overlays/popup-notifications-window";
 import IndicatorsWindow from "./widget/overlays/indicators-window";
+import MusicWindow from "./widget/overlays/music-window";
 import cliRequestHandler from "./handlers/cli";
 import LauncherBar from "./widget/launcher";
 import {
@@ -20,7 +21,7 @@ import "./services/clipboard-manager"; // Initialize clipboard manager
 
 // Set log level from environment or default to info
 import { GLib } from "astal";
-setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.DEBUG);
+setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.INFO);
 
 // Init shell modes for all active monitors
 initialMonitorShellModes();
@@ -42,15 +43,22 @@ App.start({
       log.debug(`Setting up widgets for monitor ${index}`);
 
       try {
+        // Top bars
         Bar({ gdkmonitor: gdkmonitor, index, mode: BarMode.Normal });
         BarCornerTopLeft({ gdkmonitor: gdkmonitor, index });
         BarCornerTopRight({ gdkmonitor: gdkmonitor, index });
 
+        // Side windows
         SideRight({ gdkmonitor: gdkmonitor, monitorIndex: index });
         SideLeft({ gdkmonitor: gdkmonitor, monitorIndex: index });
+
+        // Launcher bar
+        LauncherBar({ gdkmonitor, monitorIndex: index });
+
+        // Overlay windows
         PopupNotificationsWindow({ gdkmonitor: gdkmonitor, monitor: index });
         IndicatorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
-        LauncherBar({ gdkmonitor, monitorIndex: index });
+        MusicWindow({ gdkmonitor: gdkmonitor, monitor: index });
 
         log.info(`Monitor ${index} setup complete`);
       } catch (error) {

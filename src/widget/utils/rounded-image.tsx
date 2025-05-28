@@ -1,9 +1,11 @@
 import { Gtk, Widget } from "astal/gtk4"
-import { bind, Variable, Binding } from "astal"
+import { DrawingArea, DrawingAreaProps } from "./../utils/containers/drawing-area";
+import { Variable, Binding } from "astal"
 import GdkPixbuf from "gi://GdkPixbuf"
 import Cairo from "gi://cairo"
+import Gdk from "gi://Gdk?version=4.0"
 
-interface RoundedImageProps extends Widget.DrawingAreaProps {
+interface RoundedImageProps extends DrawingAreaProps {
     file: string
     size?: number | { width: number; height: number }
     radius?: number
@@ -36,61 +38,61 @@ export function RoundedImage({
     }
 
     return (
-        <drawingarea
-            cssClasses={["rounded-image", ...cssClasses]}
+        <DrawingArea
+            cssClasses={["rounded-image"]}
             widthRequest={width}
             heightRequest={height}
             {...rest}
-            onDraw={(widget, cr) => {
-                const allocation = widget.get_allocation()
-                const w = allocation.width
-                const h = allocation.height
+            setup={(self) => {
+                self.set_draw_func((widget, cr) => {
+                    const allocation = widget.get_allocation()
+                    const w = allocation.width
+                    const h = allocation.height
 
-                // Create rounded rectangle path
-                const degrees = Math.PI / 180.0
-                
-                cr.newSubPath()
-                cr.arc(w - radius, radius, radius, -90 * degrees, 0 * degrees)
-                cr.arc(w - radius, h - radius, radius, 0 * degrees, 90 * degrees)
-                cr.arc(radius, h - radius, radius, 90 * degrees, 180 * degrees)
-                cr.arc(radius, radius, radius, 180 * degrees, 270 * degrees)
-                cr.closePath()
+                    // Create rounded rectangle path
+                    const degrees = Math.PI / 180.0
 
-                // Clip to the rounded rectangle
-                cr.clip()
+                    cr.newSubPath()
+                    cr.arc(w - radius, radius, radius, -90 * degrees, 0 * degrees)
+                    cr.arc(w - radius, h - radius, radius, 0 * degrees, 90 * degrees)
+                    cr.arc(radius, h - radius, radius, 90 * degrees, 180 * degrees)
+                    cr.arc(radius, radius, radius, 180 * degrees, 270 * degrees)
+                    cr.closePath()
 
-                // Draw the image if loaded successfully
-                if (pixbuf) {
-                    // Scale the pixbuf to fit the allocation if needed
-                    const scaledPixbuf = pixbuf.scale_simple(
-                        w,
-                        h,
-                        GdkPixbuf.InterpType.BILINEAR
-                    )
+                    // Clip to the rounded rectangle
+                    cr.clip()
 
-                    if (scaledPixbuf) {
-                        // In GTK4, we need to use Cairo directly
-                        const surface = Cairo.ImageSurface.createFromPng("/dev/null")
-                        // Set source pixbuf using Cairo
-                        cr.setSourcePixbuf(scaledPixbuf, 0, 0)
+                    // Draw the image if loaded successfully
+                    if (pixbuf) {
+                        // Scale the pixbuf to fit the allocation if needed
+                        const scaledPixbuf = pixbuf.scale_simple(
+                            w,
+                            h,
+                            GdkPixbuf.InterpType.BILINEAR
+                        )
+
+                        if (scaledPixbuf) {
+                            // Use Gdk.cairo_set_source_pixbuf to set the pixbuf as source
+                            Gdk.cairo_set_source_pixbuf(cr, scaledPixbuf, 0, 0)
+                            cr.paint()
+                        }
+                    } else {
+                        // Draw placeholder or error state
+                        cr.setSourceRGBA(0.2, 0.2, 0.2, 0.8)
                         cr.paint()
-                    }
-                } else {
-                    // Draw placeholder or error state
-                    cr.setSourceRGBA(0.2, 0.2, 0.2, 0.8)
-                    cr.paint()
 
-                    // Draw error icon or text
-                    if (error) {
-                        cr.setSourceRGBA(1, 1, 1, 0.8)
-                        cr.selectFontFace("monospace", 0, 0)
-                        cr.setFontSize(Math.min(w, h) * 0.3)
-                        cr.moveTo(w * 0.5 - 10, h * 0.5 + 5)
-                        cr.showText("?")
+                        // Draw error icon or text
+                        if (error) {
+                            cr.setSourceRGBA(1, 1, 1, 0.8)
+                            cr.selectFontFace("monospace", 0, 0)
+                            cr.setFontSize(Math.min(w, h) * 0.3)
+                            cr.moveTo(w * 0.5 - 10, h * 0.5 + 5)
+                            cr.showText("?")
+                        }
                     }
-                }
 
-                return true
+                    return true
+                })
             }}
         />
     )
@@ -112,82 +114,82 @@ export function RoundedImageReactive({
     const height = typeof size === "number" ? size : size.height
 
     return (
-        <drawingarea
+        <DrawingArea
             cssClasses={["rounded-image", ...cssClasses]}
             widthRequest={width}
             heightRequest={height}
             setup={(self) => {
-                // Force redraw when file changes
-                file.subscribe(() => self.queueDraw())
-            }}
-            onDraw={(widget, cr) => {
-                const currentFile = file.get()
-                const allocation = widget.get_allocation()
-                const w = allocation.width
-                const h = allocation.height
+                self.set_draw_func((widget, cr) => {
 
-                let pixbuf: GdkPixbuf.Pixbuf | null = null
-                let error: Error | null = null
+                    const currentFile = file.get()
+                    const allocation = widget.get_allocation()
+                    const w = allocation.width
+                    const h = allocation.height
 
-                // Load the image if file path is provided
-                if (currentFile) {
-                    try {
-                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-                            currentFile,
-                            w,
-                            h,
-                            true // preserve aspect ratio
-                        )
-                    } catch (e) {
-                        error = e as Error
-                        console.error(`Failed to load image: ${currentFile}`, e)
+                    let pixbuf: GdkPixbuf.Pixbuf | null = null
+                    let error: Error | null = null
+
+                    // Load the image if file path is provided
+                    if (currentFile) {
+                        try {
+                            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                                currentFile,
+                                w,
+                                h,
+                                true // preserve aspect ratio
+                            )
+                        } catch (e) {
+                            error = e as Error
+                            console.error(`Failed to load image: ${currentFile}`, e)
+                        }
                     }
-                }
 
-                // Create rounded rectangle path
-                const degrees = Math.PI / 180.0
-                
-                cr.newSubPath()
-                cr.arc(w - radius, radius, radius, -90 * degrees, 0 * degrees)
-                cr.arc(w - radius, h - radius, radius, 0 * degrees, 90 * degrees)
-                cr.arc(radius, h - radius, radius, 90 * degrees, 180 * degrees)
-                cr.arc(radius, radius, radius, 180 * degrees, 270 * degrees)
-                cr.closePath()
+                    // Create rounded rectangle path
+                    const degrees = Math.PI / 180.0
 
-                // Clip to the rounded rectangle
-                cr.clip()
+                    cr.newSubPath()
+                    cr.arc(w - radius, radius, radius, -90 * degrees, 0 * degrees)
+                    cr.arc(w - radius, h - radius, radius, 0 * degrees, 90 * degrees)
+                    cr.arc(radius, h - radius, radius, 90 * degrees, 180 * degrees)
+                    cr.arc(radius, radius, radius, 180 * degrees, 270 * degrees)
+                    cr.closePath()
 
-                // Draw the image if loaded successfully
-                if (pixbuf) {
-                    cr.setSourcePixbuf(pixbuf, 0, 0)
-                    cr.paint()
-                } else if (!currentFile) {
-                    // Draw loading state
-                    cr.setSourceRGBA(0.3, 0.3, 0.3, 0.5)
-                    cr.paint()
-                    
-                    // Draw loading icon
-                    cr.setSourceRGBA(1, 1, 1, 0.6)
-                    cr.selectFontFace("monospace", 0, 0)
-                    cr.setFontSize(Math.min(w, h) * 0.3)
-                    cr.moveTo(w * 0.5 - 10, h * 0.5 + 5)
-                    cr.showText("⏳")
-                } else {
-                    // Draw placeholder or error state
-                    cr.setSourceRGBA(0.2, 0.2, 0.2, 0.8)
-                    cr.paint()
+                    // Clip to the rounded rectangle
+                    cr.clip()
 
-                    // Draw error icon or text
-                    if (error) {
-                        cr.setSourceRGBA(1, 1, 1, 0.8)
+                    // Draw the image if loaded successfully
+                    if (pixbuf) {
+                        Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+                        cr.paint()
+                    } else if (!currentFile) {
+                        // Draw loading state
+                        cr.setSourceRGBA(0.3, 0.3, 0.3, 0.5)
+                        cr.paint()
+
+                        // Draw loading icon
+                        cr.setSourceRGBA(1, 1, 1, 0.6)
                         cr.selectFontFace("monospace", 0, 0)
                         cr.setFontSize(Math.min(w, h) * 0.3)
                         cr.moveTo(w * 0.5 - 10, h * 0.5 + 5)
-                        cr.showText("?")
-                    }
-                }
+                        cr.showText("⏳")
+                    } else {
+                        // Draw placeholder or error state
+                        cr.setSourceRGBA(0.2, 0.2, 0.2, 0.8)
+                        cr.paint()
 
-                return true
+                        // Draw error icon or text
+                        if (error) {
+                            cr.setSourceRGBA(1, 1, 1, 0.8)
+                            cr.selectFontFace("monospace", 0, 0)
+                            cr.setFontSize(Math.min(w, h) * 0.3)
+                            cr.moveTo(w * 0.5 - 10, h * 0.5 + 5)
+                            cr.showText("?")
+                        }
+                    }
+
+                    return true
+                })
+                file.subscribe(() => self.queue_draw())
             }}
         />
     )
@@ -206,7 +208,7 @@ export function RoundedIcon({
     cssClasses?: string[]
 }) {
     return (
-        <drawingarea
+        <DrawingArea
             cssClasses={["rounded-icon", ...cssClasses]}
             widthRequest={size}
             heightRequest={size}
@@ -217,7 +219,7 @@ export function RoundedIcon({
 
                 // Create rounded rectangle path
                 const degrees = Math.PI / 180.0
-                
+
                 cr.newSubPath()
                 cr.arc(w - radius, radius, radius, -90 * degrees, 0 * degrees)
                 cr.arc(w - radius, h - radius, radius, 0 * degrees, 90 * degrees)
@@ -237,16 +239,33 @@ export function RoundedIcon({
                         Math.min(w, h),
                         1,
                         Gtk.TextDirection.NONE,
-                        Gtk.IconLookupFlags.NONE
+                        Gtk.IconLookupFlags.PRELOAD
                     )
-                    
+
                     if (iconInfo) {
-                        const pixbuf = iconInfo.load_icon()
-                        if (pixbuf) {
-                            cr.setSourcePixbuf(pixbuf, 0, 0)
-                            cr.paint()
+                        // In GTK4, we need to load the icon as a pixbuf differently
+                        // Try to get the file path and load as pixbuf
+                        const file = iconInfo.get_file()
+                        if (file) {
+                            const path = file.get_path()
+                            if (path) {
+                                const pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                                    path,
+                                    Math.min(w, h),
+                                    Math.min(w, h),
+                                    true
+                                )
+                                if (pixbuf) {
+                                    Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+                                    cr.paint()
+                                } else {
+                                    throw new Error("Failed to load icon pixbuf")
+                                }
+                            } else {
+                                throw new Error("Failed to get icon path")
+                            }
                         } else {
-                            throw new Error("Failed to load icon")
+                            throw new Error("Failed to get icon file")
                         }
                     } else {
                         throw new Error("Icon not found")

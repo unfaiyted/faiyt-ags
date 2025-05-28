@@ -1,11 +1,6 @@
-import { Widget, Astal, Gtk } from "astal/gtk4";
-import { ClickButtonPressed } from "../../../../types";
-import { actions } from "../../../../utils/actions";
-import { setupCursorHover } from "../../../utils/buttons";
 import Network from "gi://AstalNetwork";
 import Bluetooth from "gi://AstalBluetooth";
-import { Variable, bind, Binding } from "astal";
-import config from "../../../../utils/config";
+import { Variable, bind, } from "astal";
 import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../../utils/icons/types";
 
@@ -20,8 +15,8 @@ export const BluetoothIndicator = () => {
   });
 
   return (
-    <PhosphorIcon 
-      iconName={bind(iconName)} 
+    <PhosphorIcon
+      iconName={bind(iconName)}
       size={20}
       cssName="indicator-icon"
     />
@@ -29,13 +24,13 @@ export const BluetoothIndicator = () => {
 };
 
 export const SimpleNetworkIndicator = () => {
-  const iconName = network.primary == Network.Primary.WIFI 
-    ? PhosphorIcons.WifiHigh 
+  const iconName = network.primary == Network.Primary.WIFI
+    ? PhosphorIcons.WifiHigh
     : PhosphorIcons.HardDrives;
-    
+
   return (
-    <PhosphorIcon 
-      iconName={iconName} 
+    <PhosphorIcon
+      iconName={iconName}
       size={20}
       cssName="indicator-icon"
     />
@@ -72,8 +67,8 @@ export const NetworkWiredIndicator = () => {
   updateIcon();
 
   return (
-    <PhosphorIcon 
-      iconName={bind(iconName)} 
+    <PhosphorIcon
+      iconName={bind(iconName)}
       size={20}
       cssName="indicator-icon"
     />
@@ -114,8 +109,8 @@ export const NetworkWifiIndicator = () => {
   updateIcon();
 
   return (
-    <PhosphorIcon 
-      iconName={bind(iconName)} 
+    <PhosphorIcon
+      iconName={bind(iconName)}
       size={20}
       cssName="indicator-icon"
     />

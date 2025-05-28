@@ -5,7 +5,6 @@ import { VolumeIndicator } from "./indicators/volume";
 import Indicators from "./indicators/index";
 import PopupNotifications from "./popup-notifications";
 import { createLogger } from "../../utils/logger";
-// import { MusicControls } from "./music";
 // import { Notifications } from "./notifications";
 // import { ColorSchemeSwitcher } from "./scheme-switcher";
 
@@ -34,8 +33,6 @@ export const SystemOverlays = (props: SystemOverlayProps) => {
             <KBBacklightBrightnessIndicator />
             <VolumeIndicator />
           </Indicators>
-
-          {/* <MusicControls /> */}
 
           {/* <ColorSchemeSwitcher /> */}
         </box>

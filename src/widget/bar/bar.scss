@@ -168,3 +168,71 @@ bar-space-button {
   padding-top: 2px;
   padding-left: 10px;
 }
+
+/* Music module styles */
+.bar-music-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+
+  &:hover bar-group {
+    background-color: colors.c(hover);
+  }
+}
+
+.bar-music-playstate,
+.bar-music-playstate-playing {
+  transition: all 300ms ease;
+}
+
+.bar-music-icon {
+  color: colors.c(foreground);
+  font-size: 14px;
+}
+
+.bar-music-progress {
+  color: colors.c(primary);
+}
+
+.bar-music-title {
+  color: colors.c(foreground);
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+.bar-music-artist {
+  color: colors.c(foreground-alt);
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+
+@keyframes pulse-music {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+
+  25% {
+    transform: translateX(1px) translateY(-1px) rotate(5deg);
+  }
+
+  50% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+
+  75% {
+    transform: translateX(-1px) translateY(-1px) rotate(-5deg);
+  }
+
+  100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+}
+
+bar-music-playstate-icon {
+  &.playing-animation {
+    animation: pulse-music 1.5s ease-in-out infinite;
+  }
+}

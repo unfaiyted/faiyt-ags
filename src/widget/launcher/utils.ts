@@ -1,5 +1,9 @@
 import { Variable, bind } from "astal";
-import { SearchType, SCREEN_TRIGGER_KEYWORDS, APP_TRIGGER_KEYWORDS } from "./types";
+import {
+  SearchType,
+  SCREEN_TRIGGER_KEYWORDS,
+  APP_TRIGGER_KEYWORDS,
+} from "./types";
 import { launcherLogger as log } from "../../utils/logger";
 
 /**
@@ -14,26 +18,27 @@ import { launcherLogger as log } from "../../utils/logger";
 
 // Define search prefix mappings
 export const SEARCH_PREFIXES: Record<string, SearchType> = {
-  'app:': SearchType.APPS,
-  'apps:': SearchType.APPS,
-  'a:': SearchType.APPS,
-  'screen:': SearchType.SCREENCAPTURE,
-  'screenshot:': SearchType.SCREENCAPTURE,
-  'sc:': SearchType.SCREENCAPTURE,
-  's:': SearchType.SCREENCAPTURE,
-  'capture:': SearchType.SCREENCAPTURE,
-  'record:': SearchType.SCREENCAPTURE,
-  'cmd:': SearchType.COMMANDS,
-  'command:': SearchType.COMMANDS,
-  'run:': SearchType.COMMANDS,
-  '$:': SearchType.COMMANDS,
-  '>:': SearchType.COMMANDS,
-  'sys:': SearchType.SYSTEM,
-  'system:': SearchType.SYSTEM,
-  'action:': SearchType.SYSTEM,
-  'clip:': SearchType.CLIPBOARD,
-  'clipboard:': SearchType.CLIPBOARD,
-  'cb:': SearchType.CLIPBOARD,
+  "app:": SearchType.APPS,
+  "apps:": SearchType.APPS,
+  "a:": SearchType.APPS,
+  "screen:": SearchType.SCREENCAPTURE,
+  "screenshot:": SearchType.SCREENCAPTURE,
+  "sc:": SearchType.SCREENCAPTURE,
+  "s:": SearchType.SCREENCAPTURE,
+  "capture:": SearchType.SCREENCAPTURE,
+  "record:": SearchType.SCREENCAPTURE,
+  "cmd:": SearchType.COMMANDS,
+  "command:": SearchType.COMMANDS,
+  "run:": SearchType.COMMANDS,
+  "$:": SearchType.COMMANDS,
+  ">:": SearchType.COMMANDS,
+  "sys:": SearchType.SYSTEM,
+  "system:": SearchType.SYSTEM,
+  "action:": SearchType.SYSTEM,
+  "clip:": SearchType.CLIPBOARD,
+  "clipboard:": SearchType.CLIPBOARD,
+  "cb:": SearchType.CLIPBOARD,
+  "cp:": SearchType.CLIPBOARD,
 };
 
 export interface ParsedSearch {
@@ -46,14 +51,14 @@ export interface ParsedSearch {
 export function parseSearchText(text: string): ParsedSearch {
   const trimmedText = text.trim();
   const lowerText = trimmedText.toLowerCase();
-  
+
   log.debug("parseSearchText called", {
     originalText: text,
     trimmedText,
     lowerText,
-    availablePrefixes: Object.keys(SEARCH_PREFIXES)
+    availablePrefixes: Object.keys(SEARCH_PREFIXES),
   });
-  
+
   // Check for explicit prefixes first
   for (const [prefix, type] of Object.entries(SEARCH_PREFIXES)) {
     if (lowerText.startsWith(prefix)) {
@@ -62,26 +67,26 @@ export function parseSearchText(text: string): ParsedSearch {
         prefix,
         type,
         parsedQuery,
-        hasPrefix: true
+        hasPrefix: true,
       });
       return {
         type,
         query: parsedQuery,
-        hasPrefix: true
+        hasPrefix: true,
       };
     }
   }
-  
+
   // If no prefix, return full query with ALL type
   log.debug("No prefix found, using ALL search", {
     type: SearchType.ALL,
     query: trimmedText,
-    hasPrefix: false
+    hasPrefix: false,
   });
   return {
     type: SearchType.ALL,
     query: trimmedText,
-    hasPrefix: false
+    hasPrefix: false,
   };
 }
 

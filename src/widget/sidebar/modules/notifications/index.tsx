@@ -23,8 +23,15 @@ const notifd = getNotifd();
 
 export const NotificationListEmpty = (props: Widget.BoxProps) => {
   return (
-    <box cssClasses={["notification-empty"]} {...props}>
-      <box vertical valign={Gtk.Align.CENTER}>
+    <box 
+      cssClasses={["notification-empty"]} 
+      valign={Gtk.Align.CENTER}
+      halign={Gtk.Align.CENTER}
+      hexpand
+      vexpand
+      {...props}
+    >
+      <box vertical halign={Gtk.Align.CENTER}>
         <PhosphorIcon
           iconName={PhosphorIcons.BellSlash}
           size={48}

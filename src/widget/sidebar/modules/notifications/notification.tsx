@@ -419,7 +419,6 @@ export default function Notification(props: NotificationProps) {
                       log.error('Failed to copy image', { error: e, imagePath });
                     }
                   }}
-                  setup={setupCursorHover}
                   marginEnd={8}
                 >
                   <box spacing={6}>

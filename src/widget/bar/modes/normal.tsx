@@ -42,7 +42,9 @@ export default function NormalBarMode(barModeProps: NormalBarContentProps) {
         >
           <SideModule>
             <System />
-            <Music />
+            <Music
+              monitorIndex={props.monitorIndex}
+            />
           </SideModule>
           <Workspaces
             mode={props.mode}
@@ -66,13 +68,12 @@ export default function NormalBarMode(barModeProps: NormalBarContentProps) {
             <Clock />
             <Weather />
             <box
-              marginStart={80}
+              marginStart={40}
               halign={Gtk.Align.END}
               hexpand
             >
-
-              <StatusIndicators />
-              <Tray />
+              {/* <StatusIndicators /> */}
+              {/* <Tray /> */}
             </box>
           </box>
         </RightModule>

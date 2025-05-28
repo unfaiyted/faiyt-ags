@@ -4,6 +4,8 @@ import { Variable } from "astal";
 import { execAsync } from "astal/process";
 import { serviceLogger as log } from "../utils/logger";
 import Hypr from "gi://AstalHyprland";
+import desktopScanner from "../services/desktop-scanner";
+import { showMusicOverlay, hideMusicOverlay } from "../widget/overlays/music-window";
 
 type WindowPosition = "left" | "right" | "top" | "bottom";
 type SystemAction = "sleep" | "shutdown" | "restart" | "logout";
@@ -54,13 +56,28 @@ export default async function cliRequestHandler(
 
       // command ex: ags request "volume set 50"
       case "volume":
-        log.info("Handling volume control", { action: params[0], value: params[1] });
+        log.info("Handling volume control", {
+          action: params[0],
+          value: params[1],
+        });
         return handleVolumeControl(params[0], parseInt(params[1]), res);
 
       // command ex: ags request "layout tiling"
       case "layout":
         log.info("Changing layout", { layout: params[0] });
         return handleLayoutChange(params[0], res);
+
+      // command ex: ags request "desktop scan"
+      // command ex: ags request "desktop create-appimage-entries"
+      case "desktop":
+        log.info("Handling desktop command", { action: params[0] });
+        return handleDesktopCommand(params[0], res);
+
+      // command ex: ags request "music show"
+      // command ex: ags request "music hide"
+      case "music":
+        log.info("Handling music overlay command", { action: params[0] });
+        return handleMusicCommand(params[0], res);
 
       default:
         log.warn("Unknown command received", { command });
@@ -100,20 +117,26 @@ function handleWindowCommand(
   }
 
   let windowName = `${position}`;
-  
+
   // For toggle/show/hide actions, if window name doesn't include monitor suffix, add it based on focused monitor
-  if ((action === "toggle" || action === "show" || action === "hide" || action === "close") 
-      && position && !position.match(/-\d+$/)) {
+  if (
+    (action === "toggle" ||
+      action === "show" ||
+      action === "hide" ||
+      action === "close") &&
+    position &&
+    !position.match(/-\d+$/)
+  ) {
     try {
       const hypr = Hypr.get_default();
       const focusedMonitor = hypr.get_focused_monitor();
       const monitorId = focusedMonitor?.id ?? 0;
       windowName = `${position}-${monitorId}`;
-      log.debug("Added monitor suffix to window name", { 
-        originalName: position, 
-        windowName, 
+      log.debug("Added monitor suffix to window name", {
+        originalName: position,
+        windowName,
         monitorId,
-        action
+        action,
       });
     } catch (error) {
       log.error("Failed to get focused monitor", { error });
@@ -121,7 +144,7 @@ function handleWindowCommand(
       windowName = `${position}-0`;
     }
   }
-  
+
   const window = App?.get_window(windowName);
 
   if (!window) {
@@ -137,7 +160,10 @@ function handleWindowCommand(
   switch (action) {
     case "toggle":
       window.visible = !window.visible;
-      log.info("Toggled window visibility", { windowName, visible: window.visible });
+      log.info("Toggled window visibility", {
+        windowName,
+        visible: window.visible,
+      });
       break;
     case "show":
       window.visible = true;
@@ -188,7 +214,9 @@ async function handleSystemCommand(
   }
 
   try {
-    log.warn(`Executing system action: ${action}`, { command: commands[action] });
+    log.warn(`Executing system action: ${action}`, {
+      command: commands[action],
+    });
     await execAsync(commands[action]);
     log.info(`System ${action} initiated successfully`);
     return res(
@@ -221,7 +249,10 @@ function handleThemeSwitch(theme: string, res: (response: string) => void) {
     );
   }
 
-  log.info("Theme switched", { previousTheme: currentTheme.get(), newTheme: theme });
+  log.info("Theme switched", {
+    previousTheme: currentTheme.get(),
+    newTheme: theme,
+  });
   currentTheme.set(theme);
   // Additional theme switching logic here
 
@@ -240,7 +271,7 @@ function handleVolumeControl(
   res: (response: string) => void,
 ) {
   const previousVolume = volume.get();
-  
+
   switch (action) {
     case "set":
       if (value < 0 || value > 100) {
@@ -299,4 +330,134 @@ function handleLayoutChange(layout: string, res: (response: string) => void) {
       message: `Layout changed to ${layout}`,
     }),
   );
+}
+
+function handleDesktopCommand(action: string, res: (response: string) => void) {
+  switch (action) {
+    case "scan":
+      log.info("Scanning for desktop files and AppImages");
+      desktopScanner.scan();
+      const apps = desktopScanner.applications;
+      const appImages = apps.filter((app) => app.isAppImage);
+      return res(
+        JSON.stringify({
+          success: true,
+          message: `Found ${apps.length} applications (${appImages.length} AppImages)`,
+          data: {
+            totalApps: apps.length,
+            appImages: appImages.length,
+            desktopFiles: apps.length - appImages.length,
+          },
+        }),
+      );
+
+    case "create-appimage-entries":
+      log.info("Creating desktop entries for AppImages");
+      desktopScanner.createDesktopFilesForAllAppImages();
+      return res(
+        JSON.stringify({
+          success: true,
+          message: "Desktop entries created for AppImages",
+        }),
+      );
+
+    default:
+      log.warn("Invalid desktop action", { action });
+      return res(
+        JSON.stringify({
+          success: false,
+          message:
+            "Invalid desktop action. Use 'scan' or 'create-appimage-entries'",
+        }),
+      );
+  }
+}
+
+function handleMusicCommand(action: string, res: (response: string) => void) {
+  switch (action) {
+    case "show":
+      log.info("Showing music overlay");
+      try {
+        // Get focused monitor
+        const hypr = Hypr.get_default();
+        const focusedMonitor = hypr.get_focused_monitor();
+        const monitorId = focusedMonitor?.id ?? 0;
+        
+        showMusicOverlay(monitorId);
+        return res(
+          JSON.stringify({
+            success: true,
+            message: "Music overlay shown",
+          }),
+        );
+      } catch (error) {
+        log.error("Failed to show music overlay", { error });
+        return res(
+          JSON.stringify({
+            success: false,
+            message: "Failed to show music overlay",
+          }),
+        );
+      }
+
+    case "hide":
+      log.info("Hiding music overlay");
+      try {
+        // Get focused monitor
+        const hypr = Hypr.get_default();
+        const focusedMonitor = hypr.get_focused_monitor();
+        const monitorId = focusedMonitor?.id ?? 0;
+        
+        hideMusicOverlay(monitorId);
+        return res(
+          JSON.stringify({
+            success: true,
+            message: "Music overlay hidden",
+          }),
+        );
+      } catch (error) {
+        log.error("Failed to hide music overlay", { error });
+        return res(
+          JSON.stringify({
+            success: false,
+            message: "Failed to hide music overlay",
+          }),
+        );
+      }
+
+    case "toggle":
+      log.info("Toggling music overlay");
+      try {
+        // For toggle, we need to check current state
+        // Since we don't have a direct way to check, we'll just show it
+        const hypr = Hypr.get_default();
+        const focusedMonitor = hypr.get_focused_monitor();
+        const monitorId = focusedMonitor?.id ?? 0;
+        
+        showMusicOverlay(monitorId);
+        return res(
+          JSON.stringify({
+            success: true,
+            message: "Music overlay toggled",
+          }),
+        );
+      } catch (error) {
+        log.error("Failed to toggle music overlay", { error });
+        return res(
+          JSON.stringify({
+            success: false,
+            message: "Failed to toggle music overlay",
+          }),
+        );
+      }
+
+    default:
+      log.warn("Invalid music action", { action });
+      return res(
+        JSON.stringify({
+          success: false,
+          message: "Invalid music action. Use 'show', 'hide', or 'toggle'",
+        }),
+      );
+  }
 }

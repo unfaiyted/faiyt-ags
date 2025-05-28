@@ -232,17 +232,19 @@ notification-list {
 }
 
 .notification-empty {
-  padding: 48px 24px;
   color: colors.c(foreground-muted);
+  min-height: 200px;
 
   .empty-icon {
     font-size: 48px;
     margin-bottom: 12px;
+    opacity: 0.5;
   }
 
   .empty-text {
     font-size: 14px;
     font-weight: 500;
+    opacity: 0.7;
   }
 }
 
@@ -1533,7 +1535,16 @@ toggle-label {
 
 // Modern toggle switch styling
 toggle-switch-container {
+  margin-top: 2px;
   padding: 2px 0;
+  background: colors.c(muted);
+  border-radius: 12px;
+  width: 20px;
+  height: 20px;
+
+  &.active {
+    background: colors.c(secondary);
+  }
 }
 
 toggle-switch {

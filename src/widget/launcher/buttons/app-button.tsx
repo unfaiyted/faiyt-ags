@@ -42,7 +42,6 @@ export default function AppButton(props: AppButtonProps) {
       }}
       setup={(self: Gtk.Button) => {
         if (props.ref) {
-          print("Setting up AppButton ref");
           props.ref(self);
         }
       }}
