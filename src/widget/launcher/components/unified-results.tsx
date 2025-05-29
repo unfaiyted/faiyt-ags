@@ -1,8 +1,6 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { Variable, bind, } from "astal";
 import config from "../../../utils/config";
-import AppButton from "../buttons/app-button";
-import CustomAppButton from "../buttons/custom-app-button";
 import ResultGroupWrapper from "./result-group-wrapper";
 import { SearchType } from "../types";
 import { launcherLogger as log } from "../../../utils/logger";
@@ -241,8 +239,8 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
 
     log.debug("Selecting next", { currentIndex, nextIndex, totalItems });
     selectedIndex.set(nextIndex);
-    buttonRefs[nextIndex]?.set_focusable(true);
-    buttonRefs[nextIndex]?.grab_focus();
+    buttonRefs[nextIndex - 1]?.set_focusable(true);
+    buttonRefs[nextIndex - 1]?.grab_focus();
     ensureSelectedVisible(nextIndex);
   };
 

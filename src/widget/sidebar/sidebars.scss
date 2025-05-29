@@ -33,7 +33,9 @@ sidebar {
 
   // drop shadow
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  min-width: 200px;
+  // Width constraints for better control
+  min-width: 300px;
+  max-width: 400px;
 
 }
 
@@ -1593,7 +1595,7 @@ tab-header-wrapper {
   border-radius: 12px;
   border: 1px solid colors.c(border);
   padding: 4px;
-  margin: 0 16px 8px 16px;
+  margin: 0 8px 8px 8px;
 }
 
 tab-header {
@@ -1655,7 +1657,7 @@ tab-label {
 }
 
 tab-content-wrapper {
-  padding: 0 8px;
+  padding: 0 4px;
 
   // Give more space for notifications
   [name="notifications"] & {
@@ -1923,7 +1925,7 @@ ai-module {}
 ai-chat-container {
   background: colors.c(background-elevated);
   border-radius: 12px;
-  padding: 12px;
+  padding: 8px;
   border: 1px solid colors.c(border);
   margin-bottom: 16px;
 }
@@ -2030,8 +2032,8 @@ sidebar-chat-wrapper {
 
 // Chat messages container
 sidebar-chat-message {
-  margin: 8px 16px;
-  padding: 12px;
+  margin: 6px 8px;
+  padding: 10px;
   background: colors.c(background-elevated, 0.3);
   border: 1px solid colors.c(border, 0.3);
   border-radius: 12px;
@@ -2205,7 +2207,7 @@ sidebar-chat-textarea {
 sidebar-chat-input-container {
   margin-right: 0;
   padding: 0 8px;
-  width: 100px;
+  // Removed fixed width to allow flexible sizing
 }
 
 sidebar-chat-input-wrapper {
@@ -2298,8 +2300,8 @@ sidebar-chat-send {
 
 // System messages
 sidebar-chat-system-message {
-  margin: 8px 16px;
-  padding: 12px;
+  margin: 6px 8px;
+  padding: 10px;
   background: colors.c(info, 0.1);
   border: 1px solid colors.c(info, 0.2);
   border-radius: 8px;
@@ -2327,7 +2329,7 @@ sidebar-chat-system-message {
 
 // Chat header
 ai-chat-header {
-  padding: 12px 16px;
+  padding: 8px 12px;
   background: colors.c(background-elevated, 0.3);
   border-bottom: 1px solid colors.c(border, 0.3);
 }
@@ -2418,7 +2420,7 @@ command-suggestions {
   background: colors.c(background, 0.95);
   border: 1px solid colors.c(border);
   border-radius: 12px;
-  margin: 0 16px 8px 16px;
+  margin: 0 8px 8px 8px;
   backdrop-filter: blur(20px);
   box-shadow: 0 -4px 12px colors.c(base, 0.2);
   overflow: hidden;

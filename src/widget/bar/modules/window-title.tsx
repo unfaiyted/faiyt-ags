@@ -2,7 +2,9 @@ import { Widget, Gtk } from "astal/gtk4";
 import { Variable } from "astal";
 import Hypr from "gi://AstalHyprland";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
+import { PhosphorIconStyle } from "../../utils/icons/types";
 import BarGroup from "../utils/bar-group";
+
 import { theme } from "../../../utils/color";
 
 export interface WindowTitleProps extends Widget.BoxProps { }
@@ -104,6 +106,7 @@ export default function WindowTitle() {
       >
         {/* Application Icon */}
         <box
+          marginTop={3}
           setup={(iconBox) => {
             const updateIcon = () => {
               // Clear existing children
@@ -118,7 +121,7 @@ export default function WindowTitle() {
               const icon = (
                 <PhosphorIcon
                   iconName={iconName}
-                  style="duotone"
+                  style={PhosphorIconStyle.Duotone}
                   size={16}
                   color={theme.foreground}
                 />
@@ -136,7 +139,8 @@ export default function WindowTitle() {
         {/* Window Title */}
         <label
           xalign={0}
-          marginStart={7}
+          marginStart={9}
+          marginTop={2}
           cssName="bar-wintitle-txt"
           setup={(label) => {
             const updateLabel = () => {

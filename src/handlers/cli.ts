@@ -5,7 +5,10 @@ import { execAsync } from "astal/process";
 import { serviceLogger as log } from "../utils/logger";
 import Hypr from "gi://AstalHyprland";
 import desktopScanner from "../services/desktop-scanner";
-import { showMusicOverlay, hideMusicOverlay } from "../widget/overlays/music-window";
+import {
+  showMusicOverlay,
+  hideMusicOverlay,
+} from "../widget/overlays/music-window";
 
 type WindowPosition = "left" | "right" | "top" | "bottom";
 type SystemAction = "sleep" | "shutdown" | "restart" | "logout";
@@ -145,16 +148,26 @@ function handleWindowCommand(
     }
   }
 
-  const window = App?.get_window(windowName);
+  let window = App?.get_window(windowName);
 
   if (!window) {
     log.warn("Window not found", { windowName });
-    return res(
-      JSON.stringify({
-        success: false,
-        message: `Window ${windowName} not found`,
-      }),
-    );
+    // try without the monitor number
+    window = App?.get_window(`${position}`);
+    if (!window) {
+      log.warn("Window not found, trying without monitor number", {
+        windowName,
+      });
+      return res(
+        JSON.stringify({
+          success: true,
+          message: `Window ${windowName} not found`,
+          data: {
+            windowName,
+          },
+        }),
+      );
+    }
   }
 
   switch (action) {
@@ -382,7 +395,7 @@ function handleMusicCommand(action: string, res: (response: string) => void) {
         const hypr = Hypr.get_default();
         const focusedMonitor = hypr.get_focused_monitor();
         const monitorId = focusedMonitor?.id ?? 0;
-        
+
         showMusicOverlay(monitorId);
         return res(
           JSON.stringify({
@@ -407,7 +420,7 @@ function handleMusicCommand(action: string, res: (response: string) => void) {
         const hypr = Hypr.get_default();
         const focusedMonitor = hypr.get_focused_monitor();
         const monitorId = focusedMonitor?.id ?? 0;
-        
+
         hideMusicOverlay(monitorId);
         return res(
           JSON.stringify({
@@ -433,7 +446,7 @@ function handleMusicCommand(action: string, res: (response: string) => void) {
         const hypr = Hypr.get_default();
         const focusedMonitor = hypr.get_focused_monitor();
         const monitorId = focusedMonitor?.id ?? 0;
-        
+
         showMusicOverlay(monitorId);
         return res(
           JSON.stringify({

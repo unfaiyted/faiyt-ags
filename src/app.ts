@@ -18,6 +18,7 @@ import {
 import { systemLogger, log, setLogLevel, LogLevel } from "./utils/logger";
 import { logSystemInfo } from "./services/logger";
 import "./services/clipboard-manager"; // Initialize clipboard manager
+import ContextMenuWindow from "./widget/utils/context-menu";
 
 // Set log level from environment or default to info
 import { GLib } from "astal";
@@ -59,6 +60,8 @@ App.start({
         PopupNotificationsWindow({ gdkmonitor: gdkmonitor, monitor: index });
         IndicatorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
         MusicWindow({ gdkmonitor: gdkmonitor, monitor: index });
+
+        // Context menu window (one per monitor)
 
         log.info(`Monitor ${index} setup complete`);
       } catch (error) {

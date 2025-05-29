@@ -1,0 +1,142 @@
+@use "styles/colors";
+
+context-menu-window {
+  background: transparent;
+}
+
+context-menu-overlay {
+  background: transparent;
+}
+
+context-menu {
+  // Glassmorphism effect
+  background: colors.c(background-elevated, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid colors.c(border, 0.2);
+
+  border-radius: 16px;
+  padding: 8px;
+  min-width: 200px;
+  animation: context-menu-show 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  position: relative;
+  overflow: hidden;
+
+  // Multiple shadow layers for depth
+  box-shadow:
+    0 0 0 1px colors.c(border, 0.1),
+    0 8px 32px 0 colors.c(background-alt, 0.15),
+    0 2px 8px 0 colors.c(background-alt, 0.08),
+    inset 0 1px 0 0 colors.c(background-elevated, 0.1),
+    inset 0 -1px 0 0 colors.c(background-alt, 0.05);
+
+  // Glass shimmer effect
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent,
+        colors.c(primary, 0.05),
+        transparent);
+    animation: shimmer 8s infinite;
+    pointer-events: none;
+  }
+}
+
+context-menu-item {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 2px 0;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  color: colors.c(text);
+
+  &:hover:not(.disabled) {
+    background: colors.c(primary, 0.1);
+    transform: translateX(2px);
+    box-shadow:
+      0 0 0 1px colors.c(primary, 0.2),
+      inset 0 1px 0 0 colors.c(primary, 0.1);
+  }
+
+  &:active:not(.disabled) {
+    background: colors.c(primary, 0.15);
+    transform: translateX(1px);
+  }
+
+  &.danger {
+    .context-menu-label {
+      color: colors.c(error);
+    }
+
+    .context-menu-icon {
+      color: colors.c(error);
+    }
+
+    &:hover:not(.disabled) {
+      background: colors.c(error, 0.1);
+      box-shadow:
+        0 0 0 1px colors.c(error, 0.2),
+        inset 0 1px 0 0 colors.c(error, 0.1);
+    }
+
+    &:active:not(.disabled) {
+      background: colors.c(error, 0.15);
+    }
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    .context-menu-label {
+      color: colors.c(text, 0.5);
+    }
+
+    .context-menu-icon {
+      color: colors.c(text, 0.5);
+    }
+  }
+}
+
+context-menu-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+context-menu-icon {
+  color: colors.c(text, 0.7);
+}
+
+context-menu-separator {
+  background: colors.c(border, 0.1);
+  margin: 6px 8px;
+  min-height: 1px;
+}
+
+@keyframes context-menu-show {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 200%;
+  }
+}

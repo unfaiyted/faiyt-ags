@@ -50,7 +50,6 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
   };
 
   const eventBoxSetup = (self: Gtk.Box) => {
-    // setup?.(self);
 
     let clicked = false;
 
@@ -74,14 +73,22 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
     // Handle click press events
     clickController.connect("pressed", (controller, n_press, x, y) => {
       const button = clickController.get_current_button();
+      print("Workspaces button pressed:", button);
 
-      if (button === ClickButtonPressed.LEFT.valueOf()) {
-        clicked = true;
-      } else if (button === 8) {
-        hypr.message_async(
-          `dispatch togglespecialworkspace`,
-          handleHyprResponse,
-        );
+      if (button === Gdk.BUTTON_PRIMARY) {
+        print("Primary button pressed");
+
+        const wsWidth = 23;
+
+        const wsClicked = Math.ceil((x) / wsWidth);
+        print("Workspace clicked:", wsClicked);
+
+        hypr.message_async(`dispatch workspace ${wsClicked - 1}`, handleHyprResponse);
+      } else if (button === Gdk.BUTTON_SECONDARY) {
+        // hypr.message_async(
+        //   `dispatch togglespecialworkspace`,
+        //   handleHyprResponse,
+        // );
       }
     });
 

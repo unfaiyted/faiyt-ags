@@ -1,4 +1,4 @@
-import { Widget, Gtk } from "astal/gtk4";
+import { Widget, Gtk, Gdk } from "astal/gtk4";
 import { getDistroIcon } from "../../../utils/system";
 import { ReloadIconButton } from "./buttons/reload";
 import { SettingsIconButton } from "./buttons/settings";
@@ -8,7 +8,10 @@ import { getUptime } from "../../../utils/system";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../utils/icons/types";
 
-export interface HeaderModuleProps extends Widget.BoxProps { }
+export interface HeaderModuleProps extends Widget.BoxProps {
+  gdkmonitor: Gdk.Monitor;
+  monitorIndex: number;
+}
 
 export default function HeaderModule(props: HeaderModuleProps) {
   const uptime = Variable("").poll(5000, async () => await getUptime());

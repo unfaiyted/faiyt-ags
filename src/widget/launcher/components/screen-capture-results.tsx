@@ -1,10 +1,8 @@
-import { Widget, Gtk } from "astal/gtk4";
-import { Variable, bind, Binding } from "astal";
-import ScreenCaptureButton, {
+import { Variable, } from "astal";
+import {
   ScreenCaptureOption,
   generateScreenCaptureOptions
 } from "../buttons/screen-capture-button";
-import config from "../../../utils/config";
 
 import { SCREEN_TRIGGER_KEYWORDS } from "../types";
 import { launcherLogger as log } from "../../../utils/logger";
@@ -13,8 +11,6 @@ export interface ScreenButtonResult {
   screenCapture: ScreenCaptureOption;
   index: number;
 }
-
-
 
 export default function getScreenCaptureResults(searchText: string, isPrefixSearch: boolean = false): ScreenButtonResult[] {
   log.debug("getScreenCaptureResults called", {

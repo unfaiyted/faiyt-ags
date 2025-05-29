@@ -194,10 +194,10 @@ export default function ToolModules(props: Widget.BoxProps) {
 
   const categories = [
     { id: 'all', name: 'All', icon: PhosphorIcons.SquaresFour },
-    { id: 'development', name: 'Development', icon: PhosphorIcons.Code },
+    { id: 'development', name: 'Dev', icon: PhosphorIcons.Code },
     { id: 'system', name: 'System', icon: PhosphorIcons.Desktop },
     { id: 'network', name: 'Network', icon: PhosphorIcons.WifiHigh },
-    { id: 'monitoring', name: 'Monitoring', icon: PhosphorIcons.ChartLine }
+    { id: 'monitoring', name: 'Monitor', icon: PhosphorIcons.ChartLine }
   ];
 
   const executeTool = async (tool: ToolItem, fromInput: boolean = false) => {

@@ -1,4 +1,4 @@
-import { Widget, Gtk } from "astal/gtk4";
+import { Gtk } from "astal/gtk4";
 import { Binding } from "astal";
 import { CircularProgressProps, CircularProgress } from "../../../utils/circular-progress";
 
