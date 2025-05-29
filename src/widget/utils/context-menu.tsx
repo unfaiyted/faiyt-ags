@@ -1,4 +1,5 @@
 import { Widget, Gtk, Gdk, App, Astal } from "astal/gtk4";
+import type GdkPixbuf from "gi://Gdk";
 import { Variable, Binding, bind } from "astal";
 import PhosphorIcon from "./icons/phosphor";
 import { PhosphorIcons } from "./icons/types";
@@ -48,6 +49,7 @@ export default function ContextMenuWindow({ name, gdkmonitor, visible }: { name:
   });
 
   const hide = () => {
+    visible.set(false);
     const window = App.get_window(name);
     if (window) {
       window.hide();
@@ -160,6 +162,31 @@ export function showContextMenu(
   let x = targetX || 0;
   let y = targetY || 0;
 
+  // Get monitor geometry to ensure menu stays on screen
+  const window = App.get_window(name);
+  if (window) {
+    const monitor = window.get_display()?.get_monitor_at_surface(window.get_surface());
+    if (monitor) {
+      const geometry = monitor.get_geometry();
+      const menuWidth = 200; // From widthRequest in the component
+      const menuHeight = items.length * 40 + 20; // Approximate height based on items
+
+      // Adjust X position if menu would go off screen
+      if (x + menuWidth > geometry.x + geometry.width) {
+        x = geometry.x + geometry.width - menuWidth - 10;
+      }
+
+      // Adjust Y position if menu would go off screen
+      if (y + menuHeight > geometry.y + geometry.height) {
+        y = geometry.y + geometry.height - menuHeight - 10;
+      }
+
+      // Ensure minimum distance from edges
+      x = Math.max(geometry.x + 10, x);
+      y = Math.max(geometry.y + 10, y);
+    }
+  }
+
   // Update global state
   contextMenuState.set({
     items,
@@ -169,36 +196,34 @@ export function showContextMenu(
   });
 
   // Show the window
-  const window = App.get_window(name);
   if (window) {
     window.show();
   }
 
 }
 
+
 // Helper function to create and manage a context menu
 export function createContextMenu(name: string,
   gdkmonitor: Gdk.Monitor,
-  location: { x: number, y: number }, items: ContextMenuItem[], onClose?: () => void) {
+  location: { x: number, y: number },
+  items: ContextMenuItem[],
+  visible: Variable<boolean>,
+  onClose?: () => void) {
   print("Creating context menu, name:", name);
-  const visible = Variable(false);
+
 
   ContextMenuWindow({ name, gdkmonitor, visible: visible });
-  return {
-    show: () => {
-      visible.set(true);
 
+  return {
+    show: (location: { x: number, y: number }) => {
+      visible.set(true);
       print("Showing context menu");
       showContextMenu(name, items, location.x, location.y, onClose);
     },
     hide: () => {
       print("Hiding context menu");
       visible.set(false);
-
-      const window = App.get_window(name);
-      if (window) {
-        window.hide();
-      }
     },
   };
 }
@@ -209,16 +234,76 @@ export function handleContextMenu(
   items: ContextMenuItem[] | (() => ContextMenuItem[]),
   onClose?: () => void
 ) {
+  const clickGesture = new Gtk.GestureClick();
+  clickGesture.set_button(3); // Right click only
 
-  // For widgets that support onButtonPressEvent
-  // if ('onButtonPressEvent' in widget) {
-  //   widget.onButtonPressEvent = () => {
-  //     if (event.get_button()[1] === 3) { // Right click
-  //       const menuItems = typeof items === "function" ? items() : items;
-  //       showContextMenu(menuItems, event, undefined, undefined, onClose);
-  //       return true;
-  //     }
-  //     return false;
-  //   };
-  // }
+  clickGesture.connect("pressed", (_gesture, _n_press, x, y) => {
+    // Get widget's allocation to calculate absolute position
+    const allocation = widget.get_allocation();
+
+    // Get the widget's native (top-level window)
+    const native = widget.get_native();
+    if (!native) return;
+
+    // Get surface position
+    const surface = native.get_surface();
+    if (!surface) return;
+
+    // Calculate absolute screen position
+    let absoluteX = x;
+    let absoluteY = y;
+
+    // Walk up the widget tree to calculate absolute position
+    let currentWidget: Gtk.Widget | null = widget;
+    while (currentWidget && currentWidget !== native) {
+      const alloc = currentWidget.get_allocation();
+      absoluteX += alloc.x;
+      absoluteY += alloc.y;
+      currentWidget = currentWidget.get_parent();
+    }
+
+    // Get window position if available
+    if (native instanceof Gtk.Window) {
+      // For layer shell windows, we need to add the margin offsets
+      // In GTK4, access properties directly
+      const marginLeft = native.margin_left || 0;
+      const marginTop = native.margin_top || 0;
+      absoluteX += marginLeft;
+      absoluteY += marginTop;
+    }
+
+    const menuItems = typeof items === "function" ? items() : items;
+    const contextName = `context-menu-${Date.now()}`;
+
+    // Get the monitor the widget is on
+    const display = widget.get_display();
+    const monitor = display?.get_monitor_at_surface(surface);
+
+    if (monitor) {
+      const menu = createContextMenu(contextName, monitor, { x: absoluteX, y: absoluteY }, menuItems, onClose);
+      menu.show();
+    }
+  });
+
+  widget.add_controller(clickGesture);
+}
+
+// Helper function to attach context menu to any widget
+export function withContextMenu<T extends Widget.ButtonProps | Widget.BoxProps>(
+  props: T,
+  items: ContextMenuItem[] | (() => ContextMenuItem[]),
+  onClose?: () => void
+): T {
+  return {
+    ...props,
+    setup: (self: Gtk.Widget) => {
+      // Call original setup if exists
+      if (props.setup) {
+        props.setup(self);
+      }
+
+      // Add context menu handling
+      handleContextMenu(self, items, onClose);
+    }
+  };
 }
