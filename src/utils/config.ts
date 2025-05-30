@@ -89,6 +89,7 @@ export const defaultConfigOptions: ConfigOptions = {
     taskManager: "htop",
     browser: "/home/faiyt/Applications/Zen.AppImage",
     terminal: "kitty", // This is only for shell actions
+    fileManager: "nautilus",
   },
   battery: {
     low: 20,

@@ -43,6 +43,14 @@ export const SEARCH_PREFIXES: Record<string, SearchType> = {
   "!g ": SearchType.EXTERNAL_SEARCH,
   "!d ": SearchType.EXTERNAL_SEARCH,
   "!c ": SearchType.EXTERNAL_SEARCH,
+  "d:": SearchType.DIRECTORY,
+  "dir:": SearchType.DIRECTORY,
+  "directory:": SearchType.DIRECTORY,
+  "h:": SearchType.HYPRLAND,
+  "wm:": SearchType.HYPRLAND,
+  "hypr:": SearchType.HYPRLAND,
+  "win:": SearchType.HYPRLAND,
+  "window:": SearchType.HYPRLAND,
 };
 
 export interface ParsedSearch {

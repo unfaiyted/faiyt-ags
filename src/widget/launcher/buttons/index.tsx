@@ -31,7 +31,7 @@ export default function LauncherButton(props: LauncherButtonProps) {
           props.setup(self);
         }
       }}
-      onClicked={props.onClick}
+      onClicked={props.onClicked}
     >
       <box spacing={12}>
         {props.icon}

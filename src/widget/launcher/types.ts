@@ -6,6 +6,8 @@ export enum SearchType {
   SYSTEM = "system",
   CLIPBOARD = "clipboard",
   EXTERNAL_SEARCH = "external_search",
+  DIRECTORY = "directory",
+  HYPRLAND = "hyprland",
 }
 
 // Keywords that trigger screen capture options

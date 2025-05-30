@@ -62,6 +62,7 @@ export interface ConfigOptions {
     browser: string;
     taskManager: string;
     terminal: string;
+    fileManager: string;
   };
   battery: {
     low: number;

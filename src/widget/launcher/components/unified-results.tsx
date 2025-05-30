@@ -17,6 +17,8 @@ import CommandButton from "../buttons/command-button";
 import SystemButton from "../buttons/system-button";
 import ClipboardButton from "../buttons/clipboard-button";
 import getExternalSearchResults, { ExternalSearchResult, createExternalSearchButton } from "./external-search-results";
+import getDirectoryResults, { DirectoryButtonResult, createDirectoryButton } from "./directory-results";
+import getHyprlandResults, { HyprlandWindowResult, createHyprlandButton } from "./hyprland-results";
 
 export interface UnifiedResultsRef {
   selectNext: () => void;
@@ -40,6 +42,8 @@ interface UnifiedResults {
   system: SystemButtonResult[];
   clipboard: ClipboardButtonResult[];
   externalSearch: ExternalSearchResult[];
+  directories: DirectoryButtonResult[];
+  hyprland: HyprlandWindowResult[];
   total: number;
 }
 
@@ -62,6 +66,8 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     system: [],
     clipboard: [],
     externalSearch: [],
+    directories: [],
+    hyprland: [],
     total: 0
   });
   const MIN_SEARCH_LENGTH = 2;
@@ -100,6 +106,8 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         system: [],
         clipboard: [],
         externalSearch: [],
+        directories: [],
+        hyprland: [],
         total: 0
       });
       activeResultType.set(SearchType.ALL);
@@ -133,6 +141,8 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         system: [],
         clipboard: [],
         externalSearch: [],
+        directories: [],
+        hyprland: [],
         total: 0
       });
       activeResultType.set(SearchType.ALL);
@@ -140,7 +150,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     }
 
     // Set up new debounce timeout
-    debounceTimeout = setTimeout(() => {
+    debounceTimeout = setTimeout(async () => {
       debouncedSearchText.set(text);
       activeResultType.set(parsed.type);
       log.debug("Executing search after debounce", {
@@ -155,6 +165,8 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       let systemList: SystemButtonResult[] = [];
       let clipboardList: ClipboardButtonResult[] = [];
       let externalSearchList: ExternalSearchResult[] = [];
+      let directoryList: DirectoryButtonResult[] = [];
+      let hyprlandList: HyprlandWindowResult[] = [];
 
       switch (parsed.type) {
         case SearchType.APPS:
@@ -181,6 +193,14 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
           log.debug("Searching external providers", { query: parsed.query });
           externalSearchList = getExternalSearchResults(text);
           break;
+        case SearchType.DIRECTORY:
+          log.debug("Searching directories", { query: parsed.query });
+          directoryList = await getDirectoryResults(parsed.query);
+          break;
+        case SearchType.HYPRLAND:
+          log.debug("Searching Hyprland windows", { query: parsed.query });
+          hyprlandList = await getHyprlandResults(parsed.query);
+          break;
         case SearchType.ALL:
         default:
           log.debug("Searching all types", { query: parsed.query });
@@ -191,7 +211,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       }
 
       const total = appList.length + screenList.length + commandList.length +
-        systemList.length + clipboardList.length + externalSearchList.length;
+        systemList.length + clipboardList.length + externalSearchList.length + directoryList.length + hyprlandList.length;
 
       log.debug("Search results", {
         appCount: appList.length,
@@ -200,6 +220,8 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         systemCount: systemList.length,
         clipboardCount: clipboardList.length,
         externalSearchCount: externalSearchList.length,
+        directoryCount: directoryList.length,
+        hyprlandCount: hyprlandList.length,
         total
       });
 
@@ -210,6 +232,8 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         system: systemList,
         clipboard: clipboardList,
         externalSearch: externalSearchList,
+        directories: directoryList,
+        hyprland: hyprlandList,
         total
       });
     }, DEBOUNCE_DELAY);
@@ -436,6 +460,42 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
                         const adjustedIndex = results.apps.length + results.screenCaptures.length +
                           results.commands.length + results.system.length + results.clipboard.length + index;
                         return createExternalSearchButton(searchResult, {
+                          index: adjustedIndex,
+                          selected: bind(selectedIndex).as(i => i === adjustedIndex),
+                          ref: (button: Gtk.Button) => {
+                            buttonRefs.push(button);
+                          }
+                        });
+                      })}
+                    </ResultGroupWrapper>
+
+                    <ResultGroupWrapper
+                      groupName="Files & Directories"
+                      revealed={(results.directories.length > 0 && (type === SearchType.ALL || type === SearchType.DIRECTORY))}
+                    >
+                      {results.directories.map((dirResult, index) => {
+                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                          results.commands.length + results.system.length + results.clipboard.length +
+                          results.externalSearch.length + index;
+                        return createDirectoryButton(dirResult, {
+                          index: adjustedIndex,
+                          selected: bind(selectedIndex).as(i => i === adjustedIndex),
+                          ref: (button: Gtk.Button) => {
+                            buttonRefs.push(button);
+                          }
+                        });
+                      })}
+                    </ResultGroupWrapper>
+
+                    <ResultGroupWrapper
+                      groupName="Open Windows"
+                      revealed={(results.hyprland.length > 0 && (type === SearchType.ALL || type === SearchType.HYPRLAND))}
+                    >
+                      {results.hyprland.map((windowResult, index) => {
+                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                          results.commands.length + results.system.length + results.clipboard.length +
+                          results.externalSearch.length + results.directories.length + index;
+                        return createHyprlandButton(windowResult, {
                           index: adjustedIndex,
                           selected: bind(selectedIndex).as(i => i === adjustedIndex),
                           ref: (button: Gtk.Button) => {
