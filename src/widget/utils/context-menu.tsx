@@ -35,7 +35,7 @@ const contextMenuState = Variable<{
   y: 0,
 });
 
-export default function ContextMenuWindow({ name, gdkmonitor, visible }: { name: string; gdkmonitor?: Gdk.Monitor, visible: Variable<boolean> }) {
+export default function ContextMenuWindow({ name, gdkmonitor, visible }: { name: string; gdkmonitor?: Binding<Gdk.Monitor>, visible: Variable<boolean> }) {
   const menuItems = Variable<ContextMenuItem[]>([]);
   const x = Variable(300);
   const y = Variable(100);
@@ -50,11 +50,6 @@ export default function ContextMenuWindow({ name, gdkmonitor, visible }: { name:
 
   const hide = () => {
     visible.set(false);
-    const window = App.get_window(name);
-    if (window) {
-      window.hide();
-    }
-
   };
 
   return (
@@ -69,12 +64,12 @@ export default function ContextMenuWindow({ name, gdkmonitor, visible }: { name:
       margin_top={bind(y)}
       margin_left={bind(x)}
       visible={bind(visible)}
+      onHoverLeave={() => {
+        hide();
+      }}
       gdkmonitor={gdkmonitor}
       setup={(self) => {
-        self.connect("destroy", () => {
-          // isVisible.set(false);
-        });
-        // isVisible.set(false);
+        self.connect("destroy", () => { });
       }}
       onKeyPressed={(_, keyval) => {
         if (keyval === Gdk.KEY_Escape) {
@@ -85,7 +80,7 @@ export default function ContextMenuWindow({ name, gdkmonitor, visible }: { name:
     >
       <box
         widthRequest={200}
-        heightRequest={300}
+        heightRequest={250}
         onKeyPressed={(_, keyval) => {
           if (keyval === Gdk.KEY_Escape) {
             hide();
@@ -165,25 +160,32 @@ export function showContextMenu(
   // Get monitor geometry to ensure menu stays on screen
   const window = App.get_window(name);
   if (window) {
-    const monitor = window.get_display()?.get_monitor_at_surface(window.get_surface());
-    if (monitor) {
-      const geometry = monitor.get_geometry();
-      const menuWidth = 200; // From widthRequest in the component
-      const menuHeight = items.length * 40 + 20; // Approximate height based on items
+    const surface = window.get_surface();
+    if (surface != null) {
+      const monitor = window.get_display()?.get_monitor_at_surface(surface);
 
-      // Adjust X position if menu would go off screen
-      if (x + menuWidth > geometry.x + geometry.width) {
-        x = geometry.x + geometry.width - menuWidth - 10;
+      if (monitor) {
+        const geometry = monitor.get_geometry();
+        const menuWidth = 200; // From widthRequest in the component
+        const menuHeight = items.length * 40 + 20; // Approximate height based on items
+
+        // Adjust X position if menu would go off screen
+        if (x + menuWidth > geometry.x + geometry.width) {
+          x = geometry.x + geometry.width - menuWidth - 10;
+        }
+
+        // Adjust Y position if menu would go off screen
+        if (y + menuHeight > geometry.y + geometry.height) {
+          y = geometry.y + geometry.height - menuHeight - 10;
+        }
+
+        // Ensure minimum distance from edges
+        x = Math.max(geometry.x + 10, x);
+        y = Math.max(geometry.y + 10, y);
       }
-
-      // Adjust Y position if menu would go off screen
-      if (y + menuHeight > geometry.y + geometry.height) {
-        y = geometry.y + geometry.height - menuHeight - 10;
-      }
-
-      // Ensure minimum distance from edges
-      x = Math.max(geometry.x + 10, x);
-      y = Math.max(geometry.y + 10, y);
+    } else {
+      print("No surface found for context menu");
+      return;
     }
   }
 
@@ -205,7 +207,7 @@ export function showContextMenu(
 
 // Helper function to create and manage a context menu
 export function createContextMenu(name: string,
-  gdkmonitor: Gdk.Monitor,
+  gdkmonitor: Binding<Gdk.Monitor>,
   location: { x: number, y: number },
   items: ContextMenuItem[],
   visible: Variable<boolean>,
@@ -236,6 +238,7 @@ export function handleContextMenu(
 ) {
   const clickGesture = new Gtk.GestureClick();
   clickGesture.set_button(3); // Right click only
+  const visible = Variable(false);
 
   clickGesture.connect("pressed", (_gesture, _n_press, x, y) => {
     // Get widget's allocation to calculate absolute position
@@ -266,7 +269,7 @@ export function handleContextMenu(
     if (native instanceof Gtk.Window) {
       // For layer shell windows, we need to add the margin offsets
       // In GTK4, access properties directly
-      const marginLeft = native.margin_left || 0;
+      const marginLeft = native.margin_start || 0;
       const marginTop = native.margin_top || 0;
       absoluteX += marginLeft;
       absoluteY += marginTop;
@@ -280,8 +283,8 @@ export function handleContextMenu(
     const monitor = display?.get_monitor_at_surface(surface);
 
     if (monitor) {
-      const menu = createContextMenu(contextName, monitor, { x: absoluteX, y: absoluteY }, menuItems, onClose);
-      menu.show();
+      const menu = createContextMenu(contextName, monitor, { x: absoluteX, y: absoluteY }, menuItems, visible, onClose);
+      menu.show({ x: absoluteX, y: absoluteY });
     }
   });
 

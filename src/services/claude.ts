@@ -3,9 +3,9 @@ import GLib from "gi://GLib";
 import Soup from "gi://Soup?version=3.0";
 import { GObject, register, signal, property } from "astal/gobject";
 import { fileExists } from "../utils";
-import { readFile, writeFile, writeFileAsync } from "astal/file";
+import AstalIO from "gi://AstalIO";
 import { execAsync, exec } from "astal/process";
-import config from "../utils/config";
+import configManager from "./config-manager";
 import {
   EventType,
   ContentBlockDelta,
@@ -15,14 +15,17 @@ import {
 import { ServiceMessage, Role } from "../types/claude";
 import { serviceLogger as log } from "../utils/logger";
 
-const HISTORY_DIR = `${config.dir.state}/ags/user/ai/chats/`;
+const config = configManager.config;
+const AI_DIR = `${config.dir.state}/ags/user/ai`;
+const HISTORY_DIR = `${AI_DIR}/chats/`;
 const HISTORY_FILENAME = `claude.txt`;
 const HISTORY_PATH = HISTORY_DIR + HISTORY_FILENAME;
-const KEY_FILE = `${config.dir.state}/ags/user/ai/anthropic_key.txt`;
 const ENV_KEY = GLib.getenv("ANTHROPIC_API_KEY");
-const APIDOM_FILE_LOCATION = `${config.dir.state}/ags/user/ai/anthropic_api_dom.txt`;
-const CHAT_MODELS = ["claude-3-5-sonnet-20241022"];
 const ONE_CYCLE_COUNT = 3;
+
+// Ensure all required directories exist
+exec(`mkdir -p ${AI_DIR}`);
+exec(`mkdir -p ${HISTORY_DIR}`);
 
 if (!fileExists(`${config.dir.config}/claude_history.json`)) {
   execAsync([
@@ -30,21 +33,9 @@ if (!fileExists(`${config.dir.config}/claude_history.json`)) {
     `-c`,
     `touch ${config.dir.config}/claude_history.json`,
   ]).catch(err => log.error("Failed to create claude history file", { error: err }));
-  writeFile("[ ]", `${config.dir.config}/claude_history.json`);
+  AstalIO.write_file(`${config.dir.config}/claude_history.json`, "[ ]");
 }
 
-exec(`mkdir -p ${config.dir.config}/ags/user/ai`);
-
-function replaceApiDOM(URL: string) {
-  if (fileExists(APIDOM_FILE_LOCATION)) {
-    var contents = readFile(APIDOM_FILE_LOCATION).trim();
-    var URL = URL.toString().replace(
-      "generativelanguage.googleapis.com",
-      contents,
-    );
-  }
-  return URL;
-}
 
 @register()
 export class ClaudeMessage extends GObject.Object {
@@ -241,21 +232,14 @@ const initMessages: ClaudeMessage[] = [
 
 @register()
 export class ClaudeService extends GObject.Object {
-  // static {
-  //   Service.register(this, {
-  //     initialized: [],
-  //     clear: [],
-  //     newMsg: ["int"],
-  //     hasKey: ["boolean"],
-  //   });
-  // }
+  private static _instance: ClaudeService | null = null;
 
   @signal() declare initialized: (isInit: boolean) => {};
   @signal(Number) declare newMsg: (msgId: number) => {};
   @signal(Boolean) declare hasKey: (hasKey: boolean) => {};
 
   _assistantPrompt = config.ai.enhancements;
-  _cycleModels = true;
+  _cycleModels = false;
   _usingHistory = config.ai.useHistory;
   _key = "";
   _requestCount = 0;
@@ -267,14 +251,59 @@ export class ClaudeService extends GObject.Object {
 
   constructor() {
     super();
+    
+    if (ClaudeService._instance) {
+      return ClaudeService._instance;
+    }
+    
+    ClaudeService._instance = this;
 
     log.info("ClaudeService initializing");
 
-    if (ENV_KEY) this._key = ENV_KEY;
-    else if (fileExists(KEY_FILE)) this._key = readFile(KEY_FILE).trim();
-    else this.emit("has-key", false);
+    // Get API key from ConfigManager or environment
+    // Priority: 1. User config, 2. Environment variable
+    const claudeConfig = configManager.getValue("ai.providers.claude");
+    log.debug("Claude config from ConfigManager", { 
+      hasConfig: !!claudeConfig,
+      hasApiKey: !!claudeConfig?.apiKey,
+      configKeys: claudeConfig ? Object.keys(claudeConfig) : []
+    });
+    
+    if (claudeConfig?.apiKey) {
+      this._key = claudeConfig.apiKey;
+      log.info("Using API key from user config", { 
+        keyLength: claudeConfig.apiKey.length,
+        keyPrefix: claudeConfig.apiKey.substring(0, 10) + "..."
+      });
+    } else if (ENV_KEY) {
+      this._key = ENV_KEY;
+      log.info("Using API key from environment variable (fallback)");
+    } else {
+      log.warn("No API key found in config or environment");
+      
+      // Try to load from user config one more time
+      configManager.loadConfig();
+      const retryConfig = configManager.getValue("ai.providers.claude");
+      if (retryConfig?.apiKey) {
+        this._key = retryConfig.apiKey;
+        log.info("Found API key after config reload", { 
+          keyLength: retryConfig.apiKey.length 
+        });
+      } else {
+        this.emit("has-key", false);
+      }
+    }
 
-    log.debug("API key status", { hasKey: this._key.length > 0 });
+    // Set up other config values
+    if (claudeConfig) {
+      this._cycleModels = claudeConfig.cycleModels || false;
+      this._temperature = claudeConfig.temperature || config.ai.defaultTemperature;
+    }
+
+    log.debug("API key status", { 
+      hasKey: this._key.length > 0,
+      keyLength: this._key.length 
+    });
 
     // if (this._usingHistory) timeout(1000, () => this.loadHistory());
     if (this._usingHistory) this.loadHistory();
@@ -294,25 +323,67 @@ export class ClaudeService extends GObject.Object {
   getMessages() {
     return this._messages;
   }
+  
+  /**
+   * Update the API key and save to config
+   */
+  setApiKey(key: string) {
+    log.info("Updating API key", { keyLength: key.length });
+    this._key = key;
+    this.emit("has-key", key.length > 0);
+    
+    // Also update the config
+    configManager.setAPIKey("claude", key);
+  }
+  
+  /**
+   * Refresh API key from config (useful after config changes)
+   */
+  refreshApiKey() {
+    const claudeConfig = configManager.getValue("ai.providers.claude");
+    
+    // Priority: 1. User config, 2. Environment variable
+    if (claudeConfig?.apiKey) {
+      this._key = claudeConfig.apiKey;
+      log.info("Refreshed API key from user config", { 
+        keyLength: this._key.length 
+      });
+    } else if (ENV_KEY) {
+      this._key = ENV_KEY;
+      log.info("Using API key from environment variable (fallback)");
+    } else {
+      this._key = "";
+      log.warn("No API key found after refresh");
+    }
+    
+    this.emit("has-key", this._key.length > 0);
+  }
 
   get modelName() {
-    return CHAT_MODELS[this._modelIndex];
+    const models = configManager.getValue("ai.providers.claude.models") || [];
+    return models[this._modelIndex] || models[0] || "claude-3-5-sonnet-20241022";
+  }
+  
+  set modelName(model: string) {
+    const models = configManager.getValue("ai.providers.claude.models") || [];
+    const index = models.indexOf(model);
+    if (index !== -1) {
+      this._modelIndex = index;
+      log.debug("Model changed", { model, index });
+    }
   }
 
   get keyPath() {
-    return KEY_FILE;
+    return "ai.providers.claude.apiKey";
   }
   get key() {
     return this._key;
   }
   set key(keyValue) {
     this._key = keyValue;
-    writeFileAsync(this._key, KEY_FILE)
-      .then(() => {
-        log.info("API key saved successfully");
-        this.emit("has-key", true);
-      })
-      .catch(err => log.error("Failed to save API key", { error: err }));
+    configManager.setAPIKey("claude", keyValue);
+    log.info("API key saved successfully");
+    this.emit("has-key", true);
   }
 
   get cycleModels() {
@@ -320,11 +391,12 @@ export class ClaudeService extends GObject.Object {
   }
   set cycleModels(value) {
     this._cycleModels = value;
+    const models = configManager.getValue("ai.providers.claude.models") || [];
     if (!value) this._modelIndex = 0;
     else {
       this._modelIndex =
         (this._requestCount - (this._requestCount % ONE_CYCLE_COUNT)) %
-        CHAT_MODELS.length;
+        models.length;
     }
   }
 
@@ -360,14 +432,14 @@ export class ClaudeService extends GObject.Object {
   saveHistory() {
     log.debug("Saving chat history", { path: HISTORY_PATH });
     exec(`bash -c 'mkdir -p ${HISTORY_DIR} && touch ${HISTORY_PATH}'`);
-    writeFile(
+    AstalIO.write_file(
+      HISTORY_PATH,
       JSON.stringify(
         this._messages.map((msg: ServiceMessage) => {
           let m = { role: msg.role, content: msg.parts };
           return m;
         }),
       ),
-      HISTORY_PATH,
     );
     log.debug("Chat history saved", { messageCount: this._messages.length });
   }
@@ -387,7 +459,7 @@ export class ClaudeService extends GObject.Object {
     try {
       if (fileExists(HISTORY_PATH)) {
         log.debug("History file found, loading messages");
-        const readfile = readFile(HISTORY_PATH);
+        const readfile = AstalIO.read_file(HISTORY_PATH);
         const historyMessages = JSON.parse(readfile);
         log.debug("Loaded history", { messageCount: historyMessages.length });
         
@@ -516,13 +588,25 @@ export class ClaudeService extends GObject.Object {
 
     const body = {
       model: this.modelName,
-      messages: this._messages.map((msg) => {
-        let m = { role: msg.role, content: msg.parts };
-        return m;
-      }),
+      messages: this._messages
+        .filter(msg => msg.role === Role.USER || msg.role === Role.ASSISTANT)
+        .map((msg) => {
+          // Claude API expects content as a string, not parts array
+          return { 
+            role: msg.role.toLowerCase(), 
+            content: msg.content 
+          };
+        }),
       max_tokens: 1024,
       stream: true,
     };
+    
+    log.debug("API request details", {
+      model: this.modelName,
+      messageCount: this._messages.length,
+      hasApiKey: this._key.length > 0,
+      keyPreview: this._key.length > 0 ? `${this._key.substring(0, 10)}...` : "NO KEY"
+    });
 
     // TODO: implment this conditionally
     // const proxyResolver = new Gio.SimpleProxyResolver({
@@ -539,9 +623,26 @@ export class ClaudeService extends GObject.Object {
     });
 
     message.request_headers.append("Content-Type", "application/json");
-    message.request_headers.append("Content-Type", "application/json");
     message.request_headers.append("anthropic-version", "2023-06-01");
-    message.request_headers.append("x-api-key", ENV_KEY || this._key);
+    
+    // Use the API key from instance (already prioritized correctly in constructor)
+    const currentKey = this._key || "";
+    log.debug("Setting API key for request", { 
+      keyLength: currentKey.length,
+      keyPrefix: currentKey.length > 0 ? currentKey.substring(0, 10) + "..." : "empty",
+      hasKey: currentKey.length > 0
+    });
+    
+    if (!currentKey) {
+      log.error("No API key available for request");
+      aiResponse.done = true;
+      aiResponse.thinking = false;
+      aiResponse.content = "No API key configured. Use /key command to set one.";
+      aiResponse.emit("finished", aiResponse);
+      return;
+    }
+    
+    message.request_headers.append("x-api-key", currentKey);
 
     message.set_request_body_from_bytes(
       "application/json",
@@ -552,7 +653,32 @@ export class ClaudeService extends GObject.Object {
     session.send_async(message, GLib.PRIORITY_DEFAULT, null, (_, result) => {
       try {
         const stream = session.send_finish(result);
-        log.debug("API request sent successfully");
+        
+        // Check response status
+        const status = message.get_status();
+        log.info("API response status", { 
+          status: status,
+          statusCode: message.status_code,
+          reasonPhrase: message.reason_phrase 
+        });
+        
+        if (message.status_code !== 200) {
+          // Try to read error response
+          const bytes = stream.read_bytes(8192, null);
+          const errorText = bytes ? new TextDecoder().decode(bytes.toArray()) : "Unknown error";
+          log.error("API request failed", { 
+            statusCode: message.status_code,
+            error: errorText 
+          });
+          
+          aiResponse.done = true;
+          aiResponse.thinking = false;
+          aiResponse.content = `API Error (${message.status_code}): ${message.reason_phrase}\n${errorText}`;
+          aiResponse.emit("finished", aiResponse);
+          return;
+        }
+        
+        log.debug("API request sent successfully, starting response stream");
         this.readResponse(
           new Gio.DataInputStream({
             close_base_stream: true,
@@ -561,9 +687,11 @@ export class ClaudeService extends GObject.Object {
           aiResponse,
         );
       } catch (error) {
-        log.error("Failed to send API request", { error });
+        log.error("Failed to send API request", { error: error.toString() });
         aiResponse.done = true;
-        aiResponse.content = "Failed to connect to Claude API";
+        aiResponse.thinking = false;
+        aiResponse.content = `Failed to connect to Claude API: ${error}`;
+        aiResponse.emit("finished", aiResponse);
       }
     });
     this._messages.push(aiResponse);
@@ -571,10 +699,11 @@ export class ClaudeService extends GObject.Object {
 
     if (this._cycleModels) {
       this._requestCount++;
-      if (this._cycleModels) {
+      const models = configManager.getValue("ai.providers.claude.models") || [];
+      if (this._cycleModels && models.length > 0) {
         this._modelIndex =
           (this._requestCount - (this._requestCount % ONE_CYCLE_COUNT)) %
-          CHAT_MODELS.length;
+          models.length;
         log.debug("Model cycling", { 
           requestCount: this._requestCount, 
           modelIndex: this._modelIndex,
@@ -583,6 +712,15 @@ export class ClaudeService extends GObject.Object {
       }
     }
   }
+  
+  static getInstance(): ClaudeService {
+    if (!ClaudeService._instance) {
+      ClaudeService._instance = new ClaudeService();
+    }
+    return ClaudeService._instance;
+  }
 }
 
-export default ClaudeService;
+// Export singleton instance
+const claudeService = ClaudeService.getInstance();
+export default claudeService;

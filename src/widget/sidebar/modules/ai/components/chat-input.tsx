@@ -1,4 +1,4 @@
-import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
+import { Widget, Gtk, Gdk } from "astal/gtk4";
 import { AIName } from "../index";
 import { Variable, bind } from "astal";
 
@@ -43,7 +43,7 @@ export const ChatInput = (props: ChatEntryProps) => {
     if (entryRef) {
       entryRef.set(self);
     }
-    
+
     if (!hasFocused.get() && autoFocus) {
       self.grab_focus();
       hasFocused.set(true);
@@ -55,12 +55,12 @@ export const ChatInput = (props: ChatEntryProps) => {
       return handleKeyPress(self, keyval);
     });
     self.add_controller(keyController);
-    
+
     // Connect text changed event
     self.connect("changed", () => {
       handleTextChanged(self);
     });
-    
+
     // Sync with external value if provided
     if (value) {
       value.subscribe((val) => {

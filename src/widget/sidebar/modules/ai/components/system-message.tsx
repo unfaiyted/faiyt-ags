@@ -1,6 +1,5 @@
-import { Widget, Gtk, Gdk } from "astal/gtk4";
+import { Widget, Gtk } from "astal/gtk4";
 import { ChatMessageContent } from "./chat-message-content";
-import { ClaudeMessage } from "../../../../../services/claude";
 import { c } from "../../../../../utils/style";
 
 export interface SystemMessageProps extends Widget.BoxProps {

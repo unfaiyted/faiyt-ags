@@ -120,6 +120,7 @@ export default function WindowTitle() {
 
               const icon = (
                 <PhosphorIcon
+                  // TODO: fix IconName class name issue
                   iconName={iconName}
                   style={PhosphorIconStyle.Duotone}
                   size={16}

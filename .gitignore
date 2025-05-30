@@ -3,6 +3,7 @@ node_modules/
 dist/
 astal/
 user/
+user-config.json
 .claude/
 logs/
 ./src/output.css

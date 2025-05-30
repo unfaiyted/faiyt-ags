@@ -1,0 +1,674 @@
+@use "styles/colors";
+
+// AI Chat Module Styles
+ai-module {
+  background: transparent;
+}
+
+// Chat container
+ai-chat-container {
+  background: transparent;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+// Chat header with model selector
+ai-chat-header {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, colors.c(background-elevated, 0.3) 0%, colors.c(background-elevated, 0.5) 100%);
+  border-bottom: 1px solid colors.c(border, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+// Model selector button
+ai-model-selector {
+  background: colors.c(background, 0.4);
+  border: 1px solid colors.c(border, 0.3);
+  border-radius: 10px;
+  padding: 10px 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: colors.c(background, 0.6);
+    border-color: colors.c(primary, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px colors.c(base, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  box {
+    .spacing-h-10 {
+      >* {
+        margin-right: 10px;
+
+        &:last-child {
+          margin-right: 0;
+        }
+      }
+    }
+  }
+
+  label {
+    font-size: 14px;
+    font-weight: 600;
+    color: colors.c(foreground);
+  }
+
+  PhosphorIcon {
+    color: colors.c(foreground-alt);
+
+    &:first-child {
+      color: colors.c(primary);
+    }
+
+    &:last-child {
+      transition: transform 0.2s ease;
+    }
+  }
+
+  &:hover PhosphorIcon:last-child {
+    transform: rotate(180deg);
+  }
+}
+
+// Chat view wrapper
+sidebar-chat-wrapper {
+  flex: 1;
+  background: transparent;
+  min-height: 0; // Important for proper scrolling
+
+  scrolledwindow {
+    background: transparent;
+  }
+
+  scrollbar {
+    min-width: 8px;
+    background: transparent;
+
+    slider {
+      background: colors.c(foreground-alt, 0.2);
+      border-radius: 4px;
+      min-width: 8px;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: colors.c(foreground-alt, 0.4);
+      }
+    }
+  }
+}
+
+// Messages container
+.spacing-v-10 {
+  padding: 8px;
+
+  >* {
+    margin-bottom: 10px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Individual chat message
+sidebar-chat-message {
+  margin: 4px 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, colors.c(background-elevated, 0.4) 0%, colors.c(background-elevated, 0.3) 100%);
+  border: 1px solid colors.c(border, 0.3);
+  border-radius: 16px;
+  backdrop-filter: blur(15px);
+  animation: messageSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, colors.c(background-elevated, 0.5) 0%, colors.c(background-elevated, 0.4) 100%);
+    border-color: colors.c(border, 0.5);
+    box-shadow: 0 4px 16px colors.c(base, 0.2);
+  }
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Message author names
+sidebar-chat-name {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  display: inline-block;
+  padding: 4px 0;
+
+  &.user {
+    color: colors.c(primary);
+    text-shadow: 0 0 20px colors.c(primary, 0.4);
+  }
+
+  &.bot {
+    color: colors.c(accent);
+    text-shadow: 0 0 20px colors.c(accent, 0.4);
+  }
+}
+
+// Message content area
+sidebar-chat-messagearea {
+  padding: 0;
+}
+
+sidebar-chat-message-content {
+  padding: 0;
+}
+
+// Text content in messages
+.sidebar-chat-txtblock {
+  font-size: 15px;
+  color: colors.c(foreground);
+  line-height: 1.7;
+  letter-spacing: 0.2px;
+
+  &.sidebar-chat-txt {
+    selection {
+      background-color: colors.c(primary, 0.3);
+      color: colors.c(foreground);
+    }
+
+    // Inline code
+    tt {
+      background: colors.c(base, 0.5);
+      border: 1px solid colors.c(border, 0.5);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      font-size: 13px;
+      color: colors.c(rose);
+    }
+
+    // Bold text
+    b {
+      color: colors.c(foreground);
+      font-weight: 700;
+    }
+
+    // Italic text
+    i {
+      color: colors.c(foreground-alt);
+      font-style: italic;
+    }
+
+    // Strikethrough
+    s {
+      opacity: 0.6;
+      text-decoration: line-through;
+    }
+  }
+}
+
+// Markdown-specific text block styling
+sidebar-chat-txt {
+  font-size: 15px;
+  color: colors.c(foreground);
+  line-height: 1.7;
+  padding: 3px 0;
+
+  // Better paragraph spacing
+  &:not(:last-child) {
+    margin-bottom: 6px;
+  }
+
+  // Headers should have more space
+  &.has-header {
+    margin-top: 10px;
+    margin-bottom: 8px;
+  }
+}
+
+// Table styling
+sidebar-chat-table {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  color: colors.c(foreground);
+  background: colors.c(base, 0.3);
+  border: 1px solid colors.c(border, 0.5);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 4px 0;
+  line-height: 1.6;
+
+  selection {
+    background-color: colors.c(primary, 0.3);
+  }
+}
+
+// Horizontal rule styling
+sidebar-chat-hr {
+  font-size: 12px;
+  opacity: 0.6;
+  margin: 8px 0;
+  padding: 4px 0;
+  text-align: center;
+}
+
+// Code blocks
+sidebar-chat-codeblock {
+  background: transparent;
+  border: 1px solid colors.c(border, 0.5);
+  border-radius: 12px;
+  margin: 4px 0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px colors.c(base, 0.3);
+  min-width: 100%;
+  min-height: 80px;
+}
+
+sidebar-chat-codeblock-topbar {
+  background: colors.c(base, 0.6);
+  border-bottom: 1px solid colors.c(border, 0.3);
+  padding: 8px 12px 0px 16px;
+  border-radius: 12px 12px 0 0;
+}
+
+sidebar-chat-codeblock-topbar-txt {
+  font-size: 12px;
+  font-weight: 600;
+  color: colors.c(primary);
+  font-family: monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+}
+
+sidebar-chat-codeblock-copy-btn {
+  min-width: 16px;
+  min-height: 16px;
+  padding: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  PhosphorIcon {
+    color: colors.c(foreground-alt);
+    min-width: 16px;
+    min-height: 16px;
+    transition: color 0.2s ease;
+  }
+
+  &:hover {
+    background: colors.c(overlay, 0.3);
+    border-color: colors.c(border, 0.4);
+
+    PhosphorIcon {
+      color: colors.c(primary);
+    }
+  }
+
+  &:active {
+    background: colors.c(overlay, 0.5);
+
+    PhosphorIcon {
+      color: colors.c(primary);
+      transform: scale(0.9);
+    }
+  }
+}
+
+sidebar-chat-codeblock-code {
+  padding: 0 16px 0 16px;
+  min-height: 200px;
+  min-width: 100%;
+  background: colors.c(base, 0.6);
+  border-radius: 0 0 12px 12px;
+
+  scrolledwindow {
+    background: transparent;
+    min-height: 80px;
+    max-height: 500px;
+    border-radius: 8px;
+    margin-top: 8px;
+  }
+
+  textview {
+    background: transparent;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+    font-size: 14px;
+    color: colors.c(foreground);
+    padding: 12px 0 12px 0;
+    min-height: 180px;
+
+    text {
+      background: transparent;
+
+      // Syntax highlighting colors
+      selection {
+        background: colors.c(primary, 0.3);
+      }
+    }
+  }
+
+  // Additional GtkSourceView styling
+  .sourceview {
+    background: transparent;
+    caret-color: colors.c(foreground);
+
+    &:selected {
+      background: colors.c(primary, 0.3);
+    }
+  }
+
+  // Line numbers gutter
+  .gutter {
+    background: colors.c(surface);
+    color: colors.c(muted);
+    padding: 0 8px;
+  }
+}
+
+// Loading skeleton animation
+sidebar-chat-message-skeletonline {
+  height: 18px;
+  background: linear-gradient(90deg,
+      colors.c(background-elevated, 0.3) 0%,
+      colors.c(background-elevated, 0.6) 50%,
+      colors.c(background-elevated, 0.3) 100%);
+  border-radius: 6px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  margin: 4px 0;
+
+  &.sidebar-chat-message-skeletonline-offset0 {
+    width: 85%;
+  }
+
+  &.sidebar-chat-message-skeletonline-offset1 {
+    width: 65%;
+    margin-left: 15%;
+  }
+
+  &.sidebar-chat-message-skeletonline-offset2 {
+    width: 75%;
+    margin-left: 10%;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0% {
+    opacity: 0.5;
+    transform: translateX(-100%);
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0.5;
+    transform: translateX(100%);
+  }
+}
+
+// System messages
+sidebar-chat-system-message {
+  margin: 8px 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, colors.c(info, 0.15) 0%, colors.c(info, 0.1) 100%);
+  border: 1px solid colors.c(info, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  animation: messageSlideIn 0.3s ease-out;
+
+  sidebar-chat-system-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: colors.c(info);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  sidebar-chat-system-content {
+    font-size: 14px;
+    color: colors.c(foreground);
+    line-height: 1.6;
+
+    code {
+      background: colors.c(base, 0.4);
+      border: 1px solid colors.c(border, 0.5);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      color: colors.c(rose);
+    }
+  }
+}
+
+// Command suggestions
+command-suggestions {
+  background: colors.c(background-elevated, 0.95);
+  border: 1px solid colors.c(border, 0.5);
+  border-radius: 12px;
+  margin: 0 12px 8px 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 -4px 16px colors.c(base, 0.3);
+  overflow: hidden;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+command-suggestion-item {
+  background: transparent;
+  border: none;
+  padding: 12px 16px;
+  transition: all 0.15s ease;
+  border-radius: 0;
+
+  &:hover {
+    background: colors.c(background, 0.6);
+  }
+
+  &.active {
+    background: colors.c(primary, 0.15);
+
+    command-name {
+      color: colors.c(primary);
+    }
+
+    command-icon {
+      color: colors.c(primary);
+    }
+  }
+
+  &:first-child {
+    border-radius: 11px 11px 0 0;
+  }
+
+  &:last-child {
+    border-radius: 0 0 11px 11px;
+  }
+
+  &:only-child {
+    border-radius: 11px;
+  }
+}
+
+command-icon {
+  color: colors.c(foreground-alt);
+  min-width: 20px;
+  margin-right: 12px;
+}
+
+command-name {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: colors.c(foreground);
+}
+
+command-desc {
+  font-size: 13px;
+  color: colors.c(foreground-alt);
+  margin-top: 2px;
+}
+
+// Input area
+sidebar-chat-textarea {
+  background: linear-gradient(to bottom,
+      colors.c(background-elevated, 0.4),
+      colors.c(background-elevated, 0.6));
+  border-top: 1px solid colors.c(border, 0.4);
+  padding: 16px 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 -4px 16px colors.c(base, 0.2);
+}
+
+sidebar-chat-input-wrapper {
+  background: colors.c(background, 0.4);
+  border: 2px solid colors.c(border, 0.4);
+  border-radius: 28px;
+  padding: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:focus-within {
+    background: colors.c(background, 0.6);
+    border-color: colors.c(primary, 0.6);
+    box-shadow:
+      0 0 0 4px colors.c(primary, 0.15),
+      0 4px 16px colors.c(primary, 0.2);
+    transform: translateY(-2px);
+  }
+}
+
+sidebar-chat-entry {
+  background: transparent;
+  border: none;
+  border-radius: 26px;
+  padding: 14px 20px;
+  color: colors.c(foreground);
+  font-size: 15px;
+  min-height: 44px;
+
+  &:focus {
+    outline: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  &::placeholder {
+    color: colors.c(foreground-alt, 0.5);
+    font-style: italic;
+  }
+
+  selection {
+    background-color: colors.c(primary, 0.3);
+    color: colors.c(foreground);
+  }
+}
+
+// Send button
+sidebar-chat-send {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 4px;
+  background: linear-gradient(135deg, colors.c(primary, 0.8), colors.c(accent, 0.8));
+  // border-radius: 50%;
+  border: none;
+
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 2px 8px colors.c(primary, 0.4),
+    inset 0 1px 0 colors.c(foreground, 0.1);
+
+  &:hover {
+    background: linear-gradient(135deg, colors.c(primary, 0.9), colors.c(accent, 0.9));
+    transform: scale(1.1);
+    box-shadow:
+      0 4px 16px colors.c(primary, 0.5),
+      inset 0 1px 0 colors.c(foreground, 0.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+    box-shadow:
+      0 1px 4px colors.c(primary, 0.4),
+      inset 0 2px 4px colors.c(base, 0.2);
+  }
+
+  PhosphorIcon {
+    color: white;
+    min-width: 24px;
+    min-height: 24px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      transform: none;
+      box-shadow: 0 2px 8px colors.c(primary, 0.4);
+    }
+  }
+}
+
+// Welcome message
+ai-welcome-message {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+
+  box {
+    text-align: center;
+
+    label {
+      font-size: 16px;
+      color: colors.c(foreground-alt, 0.7);
+      line-height: 1.8;
+
+      &:first-child {
+        font-size: 24px;
+        font-weight: 600;
+        color: colors.c(foreground, 0.8);
+        margin-bottom: 8px;
+      }
+    }
+  }
+}
+
+// Divider between messages
+sidebar-chat-divider {
+  height: 1px;
+  background: linear-gradient(to right,
+      transparent,
+      colors.c(border, 0.3) 20%,
+      colors.c(border, 0.3) 80%,
+      transparent);
+  margin: 20px 40px;
+}

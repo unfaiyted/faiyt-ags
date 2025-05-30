@@ -68,7 +68,11 @@ export const ChatSendButton = (props: Widget.ButtonProps) => {
       onClicked={props.onClicked}
       cssName={`sidebar-chat-send`}
     >
-      <PhosphorIcon iconName={PhosphorIcons.PaperPlaneTilt} size={32} />
+      <PhosphorIcon
+        widthRequest={24}
+        heightRequest={24}
+
+        iconName={PhosphorIcons.PaperPlaneTilt} size={32} />
     </button>
   );
 };

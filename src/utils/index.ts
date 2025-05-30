@@ -1,13 +1,10 @@
-import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
-import { Variable, Binding } from "astal";
+import { Gdk } from "astal/gtk4";
+import { Binding } from "astal";
 import Cairo from "gi://cairo";
 import GLib from "gi://GLib";
 import config from "./config";
 
 export const dummyRegion = new Cairo.Region();
-
-export const enableClickthrough = (self: any) =>
-  self.input_shape_combine_region(dummyRegion);
 
 //this is because direction does not seem to work in event.direction
 export const getScrollDirection = (
@@ -21,7 +18,7 @@ export const getScrollDirection = (
   }
 };
 
-export const isIcon = (icon: string) => !!Astal.Icon.lookup_icon(icon);
+// export const isIcon = (icon: string) => !!Astal.Icon.lookup_icon(icon);
 
 export const fileExists = (path: string) =>
   GLib.file_test(path, GLib.FileTest.EXISTS);

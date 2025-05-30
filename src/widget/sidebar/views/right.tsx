@@ -1,11 +1,10 @@
-import { App, Gtk, Gdk, Widget } from "astal/gtk4";
+import { App, Widget } from "astal/gtk4";
 import { getSidebarTabs } from "../utils";
 import { ScreenSide } from "../types";
 import SideBar from "../";
 import Tabs, { TabContent } from "../../utils/containers/tabs";
 import { c } from "../../../utils/style";
 import { createLogger } from "../../../utils/logger";
-
 import QuickToggles from "../modules/toggles";
 import { SidebarModule } from "../modules/types";
 import HeaderModule from "../modules/header";
@@ -16,7 +15,6 @@ interface RighSideBarProps extends Widget.WindowProps {
   screenSide?: ScreenSide.RIGHT;
   monitorIndex: number;
 }
-// name = sidebar-right
 
 export default function RightSideBar(sideBarProps: RighSideBarProps) {
   const { setup, child, ...props } = sideBarProps;
@@ -46,7 +44,7 @@ export default function RightSideBar(sideBarProps: RighSideBarProps) {
         vertical
         vexpand>
         <box vertical cssClasses={["spacing-v-5"]}>
-          <HeaderModule />
+          <HeaderModule gdkmonitor={props.gdkmonitor} monitorIndex={props.monitorIndex} />
           <QuickToggles />
         </box>
         <box cssName="sidebar-group">

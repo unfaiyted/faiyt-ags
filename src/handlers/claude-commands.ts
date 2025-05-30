@@ -54,17 +54,17 @@ export const ClaudeCommands = (
       if (!args) {
         appendChatContent(
           SystemMessage({
-            content: `Key stored in: \n\`${service.keyPath}\`\nTo update this key, type \`/key YOUR_API_KEY\``,
+            content: `Key stored in config at: \n\`${service.keyPath}\`\nTo update this key, type \`/key YOUR_API_KEY\``,
             commandName: "/key",
           }),
         );
         return;
       }
 
-      service.key = args;
+      service.setApiKey(args);
       appendChatContent(
         SystemMessage({
-          content: `Updated API Key at\n\`${service.keyPath}\``,
+          content: `API Key updated successfully!\nStored in user config`,
           commandName: "/key",
         }),
       );

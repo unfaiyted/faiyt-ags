@@ -5,6 +5,16 @@ export enum DisplayModes {
   DARK = "dark",
 }
 
+export interface AIProvider {
+  name: string;
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+  enabled?: boolean;
+}
+
 export interface ConfigOptions {
   ai: {
     defaultGPTProvider: string;
@@ -14,6 +24,17 @@ export interface ConfigOptions {
     safety: boolean;
     writingCursor: string;
     proxyUrl: string | null;
+    providers: {
+      claude: AIProvider & {
+        models?: string[];
+        cycleModels?: boolean;
+      };
+      gemini: AIProvider;
+      gpt: AIProvider;
+      ollama: AIProvider & {
+        localUrl?: string;
+      };
+    };
   };
   animations: {
     choreographyDelay: number;
@@ -216,4 +237,3 @@ export interface ConfigOptions {
   };
 }
 
-export type MergedConfig = ConfigOptions; // Define as needed for your merged config

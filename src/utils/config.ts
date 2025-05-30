@@ -1,22 +1,66 @@
 import GLib from "gi://GLib";
-import { deepMerge } from "./objects.js";
-import userConfigOptions from "../user-options.js";
-import { ConfigOptions, DisplayModes, MergedConfig } from "../types/config";
+import { ConfigOptions, DisplayModes } from "../types/config";
 import { BarMode } from "../widget/bar/types";
 
 const USERNAME = GLib.get_user_name();
 // Default options.
-// Add overrides in /config
-let defaultConfigOptions: ConfigOptions = {
+
+export const defaultConfigOptions: ConfigOptions = {
   // General stuff
   ai: {
-    defaultGPTProvider: "openai",
+    defaultGPTProvider: "claude",
     defaultTemperature: 0.9,
     enhancements: true,
     useHistory: true,
     safety: true,
     writingCursor: " ...", // Warning: Using weird characters can mess up Markdown rendering
     proxyUrl: null, // Can be "socks5://127.0.0.1:9050" or "http://127.0.0.1:8080" for example. Leave it blank if you don't need it.
+    providers: {
+      claude: {
+        name: "Claude",
+        apiKey: "",
+        baseUrl: "https://api.anthropic.com/v1/messages",
+        model: "claude-3-5-sonnet-20241022",
+        temperature: 0.9,
+        maxTokens: 1024,
+        enabled: true,
+        models: [
+          "claude-3-5-sonnet-20241022",
+          "claude-3-5-haiku-20241022",
+          "claude-3-opus-20240229",
+          "claude-3-haiku-20240307",
+        ],
+        cycleModels: false,
+      },
+      gemini: {
+        name: "Gemini",
+        apiKey: "",
+        baseUrl: "https://generativelanguage.googleapis.com/v1beta",
+        model: "gemini-pro",
+        temperature: 0.9,
+        maxTokens: 1024,
+        enabled: true,
+      },
+      gpt: {
+        name: "GPT",
+        apiKey: "",
+        baseUrl: "https://api.openai.com/v1/chat/completions",
+        model: "gpt-3.5-turbo",
+        temperature: 0.9,
+        maxTokens: 1024,
+        enabled: true,
+      },
+      ollama: {
+        name: "Ollama",
+        apiKey: "",
+        baseUrl: "http://localhost:11434",
+        model: "llama2",
+        temperature: 0.9,
+        maxTokens: 1024,
+        enabled: true,
+        localUrl: "http://localhost:11434",
+      },
+    },
   },
   animations: {
     choreographyDelay: 35,
@@ -98,6 +142,9 @@ let defaultConfigOptions: ConfigOptions = {
     wsNumScale: 0.09,
     wsNumMarginScale: 0.07,
   },
+  launcher: {
+    maxResults: 10,
+  },
   sidebar: {
     ai: {
       extraGptModels: {
@@ -177,7 +224,6 @@ let defaultConfigOptions: ConfigOptions = {
   },
   // Longer stuff
   icons: {
-    // Find the window's icon by its class with levenshteinDistance
     // The file names are processed at startup, so if there
     // are too many files in the search path it'll affect performance
     // Example: ['/usr/share/icons/Tela-nord/scalable/apps']
@@ -256,19 +302,4 @@ let defaultConfigOptions: ConfigOptions = {
   },
 };
 
-// Utils.timeout(2000, () =>
-//   Utils.execAsync([
-//     "notify-send",
-//     "Update your user options",
-//     "One or more config options don't exist",
-//     "-a",
-//     "ags",
-//   ]).catch(print),
-// );
-
-const mergedConfig = deepMerge(
-  defaultConfigOptions,
-  userConfigOptions,
-) as MergedConfig;
-
-export default mergedConfig;
+export default defaultConfigOptions;

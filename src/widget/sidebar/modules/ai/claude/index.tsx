@@ -1,22 +1,20 @@
 import { Widget, Gtk } from "astal/gtk4";
-import GObject from "gi://GObject";
 import { ChatSendButton } from "../index";
 import ChatInput from "../components/chat-input";
 import ChatMessage from "../components/chat-message";
 import { AIName } from "../index";
 import { Variable, bind } from "astal";
 import { VarMap } from "../../../../../types/var-map";
-import { ClaudeService } from "../../../../../services/claude";
+import claudeService, { ClaudeService } from "../../../../../services/claude";
 import { ClaudeCommands, AICommandProps } from "../../../../../handlers/claude-commands";
 import { SystemMessage } from "../components/system-message";
 import ChatView from "../components/chat-view";
 import CommandSuggestions from "../components/command-suggestions";
-import config from "../../../../../utils/config";
-import { parseCommand, enableClickthrough } from "../../../../../utils";
+import { parseCommand } from "../../../../../utils";
 import { sidebarLogger as log } from "../../../../../utils/logger";
-import { ChatContent } from "../components/chat-content";
 import PhosphorIcon from "../../../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../../../utils/icons/types";
+import configManager from "../../../../../services/config-manager";
 
 export interface ClaudeAIProps extends Widget.BoxProps { }
 
@@ -42,14 +40,23 @@ export default function ClaudeAI(props: ClaudeAIProps) {
   const showCommandSuggestions = Variable(false);
   const selectedModel = Variable(0);
 
-  log.debug("Starting Claude service");
-  const claudeService = new ClaudeService();
+  log.debug("Getting Claude service instance");
+  // Use the singleton instance instead of creating a new one
 
-  const availableModels = [
-    { name: "Claude 3.5 Sonnet", value: "claude-3-5-sonnet-20241022" },
-    { name: "Claude 3 Opus", value: "claude-3-opus-20240229" },
-    { name: "Claude 3 Haiku", value: "claude-3-haiku-20240307" },
-  ];
+  // Get models from config
+  const claudeModels = configManager.getValue("ai.providers.claude.models") || [];
+  const availableModels = claudeModels.map((model: string) => {
+    // Create display names from model IDs
+    const displayName = model
+      .replace("claude-", "Claude ")
+      .replace("-20241022", " (Latest)")
+      .replace("-20240229", "")
+      .replace("-20240307", "")
+      .replace("sonnet", "Sonnet")
+      .replace("haiku", "Haiku")
+      .replace("opus", "Opus");
+    return { name: displayName, value: model };
+  });
 
   // The service will emit new-msg for each initial message automatically
 
@@ -58,7 +65,7 @@ export default function ClaudeAI(props: ClaudeAIProps) {
     chatContent.set(
       id,
       <ChatMessage
-        modelName="Claude 3.5 Sonnet"
+        modelName={availableModels[selectedModel.get()].name}
         message={claudeService.getMessage(id)}
       />,
     );
@@ -121,12 +128,14 @@ export default function ClaudeAI(props: ClaudeAIProps) {
         // Show available commands
         appendChatContent(
           SystemMessage({
-            content: `Invalid command: "${command}"\n\nAvailable commands:\n/clear - Clear chat history\n/model - Switch AI model\n/help - Show this help`,
+            content: `Invalid command: "${command}"\n\nAvailable commands:\n/clear - Clear chat history\n/model - Show current AI model\n/key - Set API key\n/help - Show all commands\n/load - Load chat history\n/prompt - Add a prompt message`,
             commandName: "Error",
           }),
         );
       }
     } else {
+      // Set the selected model before sending
+      claudeService.modelName = availableModels[selectedModel.get()].value;
       claudeService.send(trimmedMessage);
     }
   };
@@ -213,9 +222,9 @@ export default function ClaudeAI(props: ClaudeAIProps) {
 
       <box vertical vexpand={false}>
         <CommandSuggestions
-          query={input}
-          visible={showCommandSuggestions}
-          onSelect={handleCommandSelect}
+          query={bind(input)}
+          visible={bind(showCommandSuggestions)}
+          handleSelect={handleCommandSelect}
         />
         <box cssName="sidebar-chat-textarea" valign={Gtk.Align.END}>
           <ChatInput

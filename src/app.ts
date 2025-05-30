@@ -1,5 +1,5 @@
 import { App } from "astal/gtk4";
-import { cycleMode, initialMonitorShellModes } from "./widget/bar/utils";
+import { initialMonitorShellModes } from "./widget/bar/utils";
 import appCSS from "./app.scss";
 // import iconStyles from "./node_modules/@phosphor-icons/web/src/regular/style.css";
 import Bar from "./widget/bar";
@@ -18,11 +18,15 @@ import {
 import { systemLogger, log, setLogLevel, LogLevel } from "./utils/logger";
 import { logSystemInfo } from "./services/logger";
 import "./services/clipboard-manager"; // Initialize clipboard manager
-import ContextMenuWindow from "./widget/utils/context-menu";
+import configManager from "./services/config-manager"; // Initialize config manager
 
 // Set log level from environment or default to info
 import { GLib } from "astal";
 setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.INFO);
+
+// Ensure ConfigManager is initialized
+log.info("Initializing ConfigManager");
+const configInstance = configManager; // This will trigger the singleton initialization
 
 // Init shell modes for all active monitors
 initialMonitorShellModes();
@@ -60,8 +64,6 @@ App.start({
         PopupNotificationsWindow({ gdkmonitor: gdkmonitor, monitor: index });
         IndicatorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
         MusicWindow({ gdkmonitor: gdkmonitor, monitor: index });
-
-        // Context menu window (one per monitor)
 
         log.info(`Monitor ${index} setup complete`);
       } catch (error) {

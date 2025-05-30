@@ -162,3 +162,8 @@ $themes: (
 @function lighten($color, $amount) {
   @return mix(white, c($color), $amount);
 }
+
+
+.accent {
+  color: c(accent);
+}

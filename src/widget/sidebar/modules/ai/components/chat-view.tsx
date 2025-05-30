@@ -1,5 +1,4 @@
-import { Widget, Gtk, Gdk, Astal } from "astal/gtk4";
-import { Variable, bind } from "astal";
+import { Widget, Gtk, } from "astal/gtk4";
 import { timeout } from "astal/time";
 
 export const ChatView = (props: Widget.BoxProps) => {

@@ -3,13 +3,13 @@ import { getDistroIcon } from "../../../utils/system";
 import { ReloadIconButton } from "./buttons/reload";
 import { SettingsIconButton } from "./buttons/settings";
 import { PowerIconButton } from "./buttons/power";
-import { Variable, bind } from "astal";
+import { Variable, bind, Binding } from "astal";
 import { getUptime } from "../../../utils/system";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../utils/icons/types";
 
 export interface HeaderModuleProps extends Widget.BoxProps {
-  gdkmonitor: Gdk.Monitor;
+  gdkmonitor: Binding<Gdk.Monitor> | Gdk.Monitor | undefined;
   monitorIndex: number;
 }
 
@@ -38,7 +38,7 @@ export default function HeaderModule(props: HeaderModuleProps) {
       <box cssName="header-actions" spacing={4}>
         <ReloadIconButton />
         <SettingsIconButton />
-        <PowerIconButton marginStart={4} />
+        <PowerIconButton marginStart={4} gdkmonitor={props.gdkmonitor} monitorIndex={props.monitorIndex} />
       </box>
     </box>
   );

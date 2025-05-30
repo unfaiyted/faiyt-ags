@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<style-scheme id="rose-pine" _name="Rosé Pine" version="1.0">
+  <author>AGS Config</author>
+  <_description>Rosé Pine color scheme for GtkSourceView</_description>
+
+  <!-- Rosé Pine Colors -->
+  <color name="base"           value="#191724"/>
+  <color name="surface"        value="#1f1d2e"/>
+  <color name="overlay"        value="#26233a"/>
+  <color name="muted"          value="#6e6a86"/>
+  <color name="subtle"         value="#908caa"/>
+  <color name="text"           value="#e0def4"/>
+  <color name="love"           value="#eb6f92"/>
+  <color name="gold"           value="#f6c177"/>
+  <color name="rose"           value="#ebbcba"/>
+  <color name="pine"           value="#31748f"/>
+  <color name="foam"           value="#9ccfd8"/>
+  <color name="iris"           value="#c4a7e7"/>
+  <color name="highlight-low"  value="#21202e"/>
+  <color name="highlight-med"  value="#403d52"/>
+  <color name="highlight-high" value="#524f67"/>
+
+  <!-- Global Settings -->
+  <style name="text"                        foreground="text" background="base"/>
+  <style name="selection"                   foreground="text" background="highlight-med"/>
+  <style name="cursor"                      foreground="base" background="text"/>
+  <style name="current-line"                background="surface"/>
+  <style name="line-numbers"                foreground="muted" background="surface"/>
+  <style name="current-line-number"         foreground="text" background="surface" bold="true"/>
+  <style name="right-margin"                foreground="muted" background="overlay"/>
+  <style name="draw-spaces"                 foreground="muted"/>
+  <style name="background-pattern"          background="surface"/>
+
+  <!-- Bracket Matching -->
+  <style name="bracket-match"               foreground="text" background="highlight-med" bold="true"/>
+  <style name="bracket-mismatch"            foreground="text" background="love" bold="true"/>
+
+  <!-- Search Matching -->
+  <style name="search-match"                background="gold" foreground="base"/>
+
+  <!-- Comments -->
+  <style name="def:comment"                 foreground="muted" italic="true"/>
+  <style name="def:shebang"                 foreground="muted" bold="true"/>
+  <style name="def:doc-comment"             foreground="muted" italic="true"/>
+  <style name="def:doc-comment-element"     foreground="subtle" italic="true"/>
+
+  <!-- Constants -->
+  <style name="def:constant"                foreground="gold"/>
+  <style name="def:character"               foreground="gold"/>
+  <style name="def:string"                  foreground="gold"/>
+  <style name="def:special-char"            foreground="rose"/>
+  <style name="def:special-constant"        foreground="rose"/>
+  <style name="def:floating-point"          foreground="gold"/>
+  <style name="def:number"                  foreground="gold"/>
+  <style name="def:boolean"                 foreground="rose"/>
+
+  <!-- Identifiers -->
+  <style name="def:identifier"              foreground="rose"/>
+  <style name="def:function"                foreground="rose" bold="true"/>
+  <style name="def:builtin"                 foreground="rose"/>
+
+  <!-- Statements -->
+  <style name="def:statement"               foreground="pine" bold="true"/>
+  <style name="def:operator"                foreground="subtle"/>
+  <style name="def:keyword"                 foreground="pine" bold="true"/>
+
+  <!-- Types -->
+  <style name="def:type"                    foreground="foam"/>
+  <style name="def:class"                   foreground="foam" bold="true"/>
+
+  <!-- Others -->
+  <style name="def:preprocessor"            foreground="iris"/>
+  <style name="def:error"                   foreground="love" bold="true" underline="true"/>
+  <style name="def:warning"                 foreground="gold" bold="true" underline="true"/>
+  <style name="def:note"                    foreground="foam" bold="true" italic="true"/>
+  <style name="def:net-address"             foreground="iris" underline="true"/>
+
+  <!-- Language-specific -->
+  <style name="diff:added-line"             foreground="foam"/>
+  <style name="diff:removed-line"           foreground="love"/>
+  <style name="diff:changed-line"           foreground="gold"/>
+  <style name="diff:location"               foreground="iris" bold="true"/>
+
+  <!-- JavaScript/TypeScript -->
+  <style name="js:function"                 foreground="rose"/>
+  <style name="js:object"                   foreground="foam"/>
+  <style name="js:constructors"             foreground="foam"/>
+  <style name="js:keyword"                  foreground="pine"/>
+  <style name="js:string"                   foreground="gold"/>
+  <style name="js:regex"                    foreground="rose"/>
+  
+  <!-- XML/HTML -->
+  <style name="xml:tag"                     foreground="pine"/>
+  <style name="xml:attribute-name"          foreground="foam"/>
+  <style name="xml:attribute-value"         foreground="gold"/>
+  <style name="xml:namespace"               foreground="iris" bold="true"/>
+  
+  <!-- CSS -->
+  <style name="css:selector"                foreground="rose"/>
+  <style name="css:property"                foreground="foam"/>
+  <style name="css:value"                   foreground="gold"/>
+  <style name="css:id"                      foreground="iris" bold="true"/>
+  <style name="css:class"                   foreground="foam"/>
+</style-scheme>
