@@ -59,6 +59,7 @@ export interface ConfigOptions {
     imageViewer: string;
     network: string;
     settings: string;
+    browser: string;
     taskManager: string;
     terminal: string;
   };
@@ -107,33 +108,7 @@ export interface ConfigOptions {
     wsNumScale: number;
     wsNumMarginScale: number;
   };
-  sidebar: {
-    ai: {
-      extraGptModels: {
-        [key: string]: {
-          name: string;
-          logo_name: string;
-          description: string;
-          base_url: string;
-          key_get_url: string;
-          key_file: string;
-          model: string;
-        };
-      };
-    };
-    image: {
-      columns: number;
-      batchCount: number;
-      allowNsfw: boolean;
-      saveInFolderByTags: boolean;
-    };
-    pages: {
-      order: string[];
-      apis: {
-        order: string[];
-      };
-    };
-  };
+  sidebar: {};
   search: {
     enableFeatures: {
       actions: boolean;
@@ -145,6 +120,14 @@ export interface ConfigOptions {
     };
     engineBaseUrl: string;
     excludedSites: string[];
+    externalProviders: {
+      [key: string]: {
+        name: string;
+        prefix: string;
+        url: string;
+        icon: string;
+      };
+    };
   };
   time: {
     format: string;
@@ -155,7 +138,7 @@ export interface ConfigOptions {
   };
   weather: {
     city: string;
-    preferredUnit: string;
+    preferredUnit: "C" | "F";
   };
   workspaces: {
     shown: number;
@@ -236,4 +219,3 @@ export interface ConfigOptions {
     runtime: string;
   };
 }
-

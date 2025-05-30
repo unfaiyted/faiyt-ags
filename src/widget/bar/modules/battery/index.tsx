@@ -1,5 +1,6 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { Variable, bind } from "astal";
+import { execAsync } from "astal/process";
 import BarGroup from "../../utils/bar-group";
 import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import { Fixed } from "../../../utils/containers/drawing-area";
@@ -7,6 +8,10 @@ import CircularProgress from "../../../utils/circular-progress";
 import Battery from "gi://AstalBattery";
 import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
 import { theme } from "../../../../utils/color";
+import { createLogger } from "../../../../utils/logger";
+import configManager from "../../../../services/config-manager";
+
+const log = createLogger('BatteryModule');
 
 export interface BatteryModuleProps extends Widget.BoxProps { }
 
@@ -41,6 +46,11 @@ export default function BatteryModule(props: BatteryModuleProps) {
   const batteryColor = new Variable(theme.foreground);
   const batteryIconName = new Variable(PhosphorIcons.BatteryEmpty);
 
+  // Track which warnings have been sent to prevent spam
+  const sentWarnings = new Set<number>();
+  let lastChargingState = battery.charging;
+  let lastNotificationLevel = Math.round(battery.percentage * 100);
+
   // Helper function to format time remaining
   const formatTimeRemaining = (seconds: number): string => {
     if (seconds <= 0) return "Unknown";
@@ -61,6 +71,76 @@ export default function BatteryModule(props: BatteryModuleProps) {
     return theme.text; // text (normal white)
   };
 
+  // Send battery warning notification
+  const sendBatteryNotification = async (title: string, message: string, urgency: 'low' | 'normal' | 'critical' = 'normal') => {
+    try {
+      await execAsync([
+        'notify-send',
+        title,
+        message,
+        '-u', urgency,
+        '-i', 'battery-low',
+        '-a', 'AGS Battery Monitor'
+      ]);
+      log.info('Battery notification sent', { title, message, urgency });
+    } catch (error) {
+      log.error('Failed to send battery notification', { error });
+    }
+  };
+
+  // Check and send battery warnings
+  const checkBatteryWarnings = (level: number, charging: boolean) => {
+    const config = configManager.getValue('battery');
+    const warnLevels = config.warnLevels;
+    const warnTitles = config.warnTitles;
+    const warnMessages = config.warnMessages;
+
+    // Don't send warnings if charging
+    if (charging) {
+      // Clear sent warnings when charging starts
+      sentWarnings.clear();
+      return;
+    }
+
+    // Check each warning level
+    for (let i = 0; i < warnLevels.length; i++) {
+      const warnLevel = warnLevels[i];
+      
+      // If battery level is at or below this warning level and we haven't sent this warning yet
+      if (level <= warnLevel && !sentWarnings.has(warnLevel)) {
+        // Mark levels above this as sent to prevent duplicate notifications
+        for (let j = 0; j <= i; j++) {
+          sentWarnings.add(warnLevels[j]);
+        }
+        
+        // Determine urgency based on level
+        let urgency: 'low' | 'normal' | 'critical' = 'normal';
+        if (level <= config.critical) {
+          urgency = 'critical';
+        } else if (level <= config.low) {
+          urgency = 'normal';
+        }
+        
+        sendBatteryNotification(
+          warnTitles[i] || `Battery at ${level}%`,
+          warnMessages[i] || 'Please plug in the charger',
+          urgency
+        );
+        break;
+      }
+    }
+
+    // Check for critical suspend threshold
+    if (level <= config.suspendThreshold && !sentWarnings.has(config.suspendThreshold)) {
+      sentWarnings.add(config.suspendThreshold);
+      sendBatteryNotification(
+        'CRITICAL: System will suspend soon!',
+        `Battery at ${level}%. System will suspend at ${config.suspendThreshold}%`,
+        'critical'
+      );
+    }
+  };
+
   // Update battery info
   const updateBatteryInfo = () => {
     const level = Math.round(battery.percentage * 100);
@@ -70,6 +150,39 @@ export default function BatteryModule(props: BatteryModuleProps) {
     isCharging.set(charging);
     batteryColor.set(getBatteryColor(level, charging));
     batteryIconName.set(getBatteryIconName(level, charging));
+
+    // Check for battery warnings
+    checkBatteryWarnings(level, charging);
+
+    // Send notification on charging state change
+    if (charging !== lastChargingState) {
+      lastChargingState = charging;
+      if (charging) {
+        sendBatteryNotification(
+          'Charger Connected',
+          `Battery at ${level}% - Charging`,
+          'low'
+        );
+      } else {
+        sendBatteryNotification(
+          'Charger Disconnected', 
+          `Battery at ${level}% - ${formatTimeRemaining(battery.time_to_empty)} remaining`,
+          level <= 20 ? 'normal' : 'low'
+        );
+      }
+    }
+
+    // Clear warnings when battery level increases significantly (e.g., unplugged at higher level)
+    if (!charging && level > lastNotificationLevel + 5) {
+      // Remove warnings for levels below current
+      const config = configManager.getValue('battery');
+      config.warnLevels.forEach(warnLevel => {
+        if (warnLevel < level) {
+          sentWarnings.delete(warnLevel);
+        }
+      });
+    }
+    lastNotificationLevel = level;
 
     // Calculate time remaining
     if (charging && battery.time_to_full > 0) {

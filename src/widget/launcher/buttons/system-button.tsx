@@ -1,7 +1,8 @@
-import { Gtk, Widget } from "astal/gtk4";
-import { Variable, Binding, bind } from "astal";
+import { Widget, App, Gtk, Gdk } from "astal/gtk4";
+import LauncherButton from "./index";
+import actions from "../../../utils/actions";
+import { Binding } from "astal";
 import { execAsync } from "astal/process";
-import { App } from "astal/gtk4";
 import { launcherLogger as log } from "../../../utils/logger";
 
 export interface SystemAction {
@@ -20,72 +21,57 @@ export interface SystemButtonProps extends Widget.ButtonProps {
 }
 
 export default function SystemButton(props: SystemButtonProps) {
-  const { action, index, selected, ref: buttonRef, ...rest } = props;
-
-  if (!action) {
+  if (!props.action) {
     log.error("SystemButton: action is undefined");
     return <box />;
   }
 
-  const handleActivate = () => {
-    log.debug("Executing system action", { action: action.name, command: action.command });
-    
-    // Close launcher first
-    const windows = App.get_windows();
-    windows.forEach(win => {
-      if (win.name?.startsWith('launcher')) {
-        win.hide();
-      }
+  const handleKeyPress = (self: Gtk.Button, keyval: number) => {
+    switch (keyval) {
+      case Gdk.KEY_Return:
+      case Gdk.KEY_KP_Enter:
+        executeAction();
+        break;
+      default:
+        break;
+    }
+  };
+
+  const executeAction = () => {
+    log.debug("Executing system action", { 
+      action: props.action.name, 
+      command: props.action.command 
     });
 
+    // Close launcher first
+    actions.window.toggle("launcher");
+
     // Execute system action
-    if (action.confirm) {
+    if (props.action.confirm) {
       // TODO: Show confirmation dialog
-      log.debug("Confirmation required for action", { action: action.name });
+      log.debug("Confirmation required for action", { action: props.action.name });
     }
-    
-    execAsync(['bash', '-c', action.command]).catch(err => {
+
+    execAsync(['bash', '-c', props.action.command]).catch(err => {
       log.error("Failed to execute system action", { error: err });
     });
   };
 
   return (
-    <button
-      cssName={selected 
-        ? bind(selected).as(s => s ? "launcher-result selected" : "launcher-result")
-        : "launcher-result"}
-      onClicked={handleActivate}
-      focusable={false}
-      ref={(button) => {
-        if (buttonRef) {
-          buttonRef(button);
+    <LauncherButton
+      name={props.action.name}
+      icon={<image iconName={props.action.icon} pixelSize={32} />}
+      content={props.action.description}
+      selected={props.selected}
+      onKeyPressed={handleKeyPress}
+      onClicked={executeAction}
+      setup={(self: Gtk.Button) => {
+        if (props.ref) {
+          props.ref(self);
         }
       }}
-      {...rest}
-    >
-      <box spacing={12} valign={Gtk.Align.CENTER}>
-        <icon
-          icon={action.icon}
-          cssClasses={["launcher-result-icon"]}
-        />
-        <box vertical valign={Gtk.Align.CENTER}>
-          <label
-            label={action.name}
-            cssClasses={["launcher-result-name"]}
-            halign={Gtk.Align.START}
-            truncate
-            maxWidthChars={40}
-          />
-          <label
-            label={action.description}
-            cssClasses={["launcher-result-description"]}
-            halign={Gtk.Align.START}
-            truncate
-            maxWidthChars={50}
-          />
-        </box>
-      </box>
-    </button>
+      {...props}
+    />
   );
 }
 

@@ -16,6 +16,7 @@ import getClipboardResults, { ClipboardButtonResult } from "./clipboard-results"
 import CommandButton from "../buttons/command-button";
 import SystemButton from "../buttons/system-button";
 import ClipboardButton from "../buttons/clipboard-button";
+import getExternalSearchResults, { ExternalSearchResult, createExternalSearchButton } from "./external-search-results";
 
 export interface UnifiedResultsRef {
   selectNext: () => void;
@@ -38,6 +39,7 @@ interface UnifiedResults {
   commands: CommandButtonResult[];
   system: SystemButtonResult[];
   clipboard: ClipboardButtonResult[];
+  externalSearch: ExternalSearchResult[];
   total: number;
 }
 
@@ -59,6 +61,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     commands: [],
     system: [],
     clipboard: [],
+    externalSearch: [],
     total: 0
   });
   const MIN_SEARCH_LENGTH = 2;
@@ -96,6 +99,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         commands: [],
         system: [],
         clipboard: [],
+        externalSearch: [],
         total: 0
       });
       activeResultType.set(SearchType.ALL);
@@ -128,6 +132,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         commands: [],
         system: [],
         clipboard: [],
+        externalSearch: [],
         total: 0
       });
       activeResultType.set(SearchType.ALL);
@@ -149,6 +154,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       let commandList: CommandButtonResult[] = [];
       let systemList: SystemButtonResult[] = [];
       let clipboardList: ClipboardButtonResult[] = [];
+      let externalSearchList: ExternalSearchResult[] = [];
 
       switch (parsed.type) {
         case SearchType.APPS:
@@ -171,6 +177,10 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
           log.debug("Searching clipboard only", { query: parsed.query });
           clipboardList = getClipboardResults(parsed.query, true);
           break;
+        case SearchType.EXTERNAL_SEARCH:
+          log.debug("Searching external providers", { query: parsed.query });
+          externalSearchList = getExternalSearchResults(text);
+          break;
         case SearchType.ALL:
         default:
           log.debug("Searching all types", { query: parsed.query });
@@ -181,7 +191,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       }
 
       const total = appList.length + screenList.length + commandList.length +
-        systemList.length + clipboardList.length;
+        systemList.length + clipboardList.length + externalSearchList.length;
 
       log.debug("Search results", {
         appCount: appList.length,
@@ -189,6 +199,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         commandCount: commandList.length,
         systemCount: systemList.length,
         clipboardCount: clipboardList.length,
+        externalSearchCount: externalSearchList.length,
         total
       });
 
@@ -198,6 +209,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         commands: commandList,
         system: systemList,
         clipboard: clipboardList,
+        externalSearch: externalSearchList,
         total
       });
     }, DEBOUNCE_DELAY);
@@ -413,6 +425,23 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
                             }}
                           />
                         );
+                      })}
+                    </ResultGroupWrapper>
+
+                    <ResultGroupWrapper
+                      groupName="Web Search"
+                      revealed={(results.externalSearch.length > 0 && (type === SearchType.ALL || type === SearchType.EXTERNAL_SEARCH))}
+                    >
+                      {results.externalSearch.map((searchResult, index) => {
+                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                          results.commands.length + results.system.length + results.clipboard.length + index;
+                        return createExternalSearchButton(searchResult, {
+                          index: adjustedIndex,
+                          selected: bind(selectedIndex).as(i => i === adjustedIndex),
+                          ref: (button: Gtk.Button) => {
+                            buttonRefs.push(button);
+                          }
+                        });
                       })}
                     </ResultGroupWrapper>
                   </box>

@@ -5,6 +5,7 @@ export enum SearchType {
   COMMANDS = "commands",
   SYSTEM = "system",
   CLIPBOARD = "clipboard",
+  EXTERNAL_SEARCH = "external_search",
 }
 
 // Keywords that trigger screen capture options

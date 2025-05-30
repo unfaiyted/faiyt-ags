@@ -39,6 +39,10 @@ export const SEARCH_PREFIXES: Record<string, SearchType> = {
   "clipboard:": SearchType.CLIPBOARD,
   "cb:": SearchType.CLIPBOARD,
   "cp:": SearchType.CLIPBOARD,
+  "search:": SearchType.EXTERNAL_SEARCH,
+  "!g ": SearchType.EXTERNAL_SEARCH,
+  "!d ": SearchType.EXTERNAL_SEARCH,
+  "!c ": SearchType.EXTERNAL_SEARCH,
 };
 
 export interface ParsedSearch {

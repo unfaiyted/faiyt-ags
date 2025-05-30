@@ -87,6 +87,7 @@ export const defaultConfigOptions: ConfigOptions = {
     network: "nm-connection-editor",
     settings: "xfce4-settings-manager",
     taskManager: "htop",
+    browser: "/home/faiyt/Applications/Zen.AppImage",
     terminal: "kitty", // This is only for shell actions
   },
   battery: {
@@ -184,6 +185,26 @@ export const defaultConfigOptions: ConfigOptions = {
     },
     engineBaseUrl: "https://www.google.com/search?q=",
     excludedSites: ["quora.com"],
+    externalProviders: {
+      google: {
+        name: "Google",
+        prefix: "!g",
+        url: "https://www.google.com/search?q=%s",
+        icon: "google",
+      },
+      duckduckgo: {
+        name: "DuckDuckGo",
+        prefix: "!d",
+        url: "https://duckduckgo.com/?q=%s",
+        icon: "web-browser",
+      },
+      claude: {
+        name: "Claude AI",
+        prefix: "!c",
+        url: "https://claude.ai/new?q=%s",
+        icon: "robot",
+      },
+    },
   },
   time: {
     // See https://docs.gtk.org/glib/method.DateTime.format.html
