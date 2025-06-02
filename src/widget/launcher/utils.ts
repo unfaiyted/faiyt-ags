@@ -51,6 +51,8 @@ export const SEARCH_PREFIXES: Record<string, SearchType> = {
   "hypr:": SearchType.HYPRLAND,
   "win:": SearchType.HYPRLAND,
   "window:": SearchType.HYPRLAND,
+  "list:": SearchType.LIST_PREFIXES,
+  "ls:": SearchType.LIST_PREFIXES,
 };
 
 export interface ParsedSearch {

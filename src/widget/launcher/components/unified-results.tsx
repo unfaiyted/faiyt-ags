@@ -19,6 +19,7 @@ import ClipboardButton from "../buttons/clipboard-button";
 import getExternalSearchResults, { ExternalSearchResult, createExternalSearchButton } from "./external-search-results";
 import getDirectoryResults, { DirectoryButtonResult, createDirectoryButton } from "./directory-results";
 import getHyprlandResults, { HyprlandWindowResult, createHyprlandButton } from "./hyprland-results";
+import getListPrefixesResults, { ListPrefixesResult, createListPrefixesButton } from "./list-prefixes-results";
 
 export interface UnifiedResultsRef {
   selectNext: () => void;
@@ -44,6 +45,7 @@ interface UnifiedResults {
   externalSearch: ExternalSearchResult[];
   directories: DirectoryButtonResult[];
   hyprland: HyprlandWindowResult[];
+  listPrefixes: ListPrefixesResult[];
   total: number;
 }
 
@@ -68,6 +70,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     externalSearch: [],
     directories: [],
     hyprland: [],
+    listPrefixes: [],
     total: 0
   });
   const MIN_SEARCH_LENGTH = 2;
@@ -108,6 +111,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         externalSearch: [],
         directories: [],
         hyprland: [],
+        listPrefixes: [],
         total: 0
       });
       activeResultType.set(SearchType.ALL);
@@ -143,6 +147,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         externalSearch: [],
         directories: [],
         hyprland: [],
+        listPrefixes: [],
         total: 0
       });
       activeResultType.set(SearchType.ALL);
@@ -167,6 +172,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       let externalSearchList: ExternalSearchResult[] = [];
       let directoryList: DirectoryButtonResult[] = [];
       let hyprlandList: HyprlandWindowResult[] = [];
+      let listPrefixesList: ListPrefixesResult[] = [];
 
       switch (parsed.type) {
         case SearchType.APPS:
@@ -201,6 +207,10 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
           log.debug("Searching Hyprland windows", { query: parsed.query });
           hyprlandList = await getHyprlandResults(parsed.query);
           break;
+        case SearchType.LIST_PREFIXES:
+          log.debug("Listing search prefixes", { query: parsed.query });
+          listPrefixesList = getListPrefixesResults(parsed.query, maxResults);
+          break;
         case SearchType.ALL:
         default:
           log.debug("Searching all types", { query: parsed.query });
@@ -211,7 +221,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       }
 
       const total = appList.length + screenList.length + commandList.length +
-        systemList.length + clipboardList.length + externalSearchList.length + directoryList.length + hyprlandList.length;
+        systemList.length + clipboardList.length + externalSearchList.length + directoryList.length + hyprlandList.length + listPrefixesList.length;
 
       log.debug("Search results", {
         appCount: appList.length,
@@ -222,6 +232,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         externalSearchCount: externalSearchList.length,
         directoryCount: directoryList.length,
         hyprlandCount: hyprlandList.length,
+        listPrefixesCount: listPrefixesList.length,
         total
       });
 
@@ -234,6 +245,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         externalSearch: externalSearchList,
         directories: directoryList,
         hyprland: hyprlandList,
+        listPrefixes: listPrefixesList,
         total
       });
     }, DEBOUNCE_DELAY);
@@ -501,6 +513,20 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
                           ref: (button: Gtk.Button) => {
                             buttonRefs.push(button);
                           }
+                        });
+                      })}
+                    </ResultGroupWrapper>
+
+                    <ResultGroupWrapper
+                      groupName="Search Prefixes"
+                      revealed={(results.listPrefixes.length > 0 && (type === SearchType.ALL || type === SearchType.LIST_PREFIXES))}
+                    >
+                      {results.listPrefixes.map((prefixResult, index) => {
+                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                          results.commands.length + results.system.length + results.clipboard.length +
+                          results.externalSearch.length + results.directories.length + results.hyprland.length + index;
+                        return createListPrefixesButton(prefixResult, index, bind(selectedIndex).as(i => i === adjustedIndex), (button: Gtk.Button) => {
+                          buttonRefs.push(button);
                         });
                       })}
                     </ResultGroupWrapper>
