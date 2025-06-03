@@ -69,6 +69,7 @@ export const defaultConfigOptions: ConfigOptions = {
   },
   appearance: {
     defaultMode: DisplayModes.DARK,
+    theme: "rose-pine",
     autoDarkMode: {
       // Turns on dark mode in certain hours. Time in 24h format
       enabled: false,
@@ -76,10 +77,7 @@ export const defaultConfigOptions: ConfigOptions = {
       to: "6:10",
     },
     keyboardUseFlag: false, // Use flag emoji instead of abbreviation letters
-    layerSmoke: false,
-    layerSmokeStrength: 0.2,
     barRoundCorners: 1, // 0: No, 1: Yes
-    fakeScreenRounding: 1, // 0: None | 1: Always | 2: When not fullscreen
   },
   apps: {
     bluetooth: "blueberry",
@@ -94,6 +92,8 @@ export const defaultConfigOptions: ConfigOptions = {
   battery: {
     low: 20,
     critical: 10,
+    enableNotifications: true,
+    suspendThreshold: 3,
     warnLevels: [20, 15, 5],
     warnTitles: ["Low battery", "Very low battery", "Critical Battery"],
     warnMessages: [
@@ -101,7 +101,6 @@ export const defaultConfigOptions: ConfigOptions = {
       "You there?",
       "PLUG THE CHARGER ALREADY",
     ],
-    suspendThreshold: 3,
   },
   brightness: {
     // Object of controller names for each monitor, either "brightnessctl" or "ddcutil" or "auto"
@@ -115,18 +114,9 @@ export const defaultConfigOptions: ConfigOptions = {
   },
   cheatsheet: {
     keybinds: {
-      configPath: "", // Path to hyprland keybind config file. Leave empty for default (~/.config/hypr/hyprland/keybinds.conf)
+      hyprlandConfigPath: "", // Path to hyprland keybind config file. Leave empty for default (~/.config/hypr/hyprland/keybinds.conf)
+      neovimConfigPath: "", // Path to neovim keybind config file
     },
-  },
-  gaming: {
-    crosshair: {
-      size: 20,
-      color: "rgba(113,227,32,0.9)",
-    },
-  },
-  i18n: {
-    langCode: "", //Customize the locale, such as zh_CN,Optional value references "~/.config/ags/i18n/locales/"
-    extraLogs: false,
   },
   monitors: {
     scaleMethod: "division", // Either "division" [default] or "gdk"
@@ -134,55 +124,33 @@ export const defaultConfigOptions: ConfigOptions = {
   music: {
     preferredPlayer: "plasma-browser-integration",
   },
-  onScreenKeyboard: {
-    layout: "qwerty_full", // See modules/onscreenkeyboard/onscreenkeyboard.js for available layouts
-  },
-  overview: {
-    scale: 0.18, // Relative to screen size
-    numOfRows: 2,
-    numOfCols: 5,
-    wsNumScale: 0.09,
-    wsNumMarginScale: 0.07,
-  },
   launcher: {
     maxResults: 10,
   },
   sidebar: {
-    ai: {
-      extraGptModels: {
-        oxygen3: {
-          name: "Oxygen (GPT-3.5)",
-          logo_name: "ai-oxygen-symbolic",
-          description:
-            "An API from Tornado Softwares\nPricing: Free: 100/day\nRequires you to join their Discord for a key",
-          base_url: "https://app.oxyapi.uk/v1/chat/completions",
-          key_get_url: "https://discord.com/invite/kM6MaCqGKA",
-          key_file: "oxygen_key.txt",
-          model: "gpt-3.5-turbo",
-        },
-      },
-    },
-    image: {
-      columns: 2,
-      batchCount: 20,
-      allowNsfw: false,
-      saveInFolderByTags: false,
-    },
-    pages: {
-      order: ["apis", "tools"],
-      apis: {
-        order: ["gemini", "gpt", "waifu", "booru"],
-      },
-    },
+    leftEnabled: true,
+    rightEnabled: true,
+    left: {},
+    right: {},
   },
   search: {
     enableFeatures: {
+      listPrefixes: true,
       actions: true,
       commands: true,
       mathResults: true,
       directorySearch: true,
       aiSearch: true,
       webSearch: true,
+    },
+    evaluators: {
+      baseConverter: true,
+      colorConverter: true,
+      dateCalculator: true,
+      mathEvaluator: true,
+      percentageCalculator: true,
+      timeCalculator: true,
+      unitConverter: true,
     },
     engineBaseUrl: "https://www.google.com/search?q=",
     excludedSites: ["quora.com"],
@@ -224,86 +192,35 @@ export const defaultConfigOptions: ConfigOptions = {
   workspaces: {
     shown: 5,
   },
-  dock: {
-    enabled: false,
-    hiddenThickness: 5,
-    pinnedApps: ["firefox", "org.gnome.Nautilus"],
-    layer: "top",
-    monitorExclusivity: true, // Dock will move to other monitor along with focus if enabled
-    searchPinnedAppIcons: false, // Try to search for the correct icon if the app class isn't an icon name
-    trigger: ["client-added", "client-removed"], // client_added, client_move, workspace_active, client_active
-    // Automatically hide dock after `interval` ms since trigger
-    autoHide: [
-      {
-        trigger: "client-added",
-        interval: 500,
-      },
-      {
-        trigger: "client-removed",
-        interval: 500,
-      },
-    ],
-  },
-  // Longer stuff
-  icons: {
-    // The file names are processed at startup, so if there
-    // are too many files in the search path it'll affect performance
-    // Example: ['/usr/share/icons/Tela-nord/scalable/apps']
-    searchPaths: [""],
-    symbolicIconTheme: {
-      dark: "Adwaita",
-      light: "Adwaita",
-    },
-    substitutions: {
-      "code-url-handler": "visual-studio-code",
-      Code: "visual-studio-code",
-      "GitHub Desktop": "github-desktop",
-      "Minecraft* 1.20.1": "minecraft",
-      "gnome-tweaks": "org.gnome.tweaks",
-      "pavucontrol-qt": "pavucontrol",
-      wps: "wps-office2019-kprometheus",
-      wpsoffice: "wps-office2019-kprometheus",
-      "": "image-missing",
-    },
-    regexSubstitutions: [
-      {
-        regex: /^steam_app_(\d+)$/,
-        replace: "steam_icon_$1",
-      },
-    ],
-  },
   keybinds: {
     // Format: Mod1+Mod2+key. CaSe SeNsItIvE!
     // Modifiers: Shift Ctrl Alt Hyper Meta
     // See https://docs.gtk.org/gdk3/index.html#constants for the other keys (they are listed as KEY_key)
-    overview: {
-      altMoveLeft: "Ctrl+b",
-      altMoveRight: "Ctrl+f",
-      deleteToEnd: "Ctrl+k",
+    launcher: {
+      toggleLauncher: "Super+Space",
+      nextResult: "Down",
+      prevResult: "Up",
+      focusInput: "Ctrl+l",
     },
     sidebar: {
-      apis: {
+      left: {
         nextTab: "Page_Down",
         prevTab: "Page_Up",
+        cycleTab: "Ctrl+Tab",
       },
-      options: {
-        // Right sidebar
+      right: {
         nextTab: "Page_Down",
         prevTab: "Page_Up",
+        cycleTab: "Ctrl+Tab",
       },
-      pin: "Ctrl+p",
-      cycleTab: "Ctrl+Tab",
-      nextTab: "Ctrl+Page_Down",
-      prevTab: "Ctrl+Page_Up",
     },
     cheatsheet: {
-      keybinds: {
-        nextTab: "Page_Down",
-        prevTab: "Page_Up",
-      },
       nextTab: "Ctrl+Page_Down",
       prevTab: "Ctrl+Page_Up",
       cycleTab: "Ctrl+Tab",
+    },
+    topBar: {
+      focus: "Alt+b",
     },
   },
   bar: {

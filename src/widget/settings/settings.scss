@@ -1,0 +1,455 @@
+@use "styles/colors";
+
+settings-window {
+  background: colors.c(base, 0.3); // Semi-transparent overlay
+}
+
+settings-window-wrapper {
+  padding: 40px; // Add padding around the container
+  background: transparent;
+  min-height: 600px; // Subtract the header height
+  min-width: 300px;
+}
+
+settings-container {
+  margin: auto;
+  width: 600px;
+  max-width: 90%;
+  height: 500px;
+  max-height: 90%;
+  background: colors.c(background-elevated, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid colors.c(border, 0.15);
+  border-radius: 20px;
+  box-shadow:
+    0 20px 60px colors.c(base, 0.6),
+    0 8px 24px colors.c(base, 0.4),
+    0 2px 8px colors.c(base, 0.2),
+    inset 0 1px 0 colors.c(text, 0.05),
+    inset 0 -1px 0 colors.c(base, 0.3);
+
+  // Add subtle shimmer effect
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        colors.c(text, 0.03) 50%,
+        transparent 100%);
+    animation: shimmer 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) rotate(30deg);
+  }
+
+  100% {
+    transform: translateX(100%) rotate(30deg);
+  }
+}
+
+settings-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid colors.c(border, 0.1);
+  background: linear-gradient(to bottom,
+      colors.c(background-elevated, 0.2),
+      transparent);
+}
+
+settings-search-box {
+  background: colors.c(background-alt, 0.3);
+  border: 1px solid colors.c(border, 0.1);
+  border-radius: 12px;
+  padding: 8px 12px;
+
+  label {
+    font-size: 14px;
+    color: colors.c(text, 0.6);
+  }
+}
+
+settings-search {
+  background: transparent;
+  border: none;
+  color: colors.c(text);
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+  }
+
+  selection {
+    background: colors.c(primary, 0.3);
+    color: colors.c(text);
+  }
+}
+
+settings-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: colors.c(text);
+}
+
+settings-close-button {
+  background: colors.c(background-alt, 0.3);
+  border: 1px solid colors.c(border, 0.1);
+  border-radius: 8px;
+  padding: 4px 8px;
+  min-width: 28px;
+  min-height: 28px;
+  color: colors.c(text, 0.7);
+  transition: all 150ms ease;
+
+  &:hover {
+    background: colors.c(background-alt, 0.5);
+    border-color: colors.c(border, 0.2);
+    color: colors.c(text);
+    box-shadow: 0 2px 8px colors.c(base, 0.2);
+  }
+
+  &:active {
+    background: colors.c(background-alt, 0.6);
+    transform: scale(0.95);
+  }
+
+  label {
+    font-size: 16px;
+  }
+}
+
+settings-scrollable {
+  background: transparent;
+  min-height: 0; // Allow shrinking
+
+  scrollbar {
+    background: transparent;
+    border: none;
+
+    &:hover {
+      background: colors.c(background-alt, 0.1);
+    }
+
+    slider {
+      background: colors.c(text, 0.2);
+      border-radius: 4px;
+      min-width: 6px;
+
+      &:hover {
+        background: colors.c(text, 0.3);
+      }
+    }
+  }
+}
+
+settings-content {
+  padding: 20px;
+}
+
+settings-section {
+  background: colors.c(background-alt, 0.2);
+  border: 1px solid colors.c(border, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 200ms ease;
+
+  &:hover {
+    background: colors.c(background-alt, 0.25);
+    border-color: colors.c(border, 0.12);
+    box-shadow: 0 4px 12px colors.c(base, 0.1);
+  }
+}
+
+settings-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: colors.c(primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+settings-section-content {
+  padding: 0 4px;
+}
+
+setting-row {
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 150ms ease;
+  width: 300px;
+
+  &:hover {
+    background: colors.c(background-elevated, 0.3);
+  }
+}
+
+setting-row-control {
+  min-width: 80px; // Ensure controls have minimum width
+}
+
+setting-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: colors.c(text);
+  margin-bottom: 2px;
+}
+
+setting-description {
+  font-size: 12px;
+  color: colors.c(text, 0.6);
+  line-height: 1.4;
+}
+
+// Form controls styling
+switch {
+  background: colors.c(background-alt, 0.5);
+  border: 1px solid colors.c(border, 0.2);
+  border-radius: 12px;
+  min-width: 44px;
+  min-height: 24px;
+  padding: 2px;
+
+  &:checked {
+    background: colors.c(primary, 0.8);
+    border-color: colors.c(primary);
+
+    slider {
+      background: colors.c(text);
+    }
+  }
+
+  slider {
+    background: colors.c(text, 0.5);
+    border-radius: 10px;
+    min-width: 20px;
+    min-height: 20px;
+    transition: all 150ms ease;
+  }
+}
+
+spinbutton {
+  background: colors.c(background-alt, 0.3);
+  border: 1px solid colors.c(border, 0.15);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: colors.c(text);
+  font-size: 13px;
+
+  &:hover {
+    background: colors.c(background-alt, 0.4);
+    border-color: colors.c(border, 0.25);
+  }
+
+  &:focus {
+    border-color: colors.c(primary, 0.5);
+    box-shadow: 0 0 0 2px colors.c(primary, 0.2);
+  }
+
+  button {
+    background: transparent;
+    border: none;
+    color: colors.c(text, 0.6);
+    padding: 0 4px;
+
+    &:hover {
+      color: colors.c(text);
+    }
+  }
+}
+
+entry {
+  background: colors.c(background-alt, 0.3);
+  border: 1px solid colors.c(border, 0.15);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: colors.c(text);
+  font-size: 13px;
+
+  &:hover {
+    background: colors.c(background-alt, 0.4);
+    border-color: colors.c(border, 0.25);
+  }
+
+  &:focus {
+    border-color: colors.c(primary, 0.5);
+    box-shadow: 0 0 0 2px colors.c(primary, 0.2);
+  }
+
+  selection {
+    background: colors.c(primary, 0.3);
+    color: colors.c(text);
+  }
+}
+
+dropdown {
+  background: colors.c(background-alt, 0.3);
+  border: 1px solid colors.c(border, 0.15);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: colors.c(text);
+  font-size: 13px;
+  min-width: 120px;
+
+  &:hover {
+    background: colors.c(background-alt, 0.4);
+    border-color: colors.c(border, 0.25);
+  }
+
+  &:focus {
+    border-color: colors.c(primary, 0.5);
+    box-shadow: 0 0 0 2px colors.c(primary, 0.2);
+  }
+
+  button {
+    background: transparent;
+    border: none;
+    padding: 0;
+
+    arrow {
+      color: colors.c(text, 0.6);
+      margin-left: 4px;
+    }
+  }
+
+  popover {
+    background: colors.c(background-elevated, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid colors.c(border, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px colors.c(base, 0.4);
+    padding: 4px;
+
+    listview {
+      background: transparent;
+
+      row {
+        border-radius: 6px;
+        padding: 8px 12px;
+
+        &:hover {
+          background: colors.c(background-alt, 0.4);
+        }
+
+        &:selected {
+          background: colors.c(primary, 0.2);
+          color: colors.c(text);
+        }
+      }
+    }
+  }
+}
+
+// Keybind category headers
+keybind-category {
+  font-size: 13px;
+  font-weight: 600;
+  color: colors.c(primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 12px;
+  margin-bottom: 4px;
+}
+
+// Keybind input component
+keybind-input-wrapper {
+  min-width: 150px;
+}
+
+keybind-input {
+  background: colors.c(background-alt, 0.3);
+  border: 1px solid colors.c(border, 0.15);
+  border-radius: 8px;
+  padding: 6px 12px;
+  min-width: 120px;
+  color: colors.c(text);
+  font-size: 13px;
+  font-family: monospace;
+  transition: all 150ms ease;
+  
+  &:hover {
+    background: colors.c(background-alt, 0.4);
+    border-color: colors.c(border, 0.25);
+  }
+  
+  &:focus {
+    border-color: colors.c(primary, 0.5);
+    box-shadow: 0 0 0 2px colors.c(primary, 0.2);
+  }
+  
+  &.recording {
+    background: colors.c(primary, 0.2);
+    border-color: colors.c(primary, 0.6);
+    animation: pulse 1s ease-in-out infinite;
+  }
+  
+  label {
+    font-size: 13px;
+  }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+keybind-cancel,
+keybind-clear {
+  background: colors.c(background-alt, 0.3);
+  border: 1px solid colors.c(border, 0.1);
+  border-radius: 6px;
+  padding: 4px 8px;
+  min-width: 28px;
+  min-height: 28px;
+  color: colors.c(text, 0.7);
+  transition: all 150ms ease;
+  
+  &:hover {
+    background: colors.c(background-alt, 0.5);
+    border-color: colors.c(border, 0.2);
+    color: colors.c(text);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  label {
+    font-size: 14px;
+  }
+}
+
+keybind-info {
+  background: colors.c(background-alt, 0.15);
+  border: 1px solid colors.c(border, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 16px;
+
+  box {
+    padding: 4px 0;
+
+    label {
+      font-size: 13px;
+      color: colors.c(text, 0.8);
+    }
+  }
+}
+
+keybind-info-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: colors.c(text, 0.9);
+  margin-bottom: 8px;
+}

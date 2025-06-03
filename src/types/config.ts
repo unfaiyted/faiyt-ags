@@ -16,6 +16,7 @@ export interface AIProvider {
 }
 
 export interface ConfigOptions {
+  // AI Settings should are stored in the LeftBar where the AI providers are displayed.
   ai: {
     defaultGPTProvider: string;
     defaultTemperature: number;
@@ -43,17 +44,16 @@ export interface ConfigOptions {
   };
   appearance: {
     defaultMode: DisplayModes;
+    theme: string;
     autoDarkMode: {
       enabled: boolean;
       from: string;
       to: string;
     };
     keyboardUseFlag: boolean;
-    layerSmoke: boolean;
-    layerSmokeStrength: number;
     barRoundCorners: number;
-    fakeScreenRounding: number;
   };
+  // Default apps to use for various actions
   apps: {
     bluetooth: string;
     imageViewer: string;
@@ -67,10 +67,11 @@ export interface ConfigOptions {
   battery: {
     low: number;
     critical: number;
+    enableNotifications: boolean;
+    suspendThreshold: number;
     warnLevels: number[];
     warnTitles: string[];
     warnMessages: string[];
-    suspendThreshold: number;
   };
   brightness: {
     controllers: {
@@ -80,44 +81,60 @@ export interface ConfigOptions {
   };
   cheatsheet: {
     keybinds: {
-      configPath: string;
+      hyprlandConfigPath: string;
+      neovimConfigPath: string;
     };
   };
-  gaming: {
-    crosshair: {
-      size: number;
-      color: string;
-    };
-  };
-  i18n: {
-    langCode: string;
-    extraLogs: boolean;
-  };
+  // gaming: {
+  //   crosshair: {
+  //     size: number;
+  //     color: string;
+  //   };
+  // };
+  // i18n: {
+  //   langCode: string;
+  //   extraLogs: boolean;
+  // };
   monitors: {
     scaleMethod: string;
   };
   music: {
     preferredPlayer: string;
   };
-  onScreenKeyboard: {
-    layout: string;
+  // onScreenKeyboard: {
+  //   layout: string;
+  // };
+  // overview: {
+  //   scale: number;
+  //   numOfRows: number;
+  //   numOfCols: number;
+  //   wsNumScale: number;
+  //   wsNumMarginScale: number;
+  // };
+  sidebar: {
+    leftEnabled: boolean;
+    rightEnabled: boolean;
+    left: {};
+    right: {};
   };
-  overview: {
-    scale: number;
-    numOfRows: number;
-    numOfCols: number;
-    wsNumScale: number;
-    wsNumMarginScale: number;
-  };
-  sidebar: {};
   search: {
     enableFeatures: {
+      listPrefixes: boolean;
       actions: boolean;
       commands: boolean;
       mathResults: boolean;
       directorySearch: boolean;
       aiSearch: boolean;
       webSearch: boolean;
+    };
+    evaluators: {
+      baseConverter: boolean;
+      colorConverter: boolean;
+      dateCalculator: boolean;
+      mathEvaluator: boolean;
+      percentageCalculator: boolean;
+      timeCalculator: boolean;
+      unitConverter: boolean;
     };
     engineBaseUrl: string;
     excludedSites: string[];
@@ -144,61 +161,59 @@ export interface ConfigOptions {
   workspaces: {
     shown: number;
   };
-  dock: {
-    enabled: boolean;
-    hiddenThickness: number;
-    pinnedApps: string[];
-    layer: string;
-    monitorExclusivity: boolean;
-    searchPinnedAppIcons: boolean;
-    trigger: string[];
-    autoHide: {
-      trigger: string;
-      interval: number;
-    }[];
-  };
-  icons: {
-    searchPaths: string[];
-    symbolicIconTheme: {
-      dark: string;
-      light: string;
-    };
-    substitutions: {
-      [key: string]: string;
-    };
-    regexSubstitutions: {
-      regex: RegExp;
-      replace: string;
-    }[];
-  };
+  // dock: {
+  //   enabled: boolean;
+  //   hiddenThickness: number;
+  //   pinnedApps: string[];
+  //   layer: string;
+  //   monitorExclusivity: boolean;
+  //   searchPinnedAppIcons: boolean;
+  //   trigger: string[];
+  //   autoHide: {
+  //     trigger: string;
+  //     interval: number;
+  //   }[];
+  // };
+  // icons: {
+  //   searchPaths: string[];
+  //   symbolicIconTheme: {
+  //     dark: string;
+  //     light: string;
+  //   };
+  //   substitutions: {
+  //     [key: string]: string;
+  //   };
+  //   regexSubstitutions: {
+  //     regex: RegExp;
+  //     replace: string;
+  //   }[];
+  // };
   keybinds: {
-    overview: {
-      altMoveLeft: string;
-      altMoveRight: string;
-      deleteToEnd: string;
-    };
     sidebar: {
-      apis: {
+      left: {
         nextTab: string;
         prevTab: string;
+        cycleTab: string;
       };
-      options: {
+      right: {
         nextTab: string;
         prevTab: string;
+        cycleTab: string;
       };
-      pin: string;
-      cycleTab: string;
-      nextTab: string;
-      prevTab: string;
     };
     cheatsheet: {
-      keybinds: {
-        nextTab: string;
-        prevTab: string;
-      };
       nextTab: string;
       prevTab: string;
       cycleTab: string;
+    };
+    launcher: {
+      toggleLauncher: string;
+      nextResult: string;
+      prevResult: string;
+      focusInput: string;
+    };
+    topBar: {
+      focus: string;
     };
   };
   bar: {

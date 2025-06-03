@@ -19,6 +19,7 @@ import { systemLogger, log, setLogLevel, LogLevel } from "./utils/logger";
 import { logSystemInfo } from "./services/logger";
 import "./services/clipboard-manager"; // Initialize clipboard manager
 import configManager from "./services/config-manager"; // Initialize config manager
+import SettingsWindow from "./widget/settings";
 
 // Set log level from environment or default to info
 import { GLib } from "astal";
@@ -64,6 +65,9 @@ App.start({
         PopupNotificationsWindow({ gdkmonitor: gdkmonitor, monitor: index });
         IndicatorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
         MusicWindow({ gdkmonitor: gdkmonitor, monitor: index });
+        
+        // Settings window
+        SettingsWindow({ gdkmonitor: gdkmonitor, monitor: index });
 
         log.info(`Monitor ${index} setup complete`);
       } catch (error) {

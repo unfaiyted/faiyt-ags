@@ -5,11 +5,15 @@ import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../../utils/icons/types";
 
 export const SettingsIconButton = (props: Widget.ButtonProps) => {
+
+
+
+
   return (
     <button
       cssName="header-button"
       tooltipText="Open Settings"
-      onClicked={() => actions.app.settings()}
+      onClicked={() => actions.window.toggle('settings')}
       setup={setupCursorHover}
       {...props}
     >

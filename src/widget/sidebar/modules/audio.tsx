@@ -173,13 +173,13 @@ const AudioDevices = () => {
                 if (!line.toLowerCase().includes("monitor")) {
                   const mic = audio.microphones?.find(m => String(m.id) === id);
                   if (mic) {
-                    log.info("Setting default microphone", {
+                    log.debug("Setting default microphone", {
                       name: mic.description,
                       id: mic.id
                     });
                     defaultMicrophoneId.set(mic.id);
                   } else {
-                    log.warn("Microphone not found", { id, availableIds: audio.microphones?.map(m => m.id) });
+                    log.debug("Microphone not found", { id, availableIds: audio.microphones?.map(m => m.id) });
                   }
                 }
               }
@@ -223,14 +223,14 @@ const AudioDevices = () => {
 
     // Log changes
     if (prevSpeakerId !== audio.default_speaker?.id) {
-      log.info("Default speaker changed", {
+      log.debug("Default speaker changed", {
         from: prevSpeakerId,
         to: audio.default_speaker?.id,
         name: audio.default_speaker?.description || "none"
       });
     }
     if (prevMicId !== audio.default_microphone?.id) {
-      log.info("Default microphone changed", {
+      log.debug("Default microphone changed", {
         from: prevMicId,
         to: audio.default_microphone?.id,
         name: audio.default_microphone?.description || "none"

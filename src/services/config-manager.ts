@@ -192,7 +192,17 @@ export class ConfigManager extends GObject.Object {
       if (useSync) {
         AstalIO.write_file(USER_CONFIG_PATH, configJson);
       } else {
-        await AstalIO.write_file_async(USER_CONFIG_PATH, configJson);
+        // Use the promise-based overload with null callback
+        await new Promise<void>((resolve, reject) => {
+          AstalIO.write_file_async(USER_CONFIG_PATH, configJson, (source, result) => {
+            try {
+              AstalIO.write_file_finish(result);
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          });
+        });
       }
 
       log.info("User config saved successfully");

@@ -72,6 +72,10 @@
   vertical-align: bottom;
 }
 
+.uppercase {
+  text-transform: uppercase;
+}
+
 .italic {
   font-style: italic;
 }
