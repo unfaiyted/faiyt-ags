@@ -125,7 +125,7 @@ export const KeybindInput = ({
         >
           <label>🗑</label>
         </button>
-      ) : null)}
+      ) : <box />)}
     </box>
   );
 };

@@ -482,6 +482,67 @@ const SettingsWindow = (props: SettingsWindowProps) => {
             )
           )}
 
+          {/* Window Manager Settings */}
+          {bind(searchQuery).as(q => 
+            (matchesSearch("window") || matchesSearch("screenshot") || matchesSearch("manager")) && (
+              <SettingsSection title="Window Manager">
+                {matchesSearch("window manager") && (
+                  <SettingRow
+                    label="Enable Window Manager"
+                    description="Track and screenshot windows"
+                  >
+                    <ToggleSwitch
+                      value={config.windowManager.enabled}
+                      onToggled={(value) => updateConfig("windowManager.enabled", value)}
+                    />
+                  </SettingRow>
+                )}
+                
+                {matchesSearch("capture on focus") && (
+                  <SettingRow
+                    label="Capture on Focus"
+                    description="Take screenshot when window gains focus"
+                  >
+                    <ToggleSwitch
+                      value={config.windowManager.captureOnFocus}
+                      onToggled={(value) => updateConfig("windowManager.captureOnFocus", value)}
+                    />
+                  </SettingRow>
+                )}
+                
+                {matchesSearch("screenshot interval") && (
+                  <SettingRow
+                    label="Screenshot Interval"
+                    description="Update focused window screenshot (seconds)"
+                  >
+                    <NumberInput
+                      value={config.windowManager.screenshotInterval / 1000}
+                      min={5}
+                      max={300}
+                      step={5}
+                      onChanged={(value) => updateConfig("windowManager.screenshotInterval", value * 1000)}
+                    />
+                  </SettingRow>
+                )}
+                
+                {matchesSearch("cleanup interval") && (
+                  <SettingRow
+                    label="Cleanup Interval"
+                    description="Clean orphaned screenshots (minutes)"
+                  >
+                    <NumberInput
+                      value={config.windowManager.cleanupInterval / 60000}
+                      min={1}
+                      max={60}
+                      step={1}
+                      onChanged={(value) => updateConfig("windowManager.cleanupInterval", value * 60000)}
+                    />
+                  </SettingRow>
+                )}
+              </SettingsSection>
+            )
+          )}
+
           {/* Keyboard Shortcuts */}
           {bind(searchQuery).as(q => 
             (matchesSearch("keyboard") || matchesSearch("shortcut") || matchesSearch("keybind") || matchesSearch("hotkey")) && (

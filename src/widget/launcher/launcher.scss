@@ -19,6 +19,116 @@ launcher-container {
   }
 }
 
+// Main content area with split panel
+.launcher-main-content {
+  background: transparent;
+  min-height: 600px;
+}
+
+// Left panel for search and results
+.launcher-left-panel {
+  background: transparent;
+  border-right: 1px solid colors.c(border, 0.1);
+  padding-right: 24px;
+}
+
+// Right panel for details
+.launcher-detail-panel {
+  background: linear-gradient(135deg,
+      colors.c(surface, 0.03) 0%,
+      colors.c(surface, 0.06) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 32px;
+  border-radius: 0 16px 16px 0;
+  
+  .detail-panel-content {
+    min-height: 500px;
+  }
+}
+
+// Detail screenshot frame
+.detail-screenshot-frame {
+  width: 480px;
+  height: 270px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: colors.c(surface, 0.1);
+  border: 2px solid colors.c(border, 0.15);
+  box-shadow:
+    0 8px 32px colors.c(base, 0.25),
+    0 4px 16px colors.c(base, 0.15),
+    inset 0 1px 2px colors.c(base, 0.2);
+  position: relative;
+  
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: linear-gradient(180deg,
+      transparent 70%,
+      colors.c(base, 0.1) 100%);
+    pointer-events: none;
+  }
+}
+
+.detail-screenshot-preview {
+  width: 480px;
+  height: 270px;
+  object-fit: cover;
+}
+
+// Detail window info
+.detail-window-info {
+  text-align: center;
+  
+  .detail-window-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: colors.c(text);
+    margin-bottom: 12px;
+  }
+  
+  .detail-label {
+    font-size: 13px;
+    color: colors.c(text, 0.6);
+    font-weight: 400;
+  }
+  
+  .detail-value {
+    font-size: 14px;
+    color: colors.c(text);
+    font-weight: 500;
+  }
+}
+
+// Detail badges
+.detail-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 4px;
+  
+  &.floating {
+    background: linear-gradient(135deg,
+      colors.c(iris, 0.2) 0%,
+      colors.c(iris, 0.15) 100%);
+    color: colors.c(iris);
+    border: 1px solid colors.c(iris, 0.3);
+  }
+  
+  &.fullscreen {
+    background: linear-gradient(135deg,
+      colors.c(rose, 0.2) 0%,
+      colors.c(rose, 0.15) 100%);
+    color: colors.c(rose);
+    border: 1px solid colors.c(rose, 0.3);
+  }
+}
+
 // Search box wrapper with gradient border
 .launcher-search-box-wrapper {
   background: linear-gradient(90deg,
@@ -31,7 +141,7 @@ launcher-container {
   border-radius: 16px;
   padding: 0px;
   width: 100%;
-  max-width: 800px;
+  max-width: 600px;
   animation: gradientRotate 12s linear infinite;
   box-shadow:
     0 8px 32px colors.c(base, 0.4),
@@ -93,7 +203,7 @@ launcher-container {
   margin: 0;
   position: relative;
   transition: all 200ms ease;
-  width: 900px; // Fixed width
+  width: 600px; // Fixed width
 
   &:focus-within {
     background-color: colors.c(overlay, 0.05);
@@ -172,7 +282,6 @@ launcher-results {
   background: transparent;
   border: none;
   overflow: hidden;
-  border-right: 1px solid colors.c(accent, 0.1);
 }
 
 // Results list
@@ -561,4 +670,130 @@ overview-search-result-btn.selected {
         colors.c(accent, 0.08) 100%);
     border-color: colors.c(accent, 0.25);
   }
+}
+
+// Hyprland window screenshots
+.window-screenshot-container {
+  position: relative;
+  width: 76px;
+  height: 76px;
+}
+
+.window-screenshot-frame {
+  width: 76px;
+  height: 76px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: colors.c(surface, 0.05);
+  border: 1px solid colors.c(border, 0.1);
+  box-shadow:
+    0 2px 8px colors.c(base, 0.15),
+    0 1px 3px colors.c(base, 0.1);
+  transition: all 200ms ease;
+  
+  // Add a subtle inner shadow for depth
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    box-shadow: inset 0 1px 2px colors.c(base, 0.2);
+    pointer-events: none;
+  }
+}
+
+.window-screenshot-preview {
+  width: 76px;
+  height: 76px;
+  
+  drawingarea {
+    transition: transform 200ms ease;
+  }
+}
+
+// Window class badge container
+.window-class-badge-container {
+  margin-top: -12px;
+  z-index: 1;
+  padding: 0 8px;
+}
+
+// Window class badge (KIT, FIR, etc.)
+.window-class-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: colors.c(background);
+  background: linear-gradient(135deg,
+      colors.c(iris) 0%,
+      colors.c(iris, 0.8) 100%);
+  padding: 3px 10px;
+  border-radius: 10px;
+  border: 1px solid colors.c(background, 0.2);
+  box-shadow:
+    0 2px 8px colors.c(iris, 0.3),
+    0 1px 3px colors.c(base, 0.2);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+// Hyprland window specific styling
+.hyprland-window {
+  min-height: 96px; // Account for larger screenshot preview with badge
+  
+  &:hover {
+    .window-screenshot-frame {
+      transform: translateY(-2px);
+      box-shadow:
+        0 8px 20px colors.c(base, 0.25),
+        0 4px 10px colors.c(base, 0.2);
+      background: colors.c(surface, 0.1);
+      border-color: colors.c(iris, 0.3);
+      
+      drawingarea {
+        transform: scale(1.05);
+      }
+    }
+    
+    .window-class-badge {
+      transform: translateY(-2px);
+      box-shadow:
+        0 4px 12px colors.c(iris, 0.4),
+        0 2px 6px colors.c(base, 0.3);
+    }
+  }
+  
+  &.selected {
+    .window-screenshot-frame {
+      background: colors.c(accent, 0.1);
+      border-color: colors.c(accent, 0.5);
+      box-shadow:
+        0 6px 16px colors.c(accent, 0.3),
+        0 3px 8px colors.c(accent, 0.2);
+    }
+    
+    .window-class-badge {
+      background: linear-gradient(135deg,
+          colors.c(success) 0%,
+          colors.c(success, 0.85) 100%);
+      box-shadow:
+        0 4px 12px colors.c(success, 0.4),
+        0 2px 6px colors.c(base, 0.3);
+    }
+    
+    drawingarea {
+      transform: scale(1.02);
+    }
+  }
+}
+
+// Window metadata styling
+.window-metadata {
+  .txt-subtext {
+    color: colors.c(text, 0.6);
+  }
+}
+
+.window-title-text {
+  font-weight: 500;
+  color: colors.c(text);
 }

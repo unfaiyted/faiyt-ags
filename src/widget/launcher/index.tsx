@@ -7,6 +7,7 @@ import { launcherLogger as log } from "../../utils/logger";
 import KeyboardShortcut from "../utils/keyboard-shortcut";
 import { evaluatorManager, type EvaluatorResult } from "../../utils/evaluators";
 import ColorPreview from "./components/color-preview";
+import { RoundedImageReactive } from "../utils/rounded-image";
 
 export interface LauncherProps extends PopupWindowProps {
   monitorIndex: number;
@@ -21,6 +22,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
   const searchText = Variable("");
   const selectedIndex = Variable(0);
   const selectedItem = Variable<any>(null);
+  const focusedItem = Variable<any>(null);
   const maxResults = config.launcher?.maxResults || 5;
   let entryRef: Gtk.Entry | null = null;
   const monitorSuffix = props.monitorIndex !== undefined ? `-${props.monitorIndex}` : '';
@@ -215,150 +217,237 @@ export default function LauncherBar(launcherProps: LauncherProps) {
           {/* Spacer for top area */}
           <box vexpand />
 
-          {/* Search Box with gradient border wrapper */}
+          {/* Main launcher content with split panel */}
           <box
-            cssClasses={["launcher-search-box-wrapper"]}
-            widthRequest={800}
+            cssClasses={["launcher-main-content"]}
+            spacing={0}
+            widthRequest={1200}
             halign={Gtk.Align.CENTER}
           >
+            {/* Left panel - Search and results */}
             <box
+              cssClasses={["launcher-left-panel"]}
               vertical
-              cssClasses={bind(searchText).as(text =>
-                text.length > 1 ? ["launcher-search-box"] : ["launcher-search-box", "compact"]
-              )}
+              widthRequest={600}
             >
-              <box cssClasses={["search-input-container"]} spacing={12}>
-                <entry
-                  cssClasses={["launcher-search-input"]}
-                  placeholderText="Search apps, use prefixes (app: sc: screen:) or calculate..."
-                  hexpand={true}
-                  halign={Gtk.Align.FILL}
-                  onNotifyText={(self) => {
-                    log.debug("Search text changed", { text: self.text });
-                    searchText.set(self.text);
-                    // Don't do any selection here - just update the variable
-                  }}
-                  focusable={true}
-                  onActivate={onEnter}
-                  setup={(self) => {
-                    entryRef = self;
-                    hook(self, App, "window-toggled", (self, win) => {
-                      if (win.name !== name) return;
-                      if (win.visible) {
-                        // Use a small delay to ensure proper focus
-                        setTimeout(() => {
-                          self.grab_focus();
-                          // Only select all text when window is shown, not on every toggle
-                          // And only if there's text to select
-                          if (self.text.length > 0) {
-                            self.select_region(0, -1);
-                          }
-                        }, 10);
-                      }
-                    });
-                  }}
-                />
-                <box
-                  halign={Gtk.Align.END}
-                  valign={Gtk.Align.CENTER}
-                  spacing={8}
-                  visible={bind(evaluatorResult).as(result => result !== null)}
-                  hexpand={false}
-                >
-                  <label
-                    label={bind(evaluatorResult).as(result => result ? `= ${result.value}` : "")}
-                    cssClasses={["evaluator-result"]}
-                    hexpand={false}
-                    ellipsize={3} // PANGO_ELLIPSIZE_END
-                    maxWidthChars={30}
-                  />
-                  {bind(evaluatorResult).as(result =>
-                    result?.metadata?.type === 'color' && result.metadata.color ? (
-                      <ColorPreview
-                        color={result.metadata.color}
-                        cssClasses={["color-preview"]}
-                      />
-                    ) : <box />
-                  )}
-                </box>
-              </box>
-
-              {/* Search Icon */}
-              <label
-                cssClasses={["search-icon"]}
-                halign={Gtk.Align.START}
-                valign={Gtk.Align.CENTER}
-                sensitive={false}
-              />
-
-              {/* Search Results */}
+              {/* Search Box with gradient border wrapper */}
               <box
-                cssName="launcher-results-container"
+                cssClasses={["launcher-search-box-wrapper"]}
+                widthRequest={600}
+                halign={Gtk.Align.CENTER}
               >
-                <UnifiedResults
-                  maxResults={maxResults}
-                  searchText={searchText}
-                  selectedIndex={selectedIndex}
-                  selectedItem={selectedItem}
-                  refs={(ref: UnifiedResultsRef) => {
-                    log.debug("Setting UnifiedResults ref in variable");
-                    unifiedResultsRef.set(ref);
-                  }}
-                />
+                <box
+                  vertical
+                  cssClasses={bind(searchText).as(text =>
+                    text.length > 1 ? ["launcher-search-box"] : ["launcher-search-box", "compact"]
+                  )}
+                >
+                  <box cssClasses={["search-input-container"]} spacing={12}>
+                    <entry
+                      cssClasses={["launcher-search-input"]}
+                      placeholderText="Search apps, use prefixes (app: sc: screen:) or calculate..."
+                      hexpand={true}
+                      halign={Gtk.Align.FILL}
+                      onNotifyText={(self) => {
+                        log.debug("Search text changed", { text: self.text });
+                        searchText.set(self.text);
+                        // Don't do any selection here - just update the variable
+                      }}
+                      focusable={true}
+                      onActivate={onEnter}
+                      setup={(self) => {
+                        entryRef = self;
+                        hook(self, App, "window-toggled", (self, win) => {
+                          if (win.name !== name) return;
+                          if (win.visible) {
+                            // Use a small delay to ensure proper focus
+                            setTimeout(() => {
+                              self.grab_focus();
+                              // Only select all text when window is shown, not on every toggle
+                              // And only if there's text to select
+                              if (self.text.length > 0) {
+                                self.select_region(0, -1);
+                              }
+                            }, 10);
+                          }
+                        });
+                      }}
+                    />
+                    <box
+                      halign={Gtk.Align.END}
+                      valign={Gtk.Align.CENTER}
+                      spacing={8}
+                      visible={bind(evaluatorResult).as(result => result !== null)}
+                      hexpand={false}
+                    >
+                      <label
+                        label={bind(evaluatorResult).as(result => result ? `= ${result.value}` : "")}
+                        cssClasses={["evaluator-result"]}
+                        hexpand={false}
+                        ellipsize={3} // PANGO_ELLIPSIZE_END
+                        maxWidthChars={30}
+                      />
+                      {bind(evaluatorResult).as(result =>
+                        result?.metadata?.type === 'color' && result.metadata.color ? (
+                          <ColorPreview
+                            color={result.metadata.color}
+                            cssClasses={["color-preview"]}
+                          />
+                        ) : <box />
+                      )}
+                    </box>
+                  </box>
+
+                  {/* Search Icon */}
+                  <label
+                    cssClasses={["search-icon"]}
+                    halign={Gtk.Align.START}
+                    valign={Gtk.Align.CENTER}
+                    sensitive={false}
+                  />
+
+                  {/* Search Results */}
+                  <box
+                    cssName="launcher-results-container"
+                  >
+                    <UnifiedResults
+                      maxResults={maxResults}
+                      searchText={searchText}
+                      selectedIndex={selectedIndex}
+                      selectedItem={selectedItem}
+                      focusedItem={focusedItem}
+                      refs={(ref: UnifiedResultsRef) => {
+                        log.debug("Setting UnifiedResults ref in variable");
+                        unifiedResultsRef.set(ref);
+                      }}
+                    />
+                  </box>
+
+                  {/* Action Bar */}
+                  <box cssClasses={["launcher-action-bar"]} spacing={20}>
+                    {/* Left side - App actions */}
+                    <box hexpand halign={Gtk.Align.START} spacing={16}>
+                      {bind(Variable.derive([evaluatorResult, selectedItem], (evalResult, app) => {
+                        if (evalResult) {
+                          return (
+                            <box spacing={8}>
+                              <KeyboardShortcut keys={["↵"]} compact />
+                              <label label={evalResult.hint || "Copy result to clipboard"} cssClasses={["action-label"]} />
+                            </box>
+                          );
+                        } else if (app) {
+                          return (
+                            <>
+                              <box spacing={8}>
+                                <KeyboardShortcut keys={["↵"]} compact />
+                                <label label="Open" cssClasses={["action-label"]} />
+                              </box>
+                              <box spacing={8}>
+                                <KeyboardShortcut keys={["Ctrl", "↵"]} compact />
+                                <label label="Open in Terminal" cssClasses={["action-label"]} />
+                              </box>
+                              <box spacing={8}>
+                                <KeyboardShortcut keys={["Alt", "↵"]} compact />
+                                <label label="Show in Files" cssClasses={["action-label"]} />
+                              </box>
+                            </>
+                          );
+                        } else {
+                          return <label label="Type to search, calculate, or convert units" cssClasses={["action-hint"]} />;
+                        }
+                      }))}
+                    </box>
+
+                    {/* Right side - General shortcuts */}
+                    <box halign={Gtk.Align.END} spacing={16}>
+                      <box spacing={8}>
+                        <KeyboardShortcut keys={["Tab"]} compact />
+                        <label label="Autocomplete" cssClasses={["action-label"]} />
+                      </box>
+                      <box spacing={8}>
+                        <KeyboardShortcut keys={["Esc"]} compact />
+                        <label label="Close" cssClasses={["action-label"]} />
+                      </box>
+                    </box>
+                  </box>
+                </box>
               </box>
 
-              {/* Action Bar */}
-              <box cssClasses={["launcher-action-bar"]} spacing={20}>
-                {/* Left side - App actions */}
-                <box hexpand halign={Gtk.Align.START} spacing={16}>
-                  {bind(Variable.derive([evaluatorResult, selectedItem], (evalResult, app) => {
-                    if (evalResult) {
-                      return (
-                        <box spacing={8}>
-                          <KeyboardShortcut keys={["↵"]} compact />
-                          <label label={evalResult.hint || "Copy result to clipboard"} cssClasses={["action-label"]} />
-                        </box>
-                      );
-                    } else if (app) {
-                      return (
-                        <>
-                          <box spacing={8}>
-                            <KeyboardShortcut keys={["↵"]} compact />
-                            <label label="Open" cssClasses={["action-label"]} />
-                          </box>
-                          <box spacing={8}>
-                            <KeyboardShortcut keys={["Ctrl", "↵"]} compact />
-                            <label label="Open in Terminal" cssClasses={["action-label"]} />
-                          </box>
-                          <box spacing={8}>
-                            <KeyboardShortcut keys={["Alt", "↵"]} compact />
-                            <label label="Show in Files" cssClasses={["action-label"]} />
-                          </box>
-                        </>
-                      );
-                    } else {
-                      return <label label="Type to search, calculate, or convert units" cssClasses={["action-hint"]} />;
-                    }
-                  }))}
-                </box>
+              {/* Right panel - Detail view */}
+              <box
+                cssClasses={["launcher-detail-panel"]}
+                widthRequest={600}
+                visible={bind(focusedItem).as(item => item !== null)}
+              >
+                {bind(focusedItem).as(item => {
+                  if (!item) return <box />;
 
-                {/* Right side - General shortcuts */}
-                <box halign={Gtk.Align.END} spacing={16}>
-                  <box spacing={8}>
-                    <KeyboardShortcut keys={["Tab"]} compact />
-                    <label label="Autocomplete" cssClasses={["action-label"]} />
-                  </box>
-                  <box spacing={8}>
-                    <KeyboardShortcut keys={["Esc"]} compact />
-                    <label label="Close" cssClasses={["action-label"]} />
-                  </box>
-                </box>
+                  // Check if it's a Hyprland window with screenshot
+                  if (item.type === 'hyprland' && item.window && item.screenshotPath) {
+                    const window = item.window;
+                    return (
+                      <box
+                        vertical
+                        cssClasses={["detail-panel-content"]}
+                        halign={Gtk.Align.CENTER}
+                        valign={Gtk.Align.CENTER}
+                        spacing={24}
+                      >
+                        {/* Large screenshot preview */}
+                        <box cssClasses={["detail-screenshot-frame"]}>
+                          <RoundedImageReactive
+                            file={bind(item.screenshotPath)}
+                            size={480}
+                            radius={16}
+                            cssClasses={["detail-screenshot-preview"]}
+                          />
+                        </box>
+
+                        {/* Window information */}
+                        <box vertical spacing={12} cssClasses={["detail-window-info"]}>
+                          <label
+                            label={window.title || window.class}
+                            cssClasses={["detail-window-title"]}
+                            ellipsize={3}
+                          />
+                          <box spacing={16} halign={Gtk.Align.CENTER}>
+                            <box spacing={8}>
+                              <label label="Class:" cssClasses={["detail-label"]} />
+                              <label label={window.class} cssClasses={["detail-value"]} />
+                            </box>
+                            <box spacing={8}>
+                              <label label="Workspace:" cssClasses={["detail-label"]} />
+                              <label
+                                label={window.workspace.name || `${window.workspace.id}`}
+                                cssClasses={["detail-value"]}
+                              />
+                            </box>
+                          </box>
+                          {window.floating && (
+                            <label
+                              label="Floating Window"
+                              cssClasses={["detail-badge", "floating"]}
+                            />
+                          )}
+                          {window.fullscreen && (
+                            <label
+                              label="Fullscreen"
+                              cssClasses={["detail-badge", "fullscreen"]}
+                            />
+                          )}
+                        </box>
+                      </box>
+                    );
+                  }
+
+                  // For other types, return empty box for now
+                  return <box />;
+                })}
               </box>
             </box>
-          </box>
 
-          {/* Spacer for bottom area */}
-          <box vexpand />
+            <box vexpand />
+          </box>
         </box>
       </box>
     </PopupWindow>

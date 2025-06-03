@@ -27,7 +27,7 @@ sidebar {
   border-radius: 24px;
   padding: 5px 10px;
   margin-top: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 18px;
   margin-left: 8px;
   margin-right: 8px;
 
@@ -447,6 +447,125 @@ wifi-item {
 
   wifi-connecting {
     margin-left: 8px;
+    color: colors.c(primary);
+  }
+
+  &.connecting {
+    background: colors.c(primary, 0.05);
+    border-color: colors.c(primary, 0.2);
+  }
+
+  &.failed {
+    background: colors.c(error, 0.05);
+    border-color: colors.c(error, 0.2);
+
+    wifi-item-status {
+      color: colors.c(error);
+    }
+  }
+
+  .wifi-success {
+    color: colors.c(success);
+  }
+
+  .wifi-error {
+    color: colors.c(error);
+  }
+}
+
+// WiFi password dialog
+wifi-password-dialog {
+  background: colors.c(background-elevated);
+  border: 1px solid colors.c(border);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 8px 12px;
+  box-shadow: 0 4px 12px colors.c(background, 0.4);
+
+  wifi-password-header {
+    margin-bottom: 12px;
+
+    image {
+      color: colors.c(primary);
+    }
+
+    label {
+      font-size: 16px;
+      font-weight: 500;
+      color: colors.c(foreground);
+    }
+  }
+
+  wifi-password-label {
+    font-size: 13px;
+    color: colors.c(foreground-alt);
+    margin-bottom: 4px;
+  }
+
+  wifi-password-entry {
+    background: colors.c(background, 0.5);
+    border: 1px solid colors.c(border, 0.5);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: colors.c(foreground);
+    font-size: 14px;
+
+    &:focus {
+      border-color: colors.c(primary, 0.5);
+      box-shadow: 0 0 0 2px colors.c(primary, 0.1);
+    }
+  }
+
+  wifi-password-toggle {
+    padding: 8px;
+    background: colors.c(background, 0.3);
+    border: 1px solid colors.c(border, 0.3);
+    border-radius: 8px;
+
+    &:hover {
+      background: colors.c(background, 0.5);
+      border-color: colors.c(border, 0.5);
+    }
+
+    image {
+      color: colors.c(foreground-alt);
+    }
+  }
+
+  wifi-password-cancel,
+  wifi-password-connect {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  wifi-password-cancel {
+    background: colors.c(background, 0.3);
+    border: 1px solid colors.c(border, 0.3);
+    color: colors.c(foreground-alt);
+
+    &:hover {
+      background: colors.c(background, 0.5);
+      border-color: colors.c(border, 0.5);
+      color: colors.c(foreground);
+    }
+  }
+
+  wifi-password-connect {
+    background: colors.c(primary, 0.8);
+    border: 1px solid colors.c(primary);
+    color: colors.c(background);
+    margin-left: 8px;
+
+    &:hover {
+      background: colors.c(primary, 0.9);
+    }
+
+    &:insensitive {
+      opacity: 0.5;
+    }
   }
 }
 
@@ -1397,6 +1516,29 @@ header-module {
 
       image {
         color: colors.c(primary);
+      }
+    }
+
+    user-avatar-wrapper {
+      min-width: 48px;
+      min-height: 48px;
+      margin-right: 4px;
+      border-radius: 50%;
+      border: 2px solid colors.c(border-alt);
+
+      .user-avatar {
+        border-radius: 50%;
+        border: 2px solid colors.c(border);
+      }
+
+      .user-avatar-placeholder {
+        background: colors.c(primary, 0.1);
+        border-radius: 50%;
+        border: 2px solid colors.c(border);
+
+        image {
+          color: colors.c(primary);
+        }
       }
     }
 

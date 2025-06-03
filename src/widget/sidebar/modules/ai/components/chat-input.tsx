@@ -22,9 +22,9 @@ export const ChatInput = (props: ChatEntryProps) => {
     if (keyval === Gdk.KEY_Return || keyval === Gdk.KEY_KP_Enter) {
       const currentText = self.get_text();
       if (currentText.trim().length > 0) {
+        // Call handleSubmit first, then clear
         handleSubmit?.();
-        self.set_text("");
-        text.set("");
+        // The parent component should handle clearing the input
       }
       return true;
     }
@@ -79,6 +79,11 @@ export const ChatInput = (props: ChatEntryProps) => {
           cssClasses={bind(isTyping).as(typing => typing ? ["txt", "typing"] : ["txt"])}
           placeholderText="Type a message... (/ for commands)"
           hexpand
+          onActivate={() => {
+            if (text.get().trim().length > 0) {
+              handleSubmit?.();
+            }
+          }}
           setup={setupEntry}
         />
       </box>

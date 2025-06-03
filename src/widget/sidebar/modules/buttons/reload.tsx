@@ -11,6 +11,8 @@ export const ReloadIconButton = (props: Widget.ButtonProps) => {
       tooltipText="Reload Environment config"
       onClicked={actions.system.reload}
       setup={setupCursorHover}
+      valign={Gtk.Align.CENTER}
+      halign={Gtk.Align.CENTER}
       {...props}
     >
       <PhosphorIcon iconName={PhosphorIcons.ArrowClockwise} size={24} />

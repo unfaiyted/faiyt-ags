@@ -14,6 +14,9 @@ export const SettingsIconButton = (props: Widget.ButtonProps) => {
       cssName="header-button"
       tooltipText="Open Settings"
       onClicked={() => actions.window.toggle('settings')}
+      valign={Gtk.Align.CENTER}
+      halign={Gtk.Align.CENTER}
+
       setup={setupCursorHover}
       {...props}
     >

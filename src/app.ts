@@ -18,6 +18,7 @@ import {
 import { systemLogger, log, setLogLevel, LogLevel } from "./utils/logger";
 import { logSystemInfo } from "./services/logger";
 import "./services/clipboard-manager"; // Initialize clipboard manager
+import windowManager from "./services/window-manager";
 import configManager from "./services/config-manager"; // Initialize config manager
 import SettingsWindow from "./widget/settings";
 
@@ -40,6 +41,14 @@ App.start({
     // Log system info on startup
     log.info("AGS Application Starting");
     logSystemInfo();
+    
+    // Start window manager service
+    try {
+      windowManager.start();
+      log.info("Window Manager service started");
+    } catch (error) {
+      log.error("Failed to start Window Manager service", { error });
+    }
 
     // Windows
     const monitors = App.get_monitors();

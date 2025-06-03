@@ -87,33 +87,199 @@ const WifiStatus = () => {
   );
 };
 
+// Password dialog component
+const PasswordDialog = ({ 
+  ssid, 
+  onConnect, 
+  onCancel 
+}: { 
+  ssid: string;
+  onConnect: (password: string) => void;
+  onCancel: () => void;
+}) => {
+  const password = Variable("");
+  const showPassword = Variable(false);
+
+  return (
+    <box cssName="wifi-password-dialog" vertical spacing={12}>
+      <box cssName="wifi-password-header" spacing={8}>
+        <PhosphorIcon iconName={PhosphorIcons.WifiHigh} size={20} />
+        <label label={`Connect to ${ssid}`} />
+      </box>
+      
+      <box vertical spacing={8}>
+        <label cssName="wifi-password-label" xalign={0} label="Enter password:" />
+        <box spacing={8}>
+          <entry
+            cssName="wifi-password-entry"
+            placeholder_text="Password"
+            visibility={bind(showPassword)}
+            text={bind(password)}
+            hexpand
+            onChanged={(self) => password.set(self.text)}
+            onActivate={() => {
+              if (password.get().length > 0) {
+                onConnect(password.get());
+              }
+            }}
+            setup={(self) => {
+              setTimeout(() => self.grab_focus(), 100);
+            }}
+          />
+          <button
+            cssName="wifi-password-toggle"
+            onClicked={() => showPassword.set(!showPassword.get())}
+            tooltip_text={bind(showPassword).as(show => show ? "Hide password" : "Show password")}
+          >
+            <PhosphorIcon
+              iconName={bind(showPassword).as(show => 
+                show ? PhosphorIcons.Eye : PhosphorIcons.EyeSlash
+              )}
+              size={16}
+            />
+          </button>
+        </box>
+      </box>
+      
+      <box spacing={8} halign={Gtk.Align.END}>
+        <button
+          cssName="wifi-password-cancel"
+          onClicked={onCancel}
+        >
+          <label label="Cancel" />
+        </button>
+        <button
+          cssName="wifi-password-connect"
+          onClicked={() => {
+            const pwd = password.get();
+            if (pwd.length > 0) {
+              onConnect(pwd);
+            }
+          }}
+          sensitive={bind(password).as(p => p.length > 0)}
+        >
+          <label label="Connect" />
+        </button>
+      </box>
+    </box>
+  );
+};
+
 // Individual WiFi network item
 const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
   const connecting = Variable(false);
+  const showPasswordDialog = Variable(false);
+  const connectionStatus = Variable<"idle" | "connecting" | "connected" | "failed">("idle");
+  const statusMessage = Variable("");
+
+  const checkIfPasswordRequired = async (ssid: string): Promise<boolean> => {
+    try {
+      // Check if we have a saved connection
+      const output = await execAsync([
+        "nmcli", "-t", "-f", "NAME", "connection", "show"
+      ]);
+      const savedConnections = output.split('\n').filter(name => name.trim());
+      return !savedConnections.includes(ssid);
+    } catch {
+      return true; // Assume password is required if check fails
+    }
+  };
+
+  const connectWithPassword = async (password: string) => {
+    showPasswordDialog.set(false);
+    connectionStatus.set("connecting");
+    statusMessage.set("Authenticating...");
+    
+    try {
+      await execAsync([
+        "nmcli", "device", "wifi", "connect", 
+        wifiNetwork.ssid, "password", password
+      ]);
+      connectionStatus.set("connected");
+      statusMessage.set("Connected successfully");
+      
+      // Reset status after a delay
+      setTimeout(() => {
+        connectionStatus.set("idle");
+        statusMessage.set("");
+      }, 3000);
+    } catch (error) {
+      log.error(`Failed to connect to ${wifiNetwork.ssid}`, { error });
+      connectionStatus.set("failed");
+      statusMessage.set("Connection failed");
+      
+      // Reset status after a delay
+      setTimeout(() => {
+        connectionStatus.set("idle");
+        statusMessage.set("");
+      }, 3000);
+    }
+    connecting.set(false);
+  };
 
   const handleConnect = async () => {
+    if (showPasswordDialog.get()) {
+      showPasswordDialog.set(false);
+      return;
+    }
+
     connecting.set(true);
+    connectionStatus.set("connecting");
+    
     try {
       if (wifiNetwork.connected) {
         // Disconnect
         log.info("Disconnecting from WiFi", { ssid: wifiNetwork.ssid });
+        statusMessage.set("Disconnecting...");
         await execAsync(["nmcli", "connection", "down", wifiNetwork.ssid]);
+        connectionStatus.set("idle");
+        statusMessage.set("");
       } else {
         // Connect
         log.info("Connecting to WiFi", {
           ssid: wifiNetwork.ssid,
           secure: wifiNetwork.secure
         });
+        
         if (wifiNetwork.secure) {
-          // For secure networks, we'll need to handle password input
-          // For now, using nmcli which will prompt for password if needed
-          await execAsync(["nmcli", "device", "wifi", "connect", wifiNetwork.ssid]);
-        } else {
-          await execAsync(["nmcli", "device", "wifi", "connect", wifiNetwork.ssid]);
+          const needsPassword = await checkIfPasswordRequired(wifiNetwork.ssid);
+          if (needsPassword) {
+            showPasswordDialog.set(true);
+            connecting.set(false);
+            connectionStatus.set("idle");
+            return;
+          }
         }
+        
+        statusMessage.set("Connecting...");
+        await execAsync(["nmcli", "device", "wifi", "connect", wifiNetwork.ssid]);
+        connectionStatus.set("connected");
+        statusMessage.set("Connected successfully");
+        
+        // Reset status after a delay
+        setTimeout(() => {
+          connectionStatus.set("idle");
+          statusMessage.set("");
+        }, 3000);
       }
     } catch (error) {
       log.error(`Failed to connect to ${wifiNetwork.ssid}`, { error });
+      
+      // Check if it's a password error
+      const errorStr = error.toString();
+      if (errorStr.includes("secrets were required") || errorStr.includes("no secrets provided")) {
+        showPasswordDialog.set(true);
+        connectionStatus.set("idle");
+      } else {
+        connectionStatus.set("failed");
+        statusMessage.set("Connection failed");
+        
+        // Reset status after a delay
+        setTimeout(() => {
+          connectionStatus.set("idle");
+          statusMessage.set("");
+        }, 3000);
+      }
     }
     connecting.set(false);
   };
@@ -126,38 +292,63 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
   };
 
   return (
-    <button
-      setup={setupCursorHover}
-      cssName={"wifi-item"}
-      cssClasses={c`wifi-item ${wifiNetwork.connected ? 'connected' : ''}`}
-      onClicked={handleConnect}
-    >
-      <box spacing={12}>
-        <box cssName="wifi-item-icon">
-          <PhosphorIcon
-            iconName={getStrengthIcon(wifiNetwork.strength)}
-            size={20}
-          />
-          {wifiNetwork.secure && (
+    <box vertical spacing={0}>
+      <button
+        setup={setupCursorHover}
+        cssName={"wifi-item"}
+        cssClasses={c`wifi-item ${wifiNetwork.connected ? 'connected' : ''} ${bind(connectionStatus).as(s => s)}`}
+        onClicked={handleConnect}
+      >
+        <box spacing={12}>
+          <box cssName="wifi-item-icon">
             <PhosphorIcon
-              iconName={PhosphorIcons.Lock}
-              size={12}
-              cssClasses={["wifi-secure-icon"]}
+              iconName={getStrengthIcon(wifiNetwork.strength)}
+              size={20}
             />
-          )}
+            {wifiNetwork.secure && (
+              <PhosphorIcon
+                iconName={PhosphorIcons.Lock}
+                size={12}
+                cssClasses={["wifi-secure-icon"]}
+              />
+            )}
+          </box>
+          <box vertical hexpand>
+            <label cssName="wifi-item-name" xalign={0} label={wifiNetwork.ssid} />
+            {bind(statusMessage).as(msg => 
+              msg ? (
+                <label cssName="wifi-item-status" xalign={0} label={msg} />
+              ) : wifiNetwork.connected ? (
+                <label cssName="wifi-item-status" xalign={0} label="Connected" />
+              ) : <box />
+            )}
+          </box>
+          <label cssName="wifi-strength" label={`${wifiNetwork.strength}%`} />
+          {bind(connectionStatus).as(status => {
+            switch (status) {
+              case "connecting":
+                return <Gtk.Spinner cssName="wifi-connecting" spinning={true} />;
+              case "connected":
+                return <PhosphorIcon iconName={PhosphorIcons.CheckCircle} size={20} cssClasses={["wifi-success"]} />;
+              case "failed":
+                return <PhosphorIcon iconName={PhosphorIcons.XCircle} size={20} cssClasses={["wifi-error"]} />;
+              default:
+                return <box />;
+            }
+          })}
         </box>
-        <box vertical hexpand>
-          <label cssName="wifi-item-name" xalign={0} label={wifiNetwork.ssid} />
-          {wifiNetwork.connected && (
-            <label cssName="wifi-item-status" xalign={0} label="Connected" />
-          )}
-        </box>
-        <label cssName="wifi-strength" label={`${wifiNetwork.strength}%`} />
-        {bind(connecting).as(c =>
-          c ? <Gtk.Spinner cssName="wifi-connecting" /> : <label />
-        )}
-      </box>
-    </button>
+      </button>
+      
+      {bind(showPasswordDialog).as(show =>
+        show ? (
+          <PasswordDialog
+            ssid={wifiNetwork.ssid}
+            onConnect={connectWithPassword}
+            onCancel={() => showPasswordDialog.set(false)}
+          />
+        ) : <box />
+      )}
+    </box>
   );
 };
 

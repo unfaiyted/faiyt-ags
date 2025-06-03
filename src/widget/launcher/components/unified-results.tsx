@@ -32,6 +32,7 @@ export interface UnifiedResultsListProps extends Widget.BoxProps {
   maxResults: number;
   selectedIndex: Variable<number>;
   selectedItem?: Variable<any>;
+  focusedItem?: Variable<any>;
   refs?: (ref: UnifiedResultsRef) => void;
 }
 
@@ -50,7 +51,7 @@ interface UnifiedResults {
 }
 
 export default function UnifiedResultsList(props: UnifiedResultsListProps) {
-  const { searchText, maxResults, selectedIndex, selectedItem } = props;
+  const { searchText, maxResults, selectedIndex, selectedItem, focusedItem } = props;
 
   // Track which result type is active
   const activeResultType = Variable<SearchType>(SearchType.ALL);
@@ -81,6 +82,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
   // Clear button refs when results change
   searchResults.subscribe(() => {
     buttonRefs.length = 0;
+    focusedItem?.set(null);
   });
 
   // Debounced search implementation
@@ -95,6 +97,9 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       selectedIndex.set(0);
       if (selectedItem) {
         selectedItem.set(null);
+      }
+      if (focusedItem) {
+        focusedItem.set(null);
       }
     }
 
@@ -275,6 +280,52 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     }
   };
 
+  // Update focused item based on selection
+  const updateFocusedItem = (index: number) => {
+    if (!focusedItem) return;
+    
+    const results = searchResults.get();
+    let currentIndex = 0;
+    
+    // Find which result type and item is selected
+    if (index < results.apps.length) {
+      // App result
+      focusedItem.set(null); // Apps don't have screenshots yet
+    } else if (index < results.apps.length + results.screenCaptures.length) {
+      // Screen capture result
+      focusedItem.set(null);
+    } else if (index < results.apps.length + results.screenCaptures.length + results.commands.length) {
+      // Command result
+      focusedItem.set(null);
+    } else if (index < results.apps.length + results.screenCaptures.length + results.commands.length + results.system.length) {
+      // System result
+      focusedItem.set(null);
+    } else if (index < results.apps.length + results.screenCaptures.length + results.commands.length + results.system.length + results.clipboard.length) {
+      // Clipboard result
+      focusedItem.set(null);
+    } else if (index < results.apps.length + results.screenCaptures.length + results.commands.length + results.system.length + results.clipboard.length + results.externalSearch.length) {
+      // External search result
+      focusedItem.set(null);
+    } else if (index < results.apps.length + results.screenCaptures.length + results.commands.length + results.system.length + results.clipboard.length + results.externalSearch.length + results.directories.length) {
+      // Directory result
+      focusedItem.set(null);
+    } else if (index < results.apps.length + results.screenCaptures.length + results.commands.length + results.system.length + results.clipboard.length + results.externalSearch.length + results.directories.length + results.hyprland.length) {
+      // Hyprland window result
+      const hyprlandIndex = index - (results.apps.length + results.screenCaptures.length + results.commands.length + results.system.length + results.clipboard.length + results.externalSearch.length + results.directories.length);
+      const hyprlandResult = results.hyprland[hyprlandIndex];
+      if (hyprlandResult) {
+        focusedItem.set({
+          type: 'hyprland',
+          window: hyprlandResult.window,
+          screenshotPath: hyprlandResult.screenshotPath
+        });
+      }
+    } else {
+      // List prefixes result
+      focusedItem.set(null);
+    }
+  };
+
 
   // Navigation methods that delegate to the active result type
   const selectNext = () => {
@@ -287,9 +338,10 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
 
     log.debug("Selecting next", { currentIndex, nextIndex, totalItems });
     selectedIndex.set(nextIndex);
-    buttonRefs[nextIndex - 1]?.set_focusable(true);
-    buttonRefs[nextIndex - 1]?.grab_focus();
+    buttonRefs[nextIndex]?.set_focusable(true);
+    buttonRefs[nextIndex]?.grab_focus();
     ensureSelectedVisible(nextIndex);
+    updateFocusedItem(nextIndex);
   };
 
   const selectPrevious = () => {
@@ -305,6 +357,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     buttonRefs[prevIndex]?.set_focusable(true);
     buttonRefs[prevIndex]?.grab_focus();
     ensureSelectedVisible(prevIndex);
+    updateFocusedItem(prevIndex);
   };
 
   const activateSelected = () => {

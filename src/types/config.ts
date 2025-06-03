@@ -17,6 +17,9 @@ export interface AIProvider {
 
 export interface ConfigOptions {
   // AI Settings should are stored in the LeftBar where the AI providers are displayed.
+  user: {
+    avatarPath: string;
+  };
   ai: {
     defaultGPTProvider: string;
     defaultTemperature: number;
@@ -233,5 +236,11 @@ export interface ConfigOptions {
     systemData: string[];
     data: string;
     runtime: string;
+  };
+  windowManager: {
+    enabled: boolean;
+    screenshotInterval: number;
+    cleanupInterval: number;
+    captureOnFocus: boolean;
   };
 }

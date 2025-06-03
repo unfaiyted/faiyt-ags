@@ -2,6 +2,8 @@ import { launcherLogger as log } from "../../../utils/logger";
 import HyprlandButton from "../buttons/hyprland-button";
 import { createLogger } from "../../../utils/logger";
 import { execAsync } from "astal/process";
+import windowManager from "../../../services/window-manager";
+import GLib from "gi://GLib";
 
 const logger = createLogger("HyprlandResults");
 
@@ -35,6 +37,8 @@ export interface HyprlandClient {
 export interface HyprlandWindowResult {
   client: HyprlandClient;
   index: number;
+  window: HyprlandClient;
+  screenshotPath?: string | null;
 }
 
 // Get all Hyprland windows/clients
@@ -77,10 +81,19 @@ export default async function getHyprlandResults(searchText: string): Promise<Hy
   // Sort by focus history ID (lower is more recent)
   const sortedClients = filteredClients.sort((a, b) => a.focusHistoryID - b.focusHistoryID);
 
-  return sortedClients.map((client, index) => ({
-    client,
-    index
-  }));
+  return sortedClients.map((client, index) => {
+    // Get window screenshot path if available
+    const normalizedAddress = client.address.startsWith("0x") ? client.address : `0x${client.address}`;
+    const screenshotPath = windowManager.getWindowScreenshot(normalizedAddress);
+    const validPath = screenshotPath && GLib.file_test(screenshotPath, GLib.FileTest.EXISTS) ? screenshotPath : null;
+    
+    return {
+      client,
+      index,
+      window: client,
+      screenshotPath: validPath
+    };
+  });
 }
 
 // Export a function to create the Hyprland window button

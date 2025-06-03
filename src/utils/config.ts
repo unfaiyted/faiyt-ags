@@ -7,6 +7,9 @@ const USERNAME = GLib.get_user_name();
 
 export const defaultConfigOptions: ConfigOptions = {
   // General stuff
+  user: {
+    avatarPath: "/home/faiyt/Pictures/avatar.png",
+  },
   ai: {
     defaultGPTProvider: "claude",
     defaultTemperature: 0.9,
@@ -238,6 +241,12 @@ export const defaultConfigOptions: ConfigOptions = {
     systemData: GLib.get_system_data_dirs(),
     data: GLib.get_user_data_dir(),
     runtime: GLib.get_user_runtime_dir(),
+  },
+  windowManager: {
+    enabled: true,
+    screenshotInterval: 30000, // 30 seconds
+    cleanupInterval: 300000, // 5 minutes
+    captureOnFocus: true,
   },
 };
 
