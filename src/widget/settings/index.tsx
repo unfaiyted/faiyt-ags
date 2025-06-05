@@ -482,6 +482,34 @@ const SettingsWindow = (props: SettingsWindowProps) => {
             )
           )}
 
+          {/* Display & Monitor Settings */}
+          {bind(searchQuery).as(q => 
+            (matchesSearch("display") || matchesSearch("monitor") || matchesSearch("screen")) && (
+              <SettingsSection title="Display & Monitors">
+                {matchesSearch("monitor") && (
+                  <SettingRow
+                    label="Configure Displays"
+                    description="Arrange and configure your monitors"
+                  >
+                    <button
+                      cssName="apply-button"
+                      onClicked={async () => {
+                        const monitorsWindow = App.get_window(`monitors-${monitor}`);
+                        if (monitorsWindow) {
+                          // The window's custom show() method will handle screenshot capture
+                          await monitorsWindow.show();
+                          App.get_window(windowName)?.hide();
+                        }
+                      }}
+                    >
+                      <label>Open Display Settings</label>
+                    </button>
+                  </SettingRow>
+                )}
+              </SettingsSection>
+            )
+          )}
+
           {/* Window Manager Settings */}
           {bind(searchQuery).as(q => 
             (matchesSearch("window") || matchesSearch("screenshot") || matchesSearch("manager")) && (

@@ -22,6 +22,39 @@ interface HyprlandWindow {
   focusHistoryID: number;
 }
 
+interface MonitorInfo {
+  id: number;
+  name: string;
+  description: string;
+  make: string;
+  model: string;
+  serial: string;
+  width: number;
+  height: number;
+  refreshRate: number;
+  x: number;
+  y: number;
+  scale: number;
+  transform: number;
+  focused: boolean;
+  dpmsStatus: boolean;
+  vrr: boolean;
+  disabled: boolean;
+  currentFormat: string;
+  availableModes: string[];
+  activeWorkspace: {
+    id: number;
+    name: string;
+  };
+}
+
+interface MonitorMode {
+  width: number;
+  height: number;
+  refreshRate: number;
+  formatted: string;
+}
+
 class WindowManagerService {
   private windows: Map<string, WindowInfo> = new Map();
   private activeWindowAddress: string | null = null;
@@ -30,14 +63,21 @@ class WindowManagerService {
   private cleanupTimer: number | null = null;
   private ipcProcess: any = null;
   private tmpDir: string;
+  private workspaceScreenshotDir: string;
   private isRunning: boolean = false;
+  private monitorScreenshots: Map<string, string> = new Map(); // monitor name -> screenshot path
 
   constructor() {
     // Create tmp directory for screenshots
     this.tmpDir = GLib.build_filenamev([GLib.get_tmp_dir(), "ags-window-screenshots"]);
+    this.workspaceScreenshotDir = GLib.build_filenamev([GLib.get_tmp_dir(), "ags-workspace-screenshots"]);
     this.ensureDirectory(this.tmpDir);
+    this.ensureDirectory(this.workspaceScreenshotDir);
     
-    log.info("WindowManager service initialized", { tmpDir: this.tmpDir });
+    log.info("WindowManager service initialized", { 
+      tmpDir: this.tmpDir,
+      workspaceScreenshotDir: this.workspaceScreenshotDir 
+    });
   }
 
   private ensureDirectory(path: string) {
@@ -470,6 +510,336 @@ class WindowManagerService {
   setScreenshotInterval(interval: number) {
     this.screenshotInterval = Math.max(5000, interval); // Minimum 5 seconds
     log.info("Screenshot interval updated", { interval: this.screenshotInterval });
+  }
+
+  // Monitor management methods
+  async getMonitors(): Promise<MonitorInfo[]> {
+    try {
+      const result = await execAsync(["hyprctl", "monitors", "-j"]);
+      const monitors: MonitorInfo[] = JSON.parse(result);
+      
+      log.debug("Fetched monitors", { 
+        count: monitors.length,
+        monitors: monitors.map(m => ({
+          name: m.name,
+          position: { x: m.x, y: m.y },
+          size: { width: m.width, height: m.height },
+          scale: m.scale
+        }))
+      });
+      return monitors;
+    } catch (error) {
+      log.error("Failed to get monitors", { error });
+      return [];
+    }
+  }
+
+  parseMonitorMode(modeString: string): MonitorMode {
+    // Parse mode string like "3024x1890@60.00Hz"
+    const match = modeString.match(/(\d+)x(\d+)@([\d.]+)Hz/);
+    if (!match) {
+      throw new Error(`Invalid mode string: ${modeString}`);
+    }
+    
+    return {
+      width: parseInt(match[1]),
+      height: parseInt(match[2]),
+      refreshRate: parseFloat(match[3]),
+      formatted: modeString
+    };
+  }
+
+  async setMonitorMode(monitorName: string, mode: string) {
+    try {
+      // Format: hyprctl keyword monitor NAME,MODE,POSITION,SCALE
+      const monitors = await this.getMonitors();
+      const monitor = monitors.find(m => m.name === monitorName);
+      
+      if (!monitor) {
+        throw new Error(`Monitor not found: ${monitorName}`);
+      }
+      
+      // Parse the mode to ensure it's in the correct format
+      const parsedMode = this.parseMonitorMode(mode);
+      const formattedMode = `${parsedMode.width}x${parsedMode.height}@${parsedMode.refreshRate}`;
+      
+      const command = [
+        "hyprctl",
+        "keyword",
+        "monitor",
+        `${monitorName},${formattedMode},${monitor.x}x${monitor.y},${monitor.scale}`
+      ];
+      
+      log.info("Setting monitor mode", { 
+        monitor: monitorName, 
+        mode: formattedMode,
+        position: `${monitor.x}x${monitor.y}`,
+        scale: monitor.scale,
+        command: command.join(" ")
+      });
+      
+      await execAsync(command);
+      
+      // Small delay to let Hyprland process the change
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      return true;
+    } catch (error) {
+      log.error("Failed to set monitor mode", { error });
+      return false;
+    }
+  }
+
+  async setMonitorPosition(monitorName: string, x: number, y: number) {
+    try {
+      const monitors = await this.getMonitors();
+      const monitor = monitors.find(m => m.name === monitorName);
+      
+      if (!monitor) {
+        throw new Error(`Monitor not found: ${monitorName}`);
+      }
+      
+      const currentMode = `${monitor.width}x${monitor.height}@${monitor.refreshRate.toFixed(2)}Hz`;
+      const command = [
+        "hyprctl",
+        "keyword",
+        "monitor",
+        `${monitorName},${currentMode},${x}x${y},${monitor.scale}`
+      ];
+      
+      log.info("Setting monitor position", {
+        monitor: monitorName,
+        position: { x, y },
+        currentMode,
+        command: command.join(" ")
+      });
+      
+      await execAsync(command);
+      
+      // Don't reload here - let the caller decide when to reload
+      // This allows batching multiple monitor changes
+      
+      return true;
+    } catch (error) {
+      log.error("Failed to set monitor position", { error });
+      return false;
+    }
+  }
+
+  async setMonitorScale(monitorName: string, scale: number) {
+    try {
+      const monitors = await this.getMonitors();
+      const monitor = monitors.find(m => m.name === monitorName);
+      
+      if (!monitor) {
+        throw new Error(`Monitor not found: ${monitorName}`);
+      }
+      
+      // Round scale to 2 decimal places
+      const roundedScale = Math.round(scale * 100) / 100;
+      
+      const currentMode = `${monitor.width}x${monitor.height}@${monitor.refreshRate.toFixed(2)}`;
+      const command = [
+        "hyprctl",
+        "keyword", 
+        "monitor",
+        `${monitorName},${currentMode},${monitor.x}x${monitor.y},${roundedScale}`
+      ];
+      
+      log.info("Setting monitor scale", {
+        monitor: monitorName,
+        scale: roundedScale,
+        mode: currentMode,
+        position: `${monitor.x}x${monitor.y}`,
+        command: command.join(" ")
+      });
+      
+      await execAsync(command);
+      
+      // Small delay to let Hyprland process the change
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      return true;
+    } catch (error) {
+      log.error("Failed to set monitor scale", { error });
+      return false;
+    }
+  }
+
+  async setMonitorTransform(monitorName: string, transform: number) {
+    try {
+      const command = [
+        "hyprctl",
+        "keyword",
+        "monitor",
+        `${monitorName},transform,${transform}`
+      ];
+      
+      log.info("Setting monitor transform", {
+        monitor: monitorName,
+        transform,
+        command: command.join(" ")
+      });
+      
+      await execAsync(command);
+      return true;
+    } catch (error) {
+      log.error("Failed to set monitor transform", { error });
+      return false;
+    }
+  }
+
+  async toggleMonitor(monitorName: string, enabled: boolean) {
+    try {
+      const command = enabled
+        ? ["hyprctl", "keyword", "monitor", `${monitorName},enable`]
+        : ["hyprctl", "keyword", "monitor", `${monitorName},disable`];
+      
+      log.info("Toggling monitor", {
+        monitor: monitorName,
+        enabled,
+        command: command.join(" ")
+      });
+      
+      await execAsync(command);
+      return true;
+    } catch (error) {
+      log.error("Failed to toggle monitor", { error });
+      return false;
+    }
+  }
+
+  async setPrimaryMonitor(monitorName: string) {
+    try {
+      // In Hyprland, there's no explicit primary monitor, but we can move workspace 1 to it
+      const command = ["hyprctl", "dispatch", "moveworkspacetomonitor", `1 ${monitorName}`];
+      
+      log.info("Setting primary monitor", {
+        monitor: monitorName,
+        command: command.join(" ")
+      });
+      
+      await execAsync(command);
+      return true;
+    } catch (error) {
+      log.error("Failed to set primary monitor", { error });
+      return false;
+    }
+  }
+
+  // Capture screenshot of a specific monitor
+  async captureMonitorScreenshot(monitorName: string): Promise<string | null> {
+    try {
+      const monitors = await this.getMonitors();
+      const monitor = monitors.find(m => m.name === monitorName);
+      
+      if (!monitor) {
+        log.error("Monitor not found for screenshot", { monitorName });
+        return null;
+      }
+
+      const screenshotPath = GLib.build_filenamev([
+        this.workspaceScreenshotDir, 
+        `monitor-${monitorName.replace(/[^a-zA-Z0-9]/g, '-')}.png`
+      ]);
+
+      // Use grim to capture the monitor
+      const command = [
+        "grim",
+        "-o",
+        monitorName,
+        "-t",
+        "png",
+        screenshotPath
+      ];
+
+      log.debug("Capturing monitor screenshot", { 
+        monitor: monitorName,
+        path: screenshotPath,
+        command: command.join(" ")
+      });
+
+      await execAsync(command);
+
+      // Check if file was created
+      if (!GLib.file_test(screenshotPath, GLib.FileTest.EXISTS)) {
+        throw new Error("Screenshot file was not created");
+      }
+
+      // Store the screenshot path
+      this.monitorScreenshots.set(monitorName, screenshotPath);
+
+      log.info("Monitor screenshot captured", { 
+        monitor: monitorName,
+        path: screenshotPath
+      });
+
+      // Emit event for other components
+      this.emit("monitor-screenshot-updated", { monitor: monitorName, path: screenshotPath });
+
+      return screenshotPath;
+    } catch (error) {
+      log.error("Failed to capture monitor screenshot", { 
+        monitor: monitorName,
+        error: error instanceof Error ? error.message : error
+      });
+      return null;
+    }
+  }
+
+  // Capture screenshots for all monitors
+  async captureAllMonitorScreenshots() {
+    try {
+      const monitors = await this.getMonitors();
+      const results = await Promise.all(
+        monitors.map(monitor => this.captureMonitorScreenshot(monitor.name))
+      );
+      
+      log.info("Captured screenshots for all monitors", {
+        count: results.filter(r => r !== null).length,
+        total: monitors.length
+      });
+
+      return results.filter(r => r !== null) as string[];
+    } catch (error) {
+      log.error("Failed to capture all monitor screenshots", { error });
+      return [];
+    }
+  }
+
+  // Get the screenshot path for a monitor
+  getMonitorScreenshot(monitorName: string): string | null {
+    const path = this.monitorScreenshots.get(monitorName);
+    if (path && GLib.file_test(path, GLib.FileTest.EXISTS)) {
+      return path;
+    }
+    return null;
+  }
+
+  // Clean up workspace screenshots
+  private cleanupWorkspaceScreenshots() {
+    try {
+      const dir = GLib.Dir.open(this.workspaceScreenshotDir, 0);
+      let filename: string | null;
+      
+      while ((filename = dir.read_name()) !== null) {
+        if (filename.endsWith(".png")) {
+          const fullPath = GLib.build_filenamev([this.workspaceScreenshotDir, filename]);
+          const stat = GLib.stat(fullPath);
+          const age = Date.now() - (stat.mtime * 1000);
+          
+          // Delete screenshots older than 1 hour
+          if (age > 3600000) {
+            this.deleteScreenshot(fullPath);
+            log.debug("Cleaned up old workspace screenshot", { filename, age });
+          }
+        }
+      }
+      
+      dir.close();
+    } catch (error) {
+      log.error("Failed to cleanup workspace screenshots", { error });
+    }
   }
 }
 

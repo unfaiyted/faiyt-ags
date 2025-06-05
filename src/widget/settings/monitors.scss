@@ -1,0 +1,554 @@
+@use "styles/colors";
+
+monitors-window {
+  background: colors.c(base, 0.3); // Semi-transparent overlay
+}
+
+monitors-window-wrapper {
+  padding: 40px;
+  background: transparent;
+  min-height: 600px;
+  min-width: 800px;
+}
+
+monitors-container {
+  margin: auto;
+  width: 900px;
+  max-width: 95%;
+  height: 600px;
+  max-height: 90%;
+  background: colors.c(background-elevated, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid colors.c(border, 0.15);
+  border-radius: 20px;
+  box-shadow:
+    0 20px 60px colors.c(base, 0.6),
+    0 8px 24px colors.c(base, 0.4),
+    0 2px 8px colors.c(base, 0.2),
+    inset 0 1px 0 colors.c(text, 0.05),
+    inset 0 -1px 0 colors.c(base, 0.3);
+  overflow: hidden;
+}
+
+monitors-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid colors.c(border, 0.1);
+  background: linear-gradient(to bottom,
+      colors.c(background-elevated, 0.2),
+      transparent);
+}
+
+monitors-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: colors.c(text);
+}
+
+monitors-close-button {
+  background: colors.c(background-alt, 0.3);
+  border: 1px solid colors.c(border, 0.1);
+  border-radius: 8px;
+  padding: 4px 8px;
+  min-width: 28px;
+  min-height: 28px;
+  color: colors.c(text, 0.7);
+  transition: all 150ms ease;
+
+  &:hover {
+    background: colors.c(background-alt, 0.5);
+    border-color: colors.c(border, 0.2);
+    color: colors.c(text);
+    box-shadow: 0 2px 8px colors.c(base, 0.2);
+  }
+
+  &:active {
+    background: colors.c(background-alt, 0.6);
+    transform: scale(0.95);
+  }
+
+  label {
+    font-size: 16px;
+  }
+}
+
+// Monitor arrangement area
+monitors-canvas {
+  background: colors.c(background-alt, 0.2);
+  border: 1px solid colors.c(border, 0.1);
+  border-radius: 12px;
+  margin: 20px;
+  position: relative;
+  min-height: 380px; // Increased to account for padding
+  overflow: hidden;
+
+  // Grid pattern background
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+      linear-gradient(colors.c(border, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, colors.c(border, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+
+  // Visual boundary indicator
+  &::after {
+    content: "";
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    border: 2px dashed colors.c(border, 0.1);
+    border-radius: 8px;
+    pointer-events: none;
+  }
+}
+
+// Individual monitor representation
+monitor-item {
+  background: colors.c(background-elevated, 0.8);
+  border: 2px solid colors.c(border, 0.3);
+  border-radius: 8px;
+  transition: all 150ms ease;
+  overflow: hidden;
+  padding: 0;
+
+  &:hover {
+    background: colors.c(background-elevated, 0.9);
+    border-color: colors.c(primary, 0.5);
+    box-shadow:
+      0 8px 16px colors.c(base, 0.3),
+      0 0 0 2px colors.c(primary, 0.2);
+    transform: translateY(-2px);
+  }
+
+  &.dragging {
+    cursor: grabbing;
+    opacity: 0.8;
+    box-shadow:
+      0 12px 24px colors.c(base, 0.5),
+      0 0 0 3px colors.c(primary, 0.4);
+    z-index: 1000;
+  }
+
+  &.selected {
+    border-color: colors.c(primary, 0.8);
+    background: colors.c(background-elevated, 0.95);
+    box-shadow:
+      0 8px 16px colors.c(base, 0.3),
+      0 0 0 3px colors.c(primary, 0.3);
+  }
+
+  &.primary {
+    border-color: colors.c(primary, 0.6);
+
+    &::before {
+      content: "PRIMARY";
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: colors.c(primary, 0.8);
+      color: colors.c(background);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  &.overlapping {
+    border-color: colors.c(error, 0.8);
+    background: colors.c(error, 0.05);
+
+    &::after {
+      content: "OVERLAP";
+      position: absolute;
+      bottom: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: colors.c(error, 0.8);
+      color: colors.c(background);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+// Monitor screenshot wrapper
+monitor-screenshot-wrapper {
+  border-radius: 6px;
+  overflow: hidden;
+
+}
+
+// Monitor screenshot background
+monitor-screenshot {
+  opacity: 0.5;
+  border-radius: 6px;
+  min-width: 10px;
+  min-height: 10px;
+}
+
+// Placeholder when no screenshot
+monitor-screenshot-placeholder {
+  background: colors.c(background-alt, 0.1);
+  border-radius: 6px;
+}
+
+// Monitor info overlay
+monitor-info {
+  padding: 12px;
+  background: linear-gradient(to bottom,
+      colors.c(background-elevated, 0.8),
+      colors.c(background-elevated, 0.6));
+  border-radius: 8px;
+}
+
+monitor-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: colors.c(text);
+  margin-bottom: 4px;
+}
+
+monitor-resolution {
+  font-size: 11px;
+  color: colors.c(text, 0.7);
+  font-family: monospace;
+}
+
+monitor-position {
+  font-size: 10px;
+  color: colors.c(text, 0.5);
+  font-family: monospace;
+  margin-top: 2px;
+}
+
+// Gap indicator
+monitor-gap-warning {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: colors.c(error, 0.9);
+  color: colors.c(background);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 150ms ease;
+
+  &.visible {
+    opacity: 1;
+  }
+}
+
+// Snap indicators
+snap-indicator {
+  position: absolute;
+  background: colors.c(primary, 0.2);
+  border: 2px dashed colors.c(primary, 0.6);
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+
+  &.active {
+    opacity: 1;
+  }
+}
+
+// Monitor settings container
+monitors-settings-container {
+  border-top: 1px solid colors.c(border, 0.1);
+  background: colors.c(background-alt, 0.05);
+}
+
+// Monitor settings header
+monitors-settings-header {
+  padding: 12px 20px;
+  background: colors.c(background-alt, 0.1);
+  border: none;
+  transition: background 150ms ease;
+  
+  &:hover {
+    background: colors.c(background-alt, 0.15);
+  }
+  
+  &:active {
+    background: colors.c(background-alt, 0.2);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    
+    &:hover {
+      background: colors.c(background-alt, 0.1);
+    }
+  }
+}
+
+monitors-settings-header-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: colors.c(text);
+}
+
+monitors-settings-header-arrow {
+  font-size: 12px;
+  color: colors.c(text, 0.7);
+  transition: transform 150ms ease;
+}
+
+monitors-settings-header-hint {
+  font-size: 12px;
+  color: colors.c(text, 0.5);
+  font-style: italic;
+}
+
+// Monitor settings wrapper
+monitors-settings-wrapper {
+  background: colors.c(background-alt, 0.1);
+  min-height: 0; // Allow it to collapse when revealer is hidden
+}
+
+// Monitor settings placeholder
+monitors-settings-placeholder {
+  padding: 40px;
+  
+  monitors-settings-placeholder-text {
+    font-size: 14px;
+    color: colors.c(text, 0.5);
+    font-style: italic;
+  }
+}
+
+// Monitor settings panel
+monitors-settings {
+  padding: 20px;
+}
+
+// Revealer animation
+revealer {
+  &.reveal-child {
+    animation: slideDown 300ms ease-out;
+  }
+  
+  &:not(.reveal-child) {
+    animation: slideUp 300ms ease-out;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+monitor-settings-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: colors.c(primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+monitor-setting-row {
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 150ms ease;
+
+  &:hover {
+    background: colors.c(background-elevated, 0.3);
+  }
+}
+
+monitor-setting-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: colors.c(text);
+  min-width: 100px;
+}
+
+// Resolution dropdown
+resolution-dropdown {
+  background: colors.c(background-alt, 0.3);
+  border: 1px solid colors.c(border, 0.15);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: colors.c(text);
+  font-size: 13px;
+  min-width: 180px;
+
+  &:hover {
+    background: colors.c(background-alt, 0.4);
+    border-color: colors.c(border, 0.25);
+  }
+
+  &:focus {
+    border-color: colors.c(primary, 0.5);
+    box-shadow: 0 0 0 2px colors.c(primary, 0.2);
+  }
+}
+
+// Scale slider
+scale-slider {
+  min-width: 150px;
+
+  slider {
+    background: colors.c(background-alt, 0.3);
+    border-radius: 4px;
+    min-height: 8px;
+
+    &:hover {
+      background: colors.c(background-alt, 0.4);
+    }
+  }
+
+  trough {
+    background: colors.c(primary, 0.6);
+    border-radius: 4px;
+  }
+
+  highlight {
+    background: colors.c(primary);
+    border-radius: 4px;
+  }
+}
+
+// Action buttons
+monitors-actions {
+  padding: 16px 20px;
+  border-top: 1px solid colors.c(border, 0.1);
+  background: colors.c(background-alt, 0.05);
+}
+
+apply-button,
+reset-button {
+  background: colors.c(background-alt, 0.3);
+  border: 1px solid colors.c(border, 0.15);
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: colors.c(text);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 150ms ease;
+
+  &:hover {
+    background: colors.c(background-alt, 0.4);
+    border-color: colors.c(border, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px colors.c(base, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+}
+
+apply-button {
+  background: colors.c(primary, 0.8);
+  border-color: colors.c(primary);
+  color: colors.c(background);
+
+  &:hover {
+    background: colors.c(primary, 0.9);
+    border-color: colors.c(primary);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Scale info label
+scale-info-label {
+  font-size: 11px;
+  color: colors.c(text, 0.6);
+  margin-top: 4px;
+}
+
+// Transform controls
+transform-controls {
+  margin-top: 12px;
+  padding: 12px;
+  background: colors.c(background-alt, 0.15);
+  border: 1px solid colors.c(border, 0.08);
+  border-radius: 8px;
+}
+
+transform-button {
+  background: colors.c(background-alt, 0.3);
+  border: 1px solid colors.c(border, 0.1);
+  border-radius: 6px;
+  padding: 6px 12px;
+  min-width: 32px;
+  min-height: 32px;
+  color: colors.c(text, 0.7);
+  transition: all 150ms ease;
+
+  &:hover {
+    background: colors.c(background-alt, 0.5);
+    border-color: colors.c(border, 0.2);
+    color: colors.c(text);
+  }
+
+  &.active {
+    background: colors.c(primary, 0.2);
+    border-color: colors.c(primary, 0.4);
+    color: colors.c(primary);
+  }
+
+  label {
+    font-size: 14px;
+  }
+}
+
+// Tooltip for monitor info
+monitor-tooltip {
+  background: colors.c(background-elevated, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid colors.c(border, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 12px colors.c(base, 0.4);
+
+  label {
+    font-size: 12px;
+    color: colors.c(text, 0.9);
+  }
+}

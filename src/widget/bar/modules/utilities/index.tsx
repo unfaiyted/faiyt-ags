@@ -20,16 +20,16 @@ const utilities: Utility[] = [
     icon: PhosphorIcons.Scissors,
     onClicked: actions.app.screenSnip,
   },
-  // {
-  //   name: "Color Picker",
-  //   icon: PhosphorIcons.Eyedropper,
-  //   onClicked: actions.app.colorPicker,
-  // },
   {
-    name: "Toggle on-screen keyboard",
-    icon: PhosphorIcons.Keyboard,
-    onClicked: () => actions.window.toggle("osk"),
+    name: "Color Picker",
+    icon: PhosphorIcons.Eyedropper,
+    onClicked: actions.app.colorPicker,
   },
+  // {
+  //   name: "Toggle on-screen keyboard",
+  //   icon: PhosphorIcons.Keyboard,
+  //   onClicked: () => actions.window.toggle("osk"),
+  // },
 ];
 
 export default function UtilitiesModules(props: UtilitiesModuleProps) {

@@ -6,6 +6,9 @@ import { ClaudeMessage } from "../../../../../services/claude";
 import { Variable, bind } from "astal";
 import { sidebarLogger as log } from "../../../../../utils/logger";
 import { c } from "../../../../../utils/style";
+import configManager from "../../../../../services/config-manager";
+import PhosphorIcon from "../../../../utils/icons/phosphor";
+import { PhosphorIcons } from "../../../../utils/icons/types";
 
 const USERNAME = GLib.get_user_name();
 
@@ -36,6 +39,8 @@ export interface ChatMessageProps extends Widget.BoxProps {
 export const ChatMessage = (props: ChatMessageProps) => {
   log.debug("ChatMessage component created");
   const { message } = props;
+  const avatarPath = configManager.getValue("user.avatarPath");
+  const isUser = message.role === "user";
 
   const displayMessage = Variable("Thinking...");
   const thinking = Variable(message.role == "user" ? false : message.thinking);
@@ -66,8 +71,26 @@ export const ChatMessage = (props: ChatMessageProps) => {
   });
   displayMessage.set(message.content);
   return (
-    <box cssName="sidebar-chat-message">
-      <box vertical>
+    <box cssName="sidebar-chat-message" spacing={12}>
+      {/* Avatar */}
+      <box cssName="chat-avatar-wrapper" valign={Gtk.Align.START}>
+        {isUser ? (
+          avatarPath && GLib.file_test(avatarPath, GLib.FileTest.EXISTS) ? (
+            <image file={avatarPath} pixelSize={32} cssClasses={["chat-avatar"]} />
+          ) : (
+            <box cssClasses={["chat-avatar-placeholder"]} widthRequest={32} heightRequest={32}>
+              <PhosphorIcon iconName={PhosphorIcons.User} size={16} />
+            </box>
+          )
+        ) : (
+          <box cssClasses={["chat-avatar-ai"]} widthRequest={32} heightRequest={32}>
+            <PhosphorIcon iconName={PhosphorIcons.Robot} size={16} />
+          </box>
+        )}
+      </box>
+      
+      {/* Message content */}
+      <box vertical hexpand>
         <label
           xalign={0}
           halign={Gtk.Align.START}

@@ -21,6 +21,7 @@ import "./services/clipboard-manager"; // Initialize clipboard manager
 import windowManager from "./services/window-manager";
 import configManager from "./services/config-manager"; // Initialize config manager
 import SettingsWindow from "./widget/settings";
+import MonitorsWindow from "./widget/settings/monitors";
 
 // Set log level from environment or default to info
 import { GLib } from "astal";
@@ -77,6 +78,9 @@ App.start({
         
         // Settings window
         SettingsWindow({ gdkmonitor: gdkmonitor, monitor: index });
+        
+        // Monitors window
+        MonitorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
 
         log.info(`Monitor ${index} setup complete`);
       } catch (error) {

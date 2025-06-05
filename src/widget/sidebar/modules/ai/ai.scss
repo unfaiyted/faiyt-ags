@@ -133,6 +133,39 @@ sidebar-chat-message {
   }
 }
 
+// Chat avatar styling
+chat-avatar-wrapper {
+  min-width: 32px;
+  min-height: 32px;
+  margin-right: 4px;
+  flex-shrink: 0;
+
+  .chat-avatar {
+    border-radius: 50%;
+    border: 2px solid colors.c(border);
+  }
+
+  .chat-avatar-placeholder {
+    background: colors.c(primary, 0.1);
+    border-radius: 50%;
+    border: 2px solid colors.c(border);
+    
+    image {
+      color: colors.c(primary);
+    }
+  }
+
+  .chat-avatar-ai {
+    background: linear-gradient(135deg, colors.c(accent, 0.15), colors.c(accent, 0.25));
+    border-radius: 50%;
+    border: 2px solid colors.c(accent, 0.3);
+    
+    image {
+      color: colors.c(accent);
+    }
+  }
+}
+
 @keyframes messageSlideIn {
   from {
     opacity: 0;

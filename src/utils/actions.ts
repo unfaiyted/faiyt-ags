@@ -130,7 +130,7 @@ export const actions = {
       // TODO: can we have a notification here? Showing or at least saying that it was copied to clipboard?
     },
     colorPicker: () => {
-      execAsync(`${config.dir.scripts}/color_generation/switchwall.sh`);
+      execAsync(["bash", "-c", `hyprpicker -a`]);
     },
     record: {
       toggle: () => {
