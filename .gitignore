@@ -6,4 +6,5 @@ user/
 user-config.json
 .claude/
 logs/
+.goutputstream*
 ./src/output.css

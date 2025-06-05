@@ -20,7 +20,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
   // const isVisible = Variable(false);
   const placeholderText = Variable("Type to Search");
   const searchText = Variable("");
-  const selectedIndex = Variable(0);
+  const selectedIndex = Variable(-1); // Start with -1 to indicate entry is focused
   const selectedItem = Variable<any>(null);
   const focusedItem = Variable<any>(null);
   const maxResults = config.launcher?.maxResults || 5;
@@ -158,6 +158,12 @@ export default function LauncherBar(launcherProps: LauncherProps) {
         setupNavigation(self);
         hook(self, App, "window-toggled", (_self, win) => {
           if (win.name !== name) return;
+
+          // When launcher is shown, ensure selectedIndex starts at -1 (entry focused)
+          if (win.visible) {
+            selectedIndex.set(-1);
+          }
+
           // Don't clear searchText to preserve equations/conversions
           // searchText.set("");
           selectedItem.set(null);
@@ -228,12 +234,12 @@ export default function LauncherBar(launcherProps: LauncherProps) {
             <box
               cssClasses={["launcher-left-panel"]}
               vertical
-              widthRequest={600}
+              widthRequest={800}
             >
               {/* Search Box with gradient border wrapper */}
               <box
                 cssClasses={["launcher-search-box-wrapper"]}
-                widthRequest={600}
+                widthRequest={800}
                 halign={Gtk.Align.CENTER}
               >
                 <box
@@ -316,6 +322,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
                       selectedIndex={selectedIndex}
                       selectedItem={selectedItem}
                       focusedItem={focusedItem}
+                      entryRef={() => entryRef}
                       refs={(ref: UnifiedResultsRef) => {
                         log.debug("Setting UnifiedResults ref in variable");
                         unifiedResultsRef.set(ref);
@@ -396,7 +403,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
                         {/* Large screenshot preview */}
                         <box cssClasses={["detail-screenshot-frame"]}>
                           <RoundedImageReactive
-                            file={bind(item.screenshotPath)}
+                            file={Variable(item.screenshotPath)()}
                             size={480}
                             radius={16}
                             cssClasses={["detail-screenshot-preview"]}

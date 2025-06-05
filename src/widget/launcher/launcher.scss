@@ -22,7 +22,7 @@ launcher-container {
 // Main content area with split panel
 .launcher-main-content {
   background: transparent;
-  min-height: 600px;
+  min-height: 200px;
 }
 
 // Left panel for search and results
@@ -41,7 +41,7 @@ launcher-container {
   -webkit-backdrop-filter: blur(10px);
   padding: 32px;
   border-radius: 0 16px 16px 0;
-  
+
   .detail-panel-content {
     min-height: 500px;
   }
@@ -60,15 +60,15 @@ launcher-container {
     0 4px 16px colors.c(base, 0.15),
     inset 0 1px 2px colors.c(base, 0.2);
   position: relative;
-  
+
   &::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: 16px;
     background: linear-gradient(180deg,
-      transparent 70%,
-      colors.c(base, 0.1) 100%);
+        transparent 70%,
+        colors.c(base, 0.1) 100%);
     pointer-events: none;
   }
 }
@@ -82,20 +82,20 @@ launcher-container {
 // Detail window info
 .detail-window-info {
   text-align: center;
-  
+
   .detail-window-title {
     font-size: 20px;
     font-weight: 500;
     color: colors.c(text);
     margin-bottom: 12px;
   }
-  
+
   .detail-label {
     font-size: 13px;
     color: colors.c(text, 0.6);
     font-weight: 400;
   }
-  
+
   .detail-value {
     font-size: 14px;
     color: colors.c(text);
@@ -111,19 +111,19 @@ launcher-container {
   font-size: 12px;
   font-weight: 600;
   margin: 4px;
-  
+
   &.floating {
     background: linear-gradient(135deg,
-      colors.c(iris, 0.2) 0%,
-      colors.c(iris, 0.15) 100%);
+        colors.c(iris, 0.2) 0%,
+        colors.c(iris, 0.15) 100%);
     color: colors.c(iris);
     border: 1px solid colors.c(iris, 0.3);
   }
-  
+
   &.fullscreen {
     background: linear-gradient(135deg,
-      colors.c(rose, 0.2) 0%,
-      colors.c(rose, 0.15) 100%);
+        colors.c(rose, 0.2) 0%,
+        colors.c(rose, 0.15) 100%);
     color: colors.c(rose);
     border: 1px solid colors.c(rose, 0.3);
   }
@@ -272,7 +272,7 @@ launcher-container {
 }
 
 // Results container
-.launcher-results-container {
+launcher-results-container {
   overflow: hidden;
   transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -285,7 +285,7 @@ launcher-results {
 }
 
 // Results list
-.launcher-results-list {
+launcher-results-list {
   padding: 0;
 
   >* {
@@ -467,7 +467,7 @@ launcher-results-container {
 }
 
 // Screen capture results styling
-screen-capture-results {
+result-group-results {
 
   .results-category-label {
     font-size: 11px;
@@ -690,7 +690,7 @@ overview-search-result-btn.selected {
     0 2px 8px colors.c(base, 0.15),
     0 1px 3px colors.c(base, 0.1);
   transition: all 200ms ease;
-  
+
   // Add a subtle inner shadow for depth
   &::after {
     content: "";
@@ -705,7 +705,7 @@ overview-search-result-btn.selected {
 .window-screenshot-preview {
   width: 76px;
   height: 76px;
-  
+
   drawingarea {
     transition: transform 200ms ease;
   }
@@ -739,7 +739,7 @@ overview-search-result-btn.selected {
 // Hyprland window specific styling
 .hyprland-window {
   min-height: 96px; // Account for larger screenshot preview with badge
-  
+
   &:hover {
     .window-screenshot-frame {
       transform: translateY(-2px);
@@ -748,12 +748,12 @@ overview-search-result-btn.selected {
         0 4px 10px colors.c(base, 0.2);
       background: colors.c(surface, 0.1);
       border-color: colors.c(iris, 0.3);
-      
+
       drawingarea {
         transform: scale(1.05);
       }
     }
-    
+
     .window-class-badge {
       transform: translateY(-2px);
       box-shadow:
@@ -761,7 +761,7 @@ overview-search-result-btn.selected {
         0 2px 6px colors.c(base, 0.3);
     }
   }
-  
+
   &.selected {
     .window-screenshot-frame {
       background: colors.c(accent, 0.1);
@@ -770,7 +770,7 @@ overview-search-result-btn.selected {
         0 6px 16px colors.c(accent, 0.3),
         0 3px 8px colors.c(accent, 0.2);
     }
-    
+
     .window-class-badge {
       background: linear-gradient(135deg,
           colors.c(success) 0%,
@@ -779,7 +779,7 @@ overview-search-result-btn.selected {
         0 4px 12px colors.c(success, 0.4),
         0 2px 6px colors.c(base, 0.3);
     }
-    
+
     drawingarea {
       transform: scale(1.02);
     }

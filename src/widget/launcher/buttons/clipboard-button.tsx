@@ -1,4 +1,4 @@
-import { Gtk, Widget } from "astal/gtk4";
+import { Gtk, Widget, Gdk } from "astal/gtk4";
 import { Variable, Binding, bind } from "astal";
 import { App } from "astal/gtk4";
 import GdkPixbuf from "gi://GdkPixbuf";
@@ -7,20 +7,21 @@ import { launcherLogger as log } from "../../../utils/logger";
 import { c } from "../../../utils/style";
 import clipboardManager, { ClipboardEntry } from "../../../services/clipboard-manager";
 import { RoundedImageReactive } from "../../utils/rounded-image";
+import LauncherButton from "./index";
 
 export { ClipboardEntry };
 
 export interface ClipboardButtonProps extends Widget.ButtonProps {
   entry: ClipboardEntry;
   index: number;
-  selected?: Binding<boolean>;
+  selected: Binding<boolean>;
   ref?: (button: Gtk.Button) => void;
 }
 
 export default function ClipboardButton(props: ClipboardButtonProps) {
   log.debug("ClipboardButton props", {
     hasEntry: !!props?.entry,
-    hasSelected: props?.selected !== undefined,
+    hasSelected: props.selected !== undefined,
     selectedType: typeof props?.selected,
     index: props?.index
   });
@@ -30,7 +31,7 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
     return <box />;
   }
 
-  const { entry, index, ref: buttonRef, ...rest } = props;
+  const { entry, index, ...rest } = props;
 
   if (!entry) {
     log.error("ClipboardButton: entry is undefined");
@@ -54,6 +55,17 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
       log.debug("Clipboard entry pasted");
     } catch (error) {
       log.error("Failed to paste clipboard entry", error);
+    }
+  };
+
+  const handleKeyPress = (self: Gtk.Button, keyval: number) => {
+    switch (keyval) {
+      case Gdk.KEY_Return:
+      case Gdk.KEY_KP_Enter:
+        handleActivate();
+        break;
+      default:
+        break;
     }
   };
 
@@ -143,7 +155,7 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
     };
   };
 
-  const selected = props.selected || Variable(false);
+
   const isImage = entry.type === 'image' && entry.imagePath;
   const imageInfo = isImage ? getImageInfo(entry) : null;
 
@@ -195,96 +207,59 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
     });
   }
 
+  // Create icon widget based on entry type
+  const iconWidget = isImage ? (
+    <box vertical cssClasses={["clipboard-image-container"]} spacing={0}>
+      <box cssClasses={["clipboard-image-frame"]}>
+        <RoundedImageReactive
+          file={bind(thumbnailPath)}
+          size={76}
+          radius={12}
+          cssClasses={["clipboard-image-preview"]}
+        />
+      </box>
+      <box
+        cssClasses={["clipboard-image-badge-container"]}
+        halign={Gtk.Align.CENTER}
+        valign={Gtk.Align.END}
+      >
+        <label
+          label={imageInfo?.format?.toUpperCase() || "IMG"}
+          cssClasses={["clipboard-format-badge"]}
+        />
+      </box>
+    </box>
+  ) : (
+    <box cssClasses={["launcher-result-icon-container"]}>
+      <image
+        iconName={getIcon()}
+        pixelSize={32}
+      />
+    </box>
+  );
+
+  // Create content string
+  const contentText = entry.type === 'image' ? 'Clipboard Image' : (entry.preview || entry.content);
+  const metadata = isImage && imageInfo
+    ? `${formatTimestamp(entry.timestamp)} • ${imageInfo.dimensions}${imageInfo.size ? ` • ${imageInfo.size}` : ''}`
+    : formatTimestamp(entry.timestamp);
+
   return (
-    <button
-      cssName="overview-search-result-btn"
-      cssClasses={bind(selected).as(s =>
-        c`clipboard-entry ${isImage ? 'image-entry' : ''} ${s ? 'selected' : ''} ${props.cssName || ''}`
-      )}
+    <LauncherButton
+      name={contentText}
+      icon={iconWidget}
+      content={metadata}
+      cssClasses={["clipboard-entry", isImage ? "image-entry" : ""]}
+      onKeyPressed={handleKeyPress}
       onClicked={handleActivate}
-      focusable={false}
-      widthRequest={250}
-      hexpand={true}
+      {...rest}
+      selected={props.selected}
       setup={(self: Gtk.Button) => {
-        if (buttonRef) {
-          buttonRef(self);
+        if (props.ref) {
+          props.ref(self);
         }
       }}
-      {...rest}
-    >
-      <box spacing={16} valign={Gtk.Align.CENTER} widthRequest={245}>
-        {isImage ? (
-          <box vertical cssClasses={["clipboard-image-container"]} spacing={0}>
-            <box cssClasses={["clipboard-image-frame"]}>
-              <RoundedImageReactive
-                file={bind(thumbnailPath)}
-                size={76}
-                radius={12}
-                cssClasses={["clipboard-image-preview"]}
-              />
-            </box>
-            <box
-              cssClasses={["clipboard-image-badge-container"]}
-              halign={Gtk.Align.CENTER}
-              valign={Gtk.Align.END}
-            >
-              <label
-                label={imageInfo?.format?.toUpperCase() || "IMG"}
-                cssClasses={["clipboard-format-badge"]}
-              />
-            </box>
-          </box>
-        ) : (
-          <box cssClasses={["launcher-result-icon-container"]}>
-            <image
-              iconName={getIcon()}
-              cssClasses={["launcher-result-icon"]}
-            />
-          </box>
-        )}
-        <box vertical valign={Gtk.Align.CENTER} hexpand>
-          <box spacing={8}>
-            <label
-              label={entry.type === 'image' ? 'Clipboard Image' : (entry.preview || entry.content)}
-              cssName="overview-search-results-txt"
-              cssClasses={["clipboard-content-text"]}
-              halign={Gtk.Align.START}
-              ellipsize={3} // PANGO_ELLIPSIZE_END
-            />
-          </box>
-          <box spacing={8} cssClasses={["clipboard-metadata"]}>
-            <label
-              label={formatTimestamp(entry.timestamp)}
-              cssClasses={["overview-search-results-txt", "txt-smallie", "txt-subtext"]}
-              halign={Gtk.Align.START}
-            />
-            {isImage && imageInfo ? (
-              <>
-                <label
-                  label="•"
-                  cssClasses={["overview-search-results-txt", "txt-smallie", "txt-subtext", "separator"]}
-                />
-                <label
-                  label={imageInfo.dimensions}
-                  cssClasses={["overview-search-results-txt", "txt-smallie", "txt-subtext", "image-dimensions"]}
-                />
-                {imageInfo.size ? (
-                  <>
-                    <label
-                      label="•"
-                      cssClasses={["overview-search-results-txt", "txt-smallie", "txt-subtext", "separator"]}
-                    />
-                    <label
-                      label={imageInfo.size}
-                      cssClasses={["overview-search-results-txt", "txt-smallie", "txt-subtext", "image-size"]}
-                    />
-                  </>
-                ) : null}
-              </>
-            ) : null}
-          </box>
-        </box>
-      </box>
-    </button>
+
+    />
   );
 }

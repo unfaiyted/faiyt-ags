@@ -86,7 +86,7 @@ export default async function getHyprlandResults(searchText: string): Promise<Hy
     const normalizedAddress = client.address.startsWith("0x") ? client.address : `0x${client.address}`;
     const screenshotPath = windowManager.getWindowScreenshot(normalizedAddress);
     const validPath = screenshotPath && GLib.file_test(screenshotPath, GLib.FileTest.EXISTS) ? screenshotPath : null;
-    
+
     return {
       client,
       index,
@@ -99,6 +99,9 @@ export default async function getHyprlandResults(searchText: string): Promise<Hy
 // Export a function to create the Hyprland window button
 export function createHyprlandButton(result: HyprlandWindowResult, props: any) {
   // Import dynamically to avoid circular dependency
-
-  return <HyprlandButton client={result.client} index={result.index} {...props} />;
+  // Don't override the index from props - it contains the correct adjusted index
+  return <HyprlandButton
+    client={result.client}
+    index={result.index}
+    {...props} />;
 }

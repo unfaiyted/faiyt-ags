@@ -17,15 +17,15 @@ const log = createLogger("HyprlandButton");
 export interface HyprlandButtonProps extends Widget.ButtonProps {
   client: HyprlandClient;
   index: number;
-  selected?: Binding<boolean>;
+  selected: Binding<boolean>;
   ref?: (button: Gtk.Button) => void;
 }
 
 // Map common application classes to icons
 const APP_ICON_MAP: Record<string, PhosphorIcons> = {
-  "firefox": PhosphorIcons.FirefoxLogo,
-  "chromium": PhosphorIcons.ChromeLogo,
-  "google-chrome": PhosphorIcons.ChromeLogo,
+  // "firefox": PhosphorIcons.FirefoxLogo,
+  // "chromium": PhosphorIcons.ChromeLogo,
+  // "google-chrome": PhosphorIcons.ChromeLogo,
   "code": PhosphorIcons.Code,
   "vscode": PhosphorIcons.Code,
   "kitty": PhosphorIcons.Terminal,
@@ -77,12 +77,21 @@ async function focusWindow(address: string) {
 }
 
 export default function HyprlandButton(props: HyprlandButtonProps) {
-  const { client, selected = Variable(false), ref: buttonRef, ...rest } = props;
+  const { client, index, ...rest } = props;
   
+  log.debug("HyprlandButton props", {
+    hasClient: !!client,
+    hasSelected: !!props.selected,
+    hasRef: !!props.ref,
+    index: index,
+    clientTitle: client?.title,
+    restKeys: Object.keys(rest)
+  });
+
   // Get window screenshot path
   const normalizedAddress = client.address.startsWith("0x") ? client.address : `0x${client.address}`;
   const screenshotPath = Variable<string | null>(null);
-  
+
   // Check for screenshot availability
   const checkScreenshot = () => {
     const path = windowManager.getWindowScreenshot(normalizedAddress);
@@ -92,7 +101,7 @@ export default function HyprlandButton(props: HyprlandButtonProps) {
       screenshotPath.set(null);
     }
   };
-  
+
   // Check initially and listen for updates
   checkScreenshot();
   windowManager.on('screenshot-updated', ({ address }) => {
@@ -102,9 +111,9 @@ export default function HyprlandButton(props: HyprlandButtonProps) {
   });
 
   const handleActivate = async () => {
-    await focusWindow(client.address);
-    // Close launcher after focusing
     actions.window.toggle("launcher");
+    await focusWindow(client.address);
+
   };
 
   const handleKeyPress = async (self: Gtk.Button, keyval: number) => {
@@ -125,80 +134,63 @@ export default function HyprlandButton(props: HyprlandButtonProps) {
 
   // Build content string
   const content = `Workspace ${workspaceText}${floatingText}${fullscreenText}`;
-  
-  const hasScreenshot = bind(screenshotPath).as(path => path !== null);
+
+  // Create icon widget based on screenshot availability
+  // Don't use bind() here - create the widget directly based on current state
+  const currentScreenshotPath = screenshotPath.get();
+  const iconWidget = currentScreenshotPath ? (
+    <box vertical cssClasses={["window-screenshot-container"]} spacing={0}>
+      <box cssClasses={["window-screenshot-frame"]}>
+        <RoundedImageReactive
+          file={screenshotPath}
+          size={76}
+          radius={12}
+          cssClasses={["window-screenshot-preview"]}
+        />
+      </box>
+      <box
+        cssClasses={["window-class-badge-container"]}
+        halign={Gtk.Align.CENTER}
+        valign={Gtk.Align.END}
+      >
+        <label
+          label={client.class.slice(0, 3).toUpperCase()}
+          cssClasses={["window-class-badge"]}
+        />
+      </box>
+    </box>
+  ) : (
+    <box cssClasses={["launcher-result-icon-container"]}>
+      <PhosphorIcon
+        iconName={getWindowIcon(client.class)}
+        size={32}
+        style={PhosphorIconStyle.Duotone}
+        cssClasses={["launcher-result-icon"]}
+      />
+    </box>
+  );
 
   return (
-    <button
-      cssName="overview-search-result-btn"
-      cssClasses={bind(selected).as(s =>
-        c`hyprland-window ${s ? 'selected' : ''} ${props.cssName || ''}`
-      )}
+    <LauncherButton
+      {...rest}
+      name={client.title || client.class}
+      icon={iconWidget}
+      content={content}
+      cssClasses={["hyprland-window"]}
       onClicked={handleActivate}
+      selected={props.selected}
       onKeyPressed={handleKeyPress}
-      focusable={false}
-      widthRequest={250}
-      hexpand={true}
       setup={(self: Gtk.Button) => {
-        if (buttonRef) {
-          buttonRef(self);
+        log.debug("HyprlandButton setup called", {
+          hasRef: !!props.ref,
+          buttonName: self.name,
+          index: index
+        });
+        if (props.ref) {
+          props.ref(self);
+          log.debug("HyprlandButton ref callback executed", { index: index });
         }
       }}
-      {...rest}
-    >
-      <box spacing={16} valign={Gtk.Align.CENTER} widthRequest={245}>
-        {bind(screenshotPath).as(path => 
-          path ? (
-            <box vertical cssClasses={["window-screenshot-container"]} spacing={0}>
-              <box cssClasses={["window-screenshot-frame"]}>
-                <RoundedImageReactive
-                  file={Variable(path)}
-                  size={76}
-                  radius={12}
-                  cssClasses={["window-screenshot-preview"]}
-                />
-              </box>
-              <box
-                cssClasses={["window-class-badge-container"]}
-                halign={Gtk.Align.CENTER}
-                valign={Gtk.Align.END}
-              >
-                <label
-                  label={client.class.slice(0, 3).toUpperCase()}
-                  cssClasses={["window-class-badge"]}
-                />
-              </box>
-            </box>
-          ) : (
-            <box cssClasses={["launcher-result-icon-container"]}>
-              <PhosphorIcon
-                iconName={getWindowIcon(client.class)}
-                size={32}
-                style={PhosphorIconStyle.Duotone}
-                cssClasses={["launcher-result-icon"]}
-              />
-            </box>
-          )
-        )}
-        <box vertical valign={Gtk.Align.CENTER} hexpand>
-          <box spacing={8}>
-            <label
-              label={client.title || client.class}
-              cssName="overview-search-results-txt"
-              cssClasses={["window-title-text"]}
-              halign={Gtk.Align.START}
-              ellipsize={3} // PANGO_ELLIPSIZE_END
-            />
-          </box>
-          <box spacing={8} cssClasses={["window-metadata"]}>
-            <label
-              label={content}
-              cssClasses={["overview-search-results-txt", "txt-smallie", "txt-subtext"]}
-              halign={Gtk.Align.START}
-            />
-          </box>
-        </box>
-      </box>
-    </button>
+    />
   );
 }

@@ -1,9 +1,10 @@
-import { Gtk, Widget } from "astal/gtk4";
+import { Gtk, Widget, Gdk } from "astal/gtk4";
 import { Binding, bind, Variable } from "astal";
 import { execAsync } from "astal/process";
 import { App } from "astal/gtk4";
 import { launcherLogger as log } from "../../../utils/logger";
 import { c } from "../../../utils/style";
+import LauncherButton from "./index";
 
 export interface CommandOption {
   command: string;
@@ -53,44 +54,39 @@ export default function CommandButton(props: CommandButtonProps) {
     }
   };
 
+  const handleKeyPress = (self: Gtk.Button, keyval: number) => {
+    switch (keyval) {
+      case Gdk.KEY_Return:
+      case Gdk.KEY_KP_Enter:
+        handleActivate();
+        break;
+      default:
+        break;
+    }
+  };
 
-  const selected = props.selected || Variable(false);
+
+
   return (
-    <button
-      cssName="overview-search-result-btn"
-      cssClasses={bind(selected).as(s =>
-        c`txt ${s ? 'selected' : ''} ${props.cssName || ''}`
-      )}
+    <LauncherButton
+      {...rest}
+      name={`$ ${option.command}`}
+      icon={
+        <image
+          iconName={option.icon || "utilities-terminal-symbolic"}
+          pixelSize={32}
+        />
+      }
+      content={option.description}
+      selected={props.selected}
+      onKeyPressed={handleKeyPress}
       onClicked={handleActivate}
-      focusable={false}
       setup={(self: Gtk.Button) => {
         if (buttonRef) {
           buttonRef(self);
         }
       }}
 
-      {...rest}
-    >
-      <box spacing={12} valign={Gtk.Align.CENTER}>
-        <image
-          iconName={option.icon || "utilities-terminal-symbolic"}
-          cssClasses={["launcher-result-icon"]}
-        />
-        <box vertical valign={Gtk.Align.CENTER}>
-          <label
-            label={`$ ${option.command}`}
-            cssName="overview-search-results-txt"
-            halign={Gtk.Align.START}
-            maxWidthChars={40}
-          />
-          <label
-            label={option.description}
-            cssName="overview-search-results-txt"
-            halign={Gtk.Align.START}
-            maxWidthChars={50}
-          />
-        </box>
-      </box>
-    </button>
+    />
   );
 }

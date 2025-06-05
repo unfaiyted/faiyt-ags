@@ -18,7 +18,8 @@ export default function ResultGroupWrapper(props: ResultGroupWrapperProps) {
       revealChild={props.revealed}
       transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
       halign={Gtk.Align.START}
-      cssName="screen-capture-results"
+      widthRequest={400}
+      cssName="result-group-results"
     >
       <box vertical hexpand>
         <label
