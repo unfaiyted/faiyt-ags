@@ -15,10 +15,26 @@ export interface AIProvider {
   enabled?: boolean;
 }
 
+export interface MonitorConfig {
+  name: string;
+  position: {
+    x: number;
+    y: number;
+  };
+  resolution: {
+    width: number;
+    height: number;
+  };
+  isPrimary: boolean;
+  refreshRate: number;
+  scale: number;
+}
+
 export interface ConfigOptions {
   // AI Settings should are stored in the LeftBar where the AI providers are displayed.
   user: {
     avatarPath: string;
+    monitors: MonitorConfig[];
   };
   ai: {
     defaultGPTProvider: string;

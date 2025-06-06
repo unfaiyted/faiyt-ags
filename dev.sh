@@ -56,6 +56,8 @@ echo "Running tailwind-patch..."
 }
 
 killall swaync 2>/dev/null || true
+nwg-look -a
+
 
 echo "Starting AGS..."
 ~/go/bin/ags run --gtk4 ./src/app.ts || {
