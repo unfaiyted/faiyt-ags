@@ -14,20 +14,30 @@ export interface ListPrefixesButtonProps extends Widget.ButtonProps {
   index: number;
   selected?: Binding<boolean>;
   ref?: (button: Gtk.Button) => void;
+  entryRef?: () => Gtk.Entry | null;
 }
 
 export default function ListPrefixesButton(props: ListPrefixesButtonProps) {
+  const handleActivate = () => {
+    if (props.entryRef) {
+      const entry = props.entryRef();
+      if (entry) {
+        // Get the first prefix from the comma-separated list
+        const firstPrefix = props.prefixInfo.prefix.split(',')[0].trim();
+        // Set the entry text to the prefix with a space (prefix already includes colon)
+        entry.text = `${firstPrefix} `;
+        // Focus the entry and position cursor at the end
+        entry.grab_focus();
+        entry.set_position(-1);
+      }
+    }
+  };
+
   const handleKeyPress = (self: Gtk.Button, keyval: number) => {
     switch (keyval) {
       case Gdk.KEY_Return:
       case Gdk.KEY_KP_Enter:
-        // Insert the prefix into the search box
-        const window = App.get_window("launcher");
-        if (window) {
-          // We'll need to access the entry widget from the launcher
-          // For now, just close the window
-          window.hide();
-        }
+        handleActivate();
         break;
       default:
         break;
@@ -41,13 +51,7 @@ export default function ListPrefixesButton(props: ListPrefixesButtonProps) {
       content={props.prefixInfo.description}
       selected={props.selected}
       onKeyPressed={handleKeyPress}
-      onClicked={() => {
-        // For now, just close the launcher
-        const window = App.get_window("launcher");
-        if (window) {
-          window.hide();
-        }
-      }}
+      onClicked={handleActivate}
       setup={(self: Gtk.Button) => {
         if (props.ref) {
           props.ref(self);

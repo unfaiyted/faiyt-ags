@@ -20,6 +20,7 @@ import getExternalSearchResults, { ExternalSearchResult, createExternalSearchBut
 import getDirectoryResults, { DirectoryButtonResult, createDirectoryButton } from "./directory-results";
 import getHyprlandResults, { HyprlandWindowResult, createHyprlandButton } from "./hyprland-results";
 import getListPrefixesResults, { ListPrefixesResult, createListPrefixesButton } from "./list-prefixes-results";
+import { HyprlandClient } from "../components/hyprland-results";
 
 export interface UnifiedResultsRef {
   selectNext: () => void;
@@ -27,12 +28,24 @@ export interface UnifiedResultsRef {
   activateSelected: () => void;
 }
 
+export interface ItemDetails<HyprlandItemOptions> {
+  type: string;
+  options: HyprlandItemOptions;
+}
+
+export interface HyprlandItemOptions {
+  index: number;
+  window: HyprlandClient;
+  screenshotPath: string | null;
+
+}
+
 export interface UnifiedResultsListProps extends Widget.BoxProps {
   searchText: Variable<string>;
   maxResults: number;
   selectedIndex: Variable<number>;
   selectedItem?: Variable<any>;
-  focusedItem?: Variable<any>;
+  focusedItem?: Variable<ItemDetails<any> | null>;
   entryRef?: () => Gtk.Entry | null;
   refs?: (ref: UnifiedResultsRef) => void;
 }
@@ -98,13 +111,13 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       // Don't reset if we already have results and the index is valid
       const currentResults = searchResults.get();
       const currentIndex = selectedIndex.get();
-      
+
       // Only reset if index is out of bounds or we have no results
       // Keep -1 (entry focus) as valid
       if (currentIndex >= currentResults.total || (currentResults.total === 0 && currentIndex !== -1)) {
         selectedIndex.set(-1); // Reset to entry focus
       }
-      
+
       if (selectedItem) {
         selectedItem.set(null);
       }
@@ -296,11 +309,11 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
 
     const results = searchResults.get();
     let currentIndex = 0;
-    
-    log.debug("updateFocusedItem called", { 
-      index, 
+
+    log.debug("updateFocusedItem called", {
+      index,
       totalResults: results.total,
-      hyprlandCount: results.hyprland.length 
+      hyprlandCount: results.hyprland.length
     });
 
     // Find which result type and item is selected
@@ -338,8 +351,11 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       if (hyprlandResult) {
         focusedItem.set({
           type: 'hyprland',
-          window: hyprlandResult.window,
-          screenshotPath: hyprlandResult.screenshotPath
+          options: {
+            index,
+            window: hyprlandResult.window,
+            screenshotPath: hyprlandResult.screenshotPath
+          }
         });
       }
     } else {
@@ -356,7 +372,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     if (totalItems === 0) return;
 
     const currentIndex = selectedIndex.get();
-    
+
     // If entry is selected (index is -1), go to first result
     if (currentIndex === -1) {
       log.debug("Moving from entry to first result");
@@ -370,7 +386,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       updateFocusedItem(0);
       return;
     }
-    
+
     const nextIndex = (currentIndex + 1) % totalItems;
 
     log.debug("Selecting next", { currentIndex, nextIndex, totalItems });
@@ -390,7 +406,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     if (totalItems === 0) return;
 
     const currentIndex = selectedIndex.get();
-    
+
     // If at index 0, go back to entry
     if (currentIndex === 0) {
       if (entryRef) {
@@ -434,12 +450,12 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
   const activateSelected = () => {
     const index = selectedIndex.get();
     log.debug("Activating selected", { index });
-    
+
     // If entry is selected, do nothing (let the entry handle Enter key)
     if (index === -1) {
       return;
     }
-    
+
     const button = buttonRefs.get(index);
     if (button) {
       button.grab_focus();
@@ -659,8 +675,13 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
                         const adjustedIndex = results.apps.length + results.screenCaptures.length +
                           results.commands.length + results.system.length + results.clipboard.length +
                           results.externalSearch.length + results.directories.length + results.hyprland.length + index;
-                        return createListPrefixesButton(prefixResult, index, bind(selectedIndex).as(i => i === adjustedIndex), (button: Gtk.Button) => {
-                          buttonRefs.set(adjustedIndex, button);
+                        return createListPrefixesButton(prefixResult, {
+                          index: adjustedIndex,
+                          selected: bind(selectedIndex).as(i => i === adjustedIndex),
+                          ref: (button: Gtk.Button) => {
+                            buttonRefs.set(adjustedIndex, button);
+                          },
+                          entryRef: entryRef
                         });
                       })}
                     </ResultGroupWrapper>

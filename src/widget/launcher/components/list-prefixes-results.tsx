@@ -11,16 +11,20 @@ export interface ListPrefixesResult extends PrefixInfo {
 
 export function createListPrefixesButton(
   result: ListPrefixesResult,
-  index: number,
-  selected: Binding<boolean>,
-  ref?: (button: Gtk.Button) => void
+  options: {
+    index: number;
+    selected: Binding<boolean>;
+    ref?: (button: Gtk.Button) => void;
+    entryRef?: () => Gtk.Entry | null;
+  }
 ) {
   return (
     <ListPrefixesButton
       prefixInfo={result}
-      index={index}
-      selected={selected}
-      ref={ref}
+      index={options.index}
+      selected={options.selected}
+      ref={options.ref}
+      entryRef={options.entryRef}
     />
   );
 }
