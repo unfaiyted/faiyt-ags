@@ -9,7 +9,7 @@
     "start": "bun build && bun start:app",
     "dev": "./dev.sh",
     "dev:debug": "GTK_DEBUG=interactive ./dev.sh",
-    "dev:watch": "nodemon",
+    "dev:watch": "killall gjs ags && nodemon",
     "validate:types": "tsc --noEmit",
     "clear": "rm -rf dist @types"
   },
