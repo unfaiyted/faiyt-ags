@@ -44,6 +44,23 @@ const SettingsWindow = (props: SettingsWindowProps) => {
     return query === "" || text.toLowerCase().includes(query);
   };
 
+  // Helper to render a settings section only if it has matching content
+  const renderSection = (
+    sectionMatches: boolean,
+    itemMatches: boolean[],
+    content: () => Widget.Box
+  ): Widget.Box => {
+    if (!sectionMatches || !itemMatches.some(match => match)) {
+      return <box />;
+    }
+    return content();
+  };
+
+  // Helper to check if any items in a section match
+  const hasAnyMatch = (matches: Record<string, boolean>): boolean => {
+    return Object.values(matches).some(m => m);
+  };
+
   const content = (
     <box cssName="settings-container" vertical spacing={0}>
       <box cssName="settings-header" vertical spacing={12}>
@@ -78,10 +95,20 @@ const SettingsWindow = (props: SettingsWindowProps) => {
       >
         <box cssName="settings-content" vertical spacing={16}>
           {/* Appearance Settings */}
-          {bind(searchQuery).as(q => 
-            (matchesSearch("appearance") || matchesSearch("theme") || matchesSearch("bar")) && (
+          {bind(searchQuery).as(q => {
+            const hasAppearanceMatch = matchesSearch("appearance") || matchesSearch("theme") || matchesSearch("bar");
+            if (!hasAppearanceMatch) return <box />;
+            
+            const themeMatch = matchesSearch("theme");
+            const barModeMatch = matchesSearch("bar mode");
+            const cornerRadiusMatch = matchesSearch("corner radius");
+            
+            // If section matches but no individual items match, don't show section
+            if (!themeMatch && !barModeMatch && !cornerRadiusMatch) return <box />;
+            
+            return (
               <SettingsSection title="Appearance">
-                {matchesSearch("theme") && (
+                {themeMatch && (
                   <SettingRow
                     label="Theme"
                     description="Choose your color theme"
@@ -98,7 +125,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("bar mode") && (
+                {barModeMatch && (
                   <SettingRow
                     label="Bar Mode"
                     description="Default bar display mode"
@@ -115,7 +142,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("corner radius") && (
+                {cornerRadiusMatch && (
                   <SettingRow
                     label="Bar Corner Radius"
                     description="Rounded corners for the bar"
@@ -129,14 +156,23 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
               </SettingsSection>
-            )
-          )}
+            );
+          })}
 
           {/* Time & Weather Settings */}
-          {bind(searchQuery).as(q => 
-            (matchesSearch("time") || matchesSearch("weather") || matchesSearch("clock")) && (
+          {bind(searchQuery).as(q => {
+            const hasSectionMatch = matchesSearch("time") || matchesSearch("weather") || matchesSearch("clock");
+            if (!hasSectionMatch) return <box />;
+            
+            const timeFormatMatch = matchesSearch("time format");
+            const weatherCityMatch = matchesSearch("weather city");
+            const temperatureUnitMatch = matchesSearch("temperature unit");
+            
+            if (!timeFormatMatch && !weatherCityMatch && !temperatureUnitMatch) return <box />;
+            
+            return (
               <SettingsSection title="Time & Weather">
-                {matchesSearch("time format") && (
+                {timeFormatMatch && (
                   <SettingRow
                     label="Time Format"
                     description="Clock display format"
@@ -149,7 +185,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("weather city") && (
+                {weatherCityMatch && (
                   <SettingRow
                     label="Weather City"
                     description="City for weather data"
@@ -162,7 +198,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("temperature unit") && (
+                {temperatureUnitMatch && (
                   <SettingRow
                     label="Temperature Unit"
                     description="Celsius or Fahrenheit"
@@ -178,14 +214,30 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
               </SettingsSection>
-            )
-          )}
+            );
+          })}
 
           {/* Search Settings */}
-          {bind(searchQuery).as(q => 
-            (matchesSearch("search") || matchesSearch("launcher") || matchesSearch("results")) && (
+          {bind(searchQuery).as(q => {
+            const hasSectionMatch = matchesSearch("search") || matchesSearch("launcher") || matchesSearch("results");
+            if (!hasSectionMatch) return <box />;
+            
+            const matches = {
+              maxResults: matchesSearch("max results"),
+              listPrefixes: matchesSearch("list prefixes"),
+              actions: matchesSearch("actions"),
+              commands: matchesSearch("commands"),
+              math: matchesSearch("math"),
+              directory: matchesSearch("directory"),
+              aiSearch: matchesSearch("ai search"),
+              webSearch: matchesSearch("web search")
+            };
+            
+            if (!Object.values(matches).some(m => m)) return <box />;
+            
+            return (
               <SettingsSection title="Search">
-                {matchesSearch("max results") && (
+                {matches.maxResults && (
                   <SettingRow
                     label="Max Results"
                     description="Maximum search results to display"
@@ -200,7 +252,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("list prefixes") && (
+                {matches.listPrefixes && (
                   <SettingRow
                     label="List Prefixes"
                     description="Show available search prefixes"
@@ -212,7 +264,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("actions") && (
+                {matches.actions && (
                   <SettingRow
                     label="Actions"
                     description="Enable system actions"
@@ -224,7 +276,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("commands") && (
+                {matches.commands && (
                   <SettingRow
                     label="Commands"
                     description="Enable shell commands"
@@ -236,7 +288,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("math") && (
+                {matches.math && (
                   <SettingRow
                     label="Math Results"
                     description="Show calculator results"
@@ -248,7 +300,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("directory") && (
+                {matches.directory && (
                   <SettingRow
                     label="Directory Search"
                     description="Enable directory browsing"
@@ -260,7 +312,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("ai search") && (
+                {matches.aiSearch && (
                   <SettingRow
                     label="AI Search"
                     description="Enable AI-powered search"
@@ -272,7 +324,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("web search") && (
+                {matches.webSearch && (
                   <SettingRow
                     label="Web Search"
                     description="Enable web search"
@@ -284,14 +336,29 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
               </SettingsSection>
-            )
-          )}
+            );
+          })}
 
           {/* Search Evaluators */}
-          {bind(searchQuery).as(q => 
-            (matchesSearch("evaluator") || matchesSearch("calculator") || matchesSearch("converter")) && (
+          {bind(searchQuery).as(q => {
+            const hasSectionMatch = matchesSearch("evaluator") || matchesSearch("calculator") || matchesSearch("converter");
+            if (!hasSectionMatch) return <box />;
+            
+            const matches = {
+              math: matchesSearch("math"),
+              base: matchesSearch("base"),
+              color: matchesSearch("color"),
+              date: matchesSearch("date"),
+              percentage: matchesSearch("percentage"),
+              time: matchesSearch("time"),
+              unit: matchesSearch("unit")
+            };
+            
+            if (!hasAnyMatch(matches)) return <box />;
+            
+            return (
               <SettingsSection title="Search Evaluators">
-                {matchesSearch("math") && (
+                {matches.math && (
                   <SettingRow
                     label="Math Evaluator"
                     description="Calculate math expressions"
@@ -303,7 +370,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("base") && (
+                {matches.base && (
                   <SettingRow
                     label="Base Converter"
                     description="Convert between number bases"
@@ -315,7 +382,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("color") && (
+                {matches.color && (
                   <SettingRow
                     label="Color Converter"
                     description="Convert between color formats"
@@ -327,7 +394,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("date") && (
+                {matches.date && (
                   <SettingRow
                     label="Date Calculator"
                     description="Calculate date differences"
@@ -339,7 +406,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("percentage") && (
+                {matches.percentage && (
                   <SettingRow
                     label="Percentage Calculator"
                     description="Calculate percentages"
@@ -351,7 +418,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("time") && (
+                {matches.time && (
                   <SettingRow
                     label="Time Calculator"
                     description="Calculate time differences"
@@ -363,7 +430,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
                 
-                {matchesSearch("unit") && (
+                {matches.unit && (
                   <SettingRow
                     label="Unit Converter"
                     description="Convert between units"
@@ -375,8 +442,8 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                   </SettingRow>
                 )}
               </SettingsSection>
-            )
-          )}
+            );
+          })}
 
           {/* Battery Settings */}
           {bind(searchQuery).as(q => 

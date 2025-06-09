@@ -10,6 +10,7 @@ export const defaultConfigOptions: ConfigOptions = {
   user: {
     avatarPath: "/home/faiyt/Pictures/avatar.png",
   },
+  monitors: {},
   ai: {
     defaultGPTProvider: "claude",
     defaultTemperature: 0.9,
@@ -121,14 +122,12 @@ export const defaultConfigOptions: ConfigOptions = {
       neovimConfigPath: "", // Path to neovim keybind config file
     },
   },
-  monitors: {
-    scaleMethod: "division", // Either "division" [default] or "gdk"
-  },
+
   music: {
     preferredPlayer: "plasma-browser-integration",
   },
   launcher: {
-    maxResults: 10,
+    maxResults: 15,
   },
   sidebar: {
     leftEnabled: true,

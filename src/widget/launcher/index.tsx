@@ -8,6 +8,7 @@ import KeyboardShortcut from "../utils/keyboard-shortcut";
 import { evaluatorManager, type EvaluatorResult } from "../../utils/evaluators";
 import ColorPreview from "./components/color-preview";
 import { RoundedImageReactive } from "../utils/rounded-image";
+import launcherState from "../../services/launcher-state";
 
 export interface LauncherProps extends PopupWindowProps {
   monitorIndex: number;
@@ -266,6 +267,16 @@ export default function LauncherBar(launcherProps: LauncherProps) {
                         hook(self, App, "window-toggled", (self, win) => {
                           if (win.name !== name) return;
                           if (win.visible) {
+                            // Check for initial text from launcher state
+                            const initialText = launcherState.initialText.get();
+                            if (initialText) {
+                              log.debug("Setting initial launcher text in entry", { initialText });
+                              self.text = initialText;
+                              searchText.set(initialText);
+                              // Clear the initial text after using it
+                              launcherState.clearInitialText();
+                            }
+                            
                             // Use a small delay to ensure proper focus
                             setTimeout(() => {
                               self.grab_focus();

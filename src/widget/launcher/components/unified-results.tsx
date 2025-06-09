@@ -285,7 +285,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
       const adjustment = scrolledWindowRef.get_vadjustment();
       if (adjustment) {
         const itemHeight = 90; // Height per item
-        const visibleHeight = 350; // Max visible height (5 items)
+        const visibleHeight = 300; // Max visible height (5 items)
         const selectedPosition = index * itemHeight;
         const currentScroll = adjustment.get_value();
         const visibleTop = currentScroll;

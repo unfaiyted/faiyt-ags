@@ -15,6 +15,10 @@ export interface AIProvider {
   enabled?: boolean;
 }
 
+// TODO: Maybe consider the idea of having a monitor group id or something, where we have specific settings for different monitor groups
+// like if an external monitor is plugged in, we should be able to figure out how we can automatically determine positions/scales resolutions based on the whole picutre of all the monitors plugged in.
+// need to fingerprint the monitors and figure out how to get the resolutions of the monitors.
+//
 export interface MonitorConfig {
   name: string;
   position: {
@@ -34,7 +38,6 @@ export interface ConfigOptions {
   // AI Settings should are stored in the LeftBar where the AI providers are displayed.
   user: {
     avatarPath: string;
-    monitors: MonitorConfig[];
   };
   ai: {
     defaultGPTProvider: string;
@@ -115,7 +118,7 @@ export interface ConfigOptions {
   //   extraLogs: boolean;
   // };
   monitors: {
-    scaleMethod: string;
+    [key: string]: MonitorConfig;
   };
   music: {
     preferredPlayer: string;

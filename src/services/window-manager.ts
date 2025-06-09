@@ -104,6 +104,9 @@ class WindowManagerService {
     this.isRunning = true;
     this.screenshotInterval = config.screenshotInterval;
     
+    // Apply saved monitor configurations
+    await this.applySavedMonitorConfigs();
+    
     // Get initial window list
     await this.refreshWindowList();
     
@@ -839,6 +842,73 @@ class WindowManagerService {
       dir.close();
     } catch (error) {
       log.error("Failed to cleanup workspace screenshots", { error });
+    }
+  }
+
+  // Apply saved monitor configurations from config
+  async applySavedMonitorConfigs(): Promise<void> {
+    try {
+      const savedConfigs = configManager.getValue("monitors");
+      if (!savedConfigs || Object.keys(savedConfigs).length === 0) {
+        log.info("No saved monitor configurations found");
+        return;
+      }
+
+      log.info("Applying saved monitor configurations", { 
+        count: Object.keys(savedConfigs).length 
+      });
+
+      // Get current monitors to verify they exist
+      const currentMonitors = await this.getMonitors();
+      const currentMonitorNames = new Set(currentMonitors.map(m => m.name));
+
+      // Apply configurations for each saved monitor
+      for (const [monitorName, config] of Object.entries(savedConfigs)) {
+        if (!currentMonitorNames.has(monitorName)) {
+          log.warn("Saved monitor not currently connected", { monitorName });
+          continue;
+        }
+
+        const monitorConfig = config as any;
+        log.info("Applying configuration for monitor", { 
+          monitor: monitorName,
+          config: monitorConfig 
+        });
+
+        try {
+          // Build the monitor command with all settings
+          const mode = `${monitorConfig.resolution.width}x${monitorConfig.resolution.height}@${monitorConfig.refreshRate}`;
+          const position = `${monitorConfig.position.x}x${monitorConfig.position.y}`;
+          const scale = monitorConfig.scale || 1;
+
+          const command = [
+            "hyprctl",
+            "keyword",
+            "monitor",
+            `${monitorName},${mode},${position},${scale}`
+          ];
+
+          log.debug("Executing monitor configuration command", { 
+            command: command.join(" ") 
+          });
+
+          await execAsync(command);
+
+          // Small delay between monitor configurations
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+        } catch (error) {
+          log.error("Failed to apply monitor configuration", { 
+            monitor: monitorName,
+            error 
+          });
+        }
+      }
+
+      log.info("Finished applying saved monitor configurations");
+
+    } catch (error) {
+      log.error("Failed to apply saved monitor configurations", { error });
     }
   }
 }

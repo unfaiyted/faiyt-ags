@@ -9,6 +9,9 @@ import {
   showMusicOverlay,
   hideMusicOverlay,
 } from "../widget/overlays/music-window";
+import { SEARCH_PREFIXES } from "../widget/launcher/utils";
+import { SearchType } from "../widget/launcher/types";
+import launcherState from "../services/launcher-state";
 
 type WindowPosition = "left" | "right" | "top" | "bottom";
 type SystemAction = "sleep" | "shutdown" | "restart" | "logout";
@@ -46,6 +49,10 @@ export default async function cliRequestHandler(
       case "window":
         log.debug("Handling window command", { params });
         return handleWindowCommand(params, res);
+
+      case "launcher":
+        log.debug("Handling launcher command", { params });
+        return handleLauncherCommand(params, res);
 
       // Command ex: ags request "system shutdown"
       case "system":
@@ -203,6 +210,69 @@ function handleWindowCommand(
       message: `Window ${windowName} ${action}d`,
     }),
   );
+}
+
+function handleLauncherCommand(
+  params: string[],
+  res: (response: string) => void,
+) {
+  const [activity, ...searchWords] = params;
+  const searchQuery = searchWords.join(" ");
+  
+  log.debug("Handling launcher command", { activity, searchQuery, params });
+  
+  let initialText = "";
+  
+  if (activity) {
+    // Map activity keywords to SearchType
+    const activityToSearchType: Record<string, SearchType> = {
+      "screencapture": SearchType.SCREENCAPTURE,
+      "screenshot": SearchType.SCREENCAPTURE,
+      "screen": SearchType.SCREENCAPTURE,
+      "record": SearchType.SCREENCAPTURE,
+      "recording": SearchType.SCREENCAPTURE,
+      "app": SearchType.APPS,
+      "apps": SearchType.APPS,
+      "command": SearchType.COMMANDS,
+      "cmd": SearchType.COMMANDS,
+      "system": SearchType.SYSTEM,
+      "sys": SearchType.SYSTEM,
+      "clipboard": SearchType.CLIPBOARD,
+      "clip": SearchType.CLIPBOARD,
+      "search": SearchType.EXTERNAL_SEARCH,
+      "directory": SearchType.DIRECTORY,
+      "dir": SearchType.DIRECTORY,
+      "hyprland": SearchType.HYPRLAND,
+      "window": SearchType.HYPRLAND,
+      "win": SearchType.HYPRLAND,
+    };
+    
+    const searchType = activityToSearchType[activity.toLowerCase()];
+    
+    if (searchType) {
+      // Find the first prefix for this search type
+      const prefix = Object.entries(SEARCH_PREFIXES).find(([_, type]) => type === searchType)?.[0];
+      
+      if (prefix) {
+        initialText = prefix;
+        // Add search query if provided
+        if (searchQuery) {
+          initialText += " " + searchQuery;
+        }
+      }
+    } else {
+      // If activity is not recognized as a type, treat entire params as search
+      initialText = params.join(" ");
+    }
+  }
+  
+  // If we have initial text to set, set it before toggling the launcher
+  if (initialText) {
+    launcherState.setInitialText(initialText);
+  }
+  
+  // Toggle the launcher window
+  handleWindowCommand(["toggle", "launcher"], res);
 }
 
 async function handleSystemCommand(

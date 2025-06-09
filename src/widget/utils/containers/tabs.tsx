@@ -1,4 +1,4 @@
-import { Widget, Gtk, } from "astal/gtk4";
+import { Widget, Gtk, Gdk } from "astal/gtk4";
 import { Variable, Binding, bind } from "astal";
 // import { getScrollDirection } from "../../../utils";
 import PhosphorIcon from "../../utils/icons/phosphor";
@@ -12,12 +12,25 @@ export interface TabContent {
   icon: PhosphorIcons;
 }
 
+export interface TabNavigationKeys {
+  /** Key value for moving to previous tab (default: Gdk.KEY_h) */
+  prevKey?: number;
+  /** Key value for moving to next tab (default: Gdk.KEY_l) */
+  nextKey?: number;
+  /** Modifier mask required (default: Gdk.ModifierType.CONTROL_MASK) */
+  modifierMask?: Gdk.ModifierType;
+}
+
 export interface TabContainerProps extends Widget.BoxProps {
   active: number;
   hideLabels?: boolean;
   showActiveLabel?: boolean;
   orientation?: Gtk.Orientation;
   tabs: TabContent[];
+  /** Optional keyboard navigation configuration */
+  navigationKeys?: TabNavigationKeys;
+  /** Callback when tab changes */
+  onTabChange?: (index: number) => void;
 }
 
 export interface TabHeaderProps extends Widget.BoxProps {
@@ -34,15 +47,60 @@ export interface TabHeaderItemProps extends Widget.BoxProps {
 
 
 export const TabContainer = (tabContainerProps: TabContainerProps) => {
-  const { setup, child, children, cssName, ...props } = tabContainerProps;
+  const { setup, child, children, cssName, navigationKeys, onTabChange, ...props } = tabContainerProps;
 
   const active = new Variable(props.active);
   const orientation = new Variable(props.orientation || Gtk.Orientation.HORIZONTAL);
   let lastActive = new Variable(props.active);
 
-  const handleHeaderClick = (index: number) => {
+  // Default navigation keys
+  const navKeys = {
+    prevKey: navigationKeys?.prevKey ?? Gdk.KEY_h,
+    nextKey: navigationKeys?.nextKey ?? Gdk.KEY_l,
+    modifierMask: navigationKeys?.modifierMask ?? Gdk.ModifierType.CONTROL_MASK
+  };
+
+  const handleTabChange = (index: number) => {
     lastActive.set(active.get());
     active.set(index);
+    onTabChange?.(index);
+  };
+
+  const navigateToPrevious = () => {
+    const currentIndex = active.get();
+    const newIndex = currentIndex === 0 ? props.tabs.length - 1 : currentIndex - 1;
+    handleTabChange(newIndex);
+  };
+
+  const navigateToNext = () => {
+    const currentIndex = active.get();
+    const newIndex = currentIndex === props.tabs.length - 1 ? 0 : currentIndex + 1;
+    handleTabChange(newIndex);
+  };
+
+  const setupKeyboardNavigation = (self: Gtk.Widget) => {
+    const keyController = new Gtk.EventControllerKey();
+    
+    keyController.connect('key-pressed', (_controller, keyval, _keycode, state) => {
+      // Check if the required modifier is pressed
+      const modifierPressed = (state & navKeys.modifierMask) !== 0;
+      
+      if (!modifierPressed) {
+        return false;
+      }
+      
+      if (keyval === navKeys.prevKey) {
+        navigateToPrevious();
+        return true;
+      } else if (keyval === navKeys.nextKey) {
+        navigateToNext();
+        return true;
+      }
+      
+      return false;
+    });
+    
+    self.add_controller(keyController);
   };
 
   return (
@@ -50,6 +108,10 @@ export const TabContainer = (tabContainerProps: TabContainerProps) => {
       vertical={orientation.get() == Gtk.Orientation.HORIZONTAL}
       cssName="tab-container"
       spacing={8}
+      setup={(self) => {
+        setupKeyboardNavigation(self);
+        setup?.(self);
+      }}
     >
       <box cssName="tab-header-wrapper" hexpand halign={Gtk.Align.CENTER}>
         <TabHeader {...props}>
@@ -60,7 +122,7 @@ export const TabContainer = (tabContainerProps: TabContainerProps) => {
               tab={tab}
               active={bind(active).as((v) => v)}
               index={i}
-              setActive={() => active.set(i)}
+              setActive={() => handleTabChange(i)}
             />
           ))}
         </TabHeader>
@@ -163,3 +225,6 @@ export const TabHeaderItem = (tabHeaderItemProps: TabHeaderItemProps) => {
 
 
 export default TabContainer;
+
+// Re-export types for convenience
+export type { TabNavigationKeys };

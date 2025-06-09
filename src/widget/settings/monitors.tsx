@@ -2,6 +2,7 @@ import { Widget, Astal, Gtk, Gdk, App } from "astal/gtk4";
 import Gio from "gi://Gio";
 import { Variable, bind, execAsync } from "astal";
 import windowManager from "../../services/window-manager";
+import configManager from "../../services/config-manager";
 import { serviceLogger as log } from "../../utils/logger";
 
 interface MonitorsWindowProps extends Widget.WindowProps {
@@ -390,6 +391,9 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
       })
     });
     
+    // Prepare monitor configurations to save
+    const monitorConfigs: Record<string, any> = {};
+    
     // Check for gaps between monitors
     const checkForGaps = () => {
       for (let i = 0; i < allMonitors.length; i++) {
@@ -444,6 +448,25 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
     for (const mon of allMonitors) {
       const pos = positions.get(mon.name);
       const setting = settings.get(mon.name) || {};
+      
+      // Build the monitor config to save
+      const finalPos = pos || { x: mon.x, y: mon.y };
+      const finalMode = setting.mode ? windowManager.parseMonitorMode(setting.mode) : null;
+      
+      monitorConfigs[mon.name] = {
+        name: mon.name,
+        position: {
+          x: finalPos.x,
+          y: finalPos.y
+        },
+        resolution: {
+          width: finalMode?.width || mon.width,
+          height: finalMode?.height || mon.height
+        },
+        isPrimary: mon.focused,
+        refreshRate: finalMode?.refreshRate || mon.refreshRate,
+        scale: setting.scale !== undefined ? setting.scale : mon.scale
+      };
       
       // Apply position changes
       if (pos && (pos.x !== mon.x || pos.y !== mon.y)) {
@@ -544,6 +567,36 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
             });
           }
         }
+      }
+    }
+    
+    // Save the monitor configuration to user config
+    if (hasAnyChanges) {
+      try {
+        // Update the config with actual applied values from actualMonitors
+        const finalConfigs: Record<string, any> = {};
+        for (const mon of actualMonitors) {
+          finalConfigs[mon.name] = {
+            name: mon.name,
+            position: {
+              x: mon.x,
+              y: mon.y
+            },
+            resolution: {
+              width: mon.width,
+              height: mon.height
+            },
+            isPrimary: mon.focused,
+            refreshRate: mon.refreshRate,
+            scale: mon.scale
+          };
+        }
+        
+        configManager.setValue("monitors", finalConfigs);
+        await configManager.saveConfig();
+        log.info("Monitor configuration saved to user config", { monitors: finalConfigs });
+      } catch (error) {
+        log.error("Failed to save monitor configuration", { error });
       }
     }
   };
