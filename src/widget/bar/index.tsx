@@ -53,7 +53,7 @@ export default function Bar(barProps: BarProps) {
   // In that case, we'll fall back to regular GTK window with styling to make it look like a bar
   return (
     <window
-      cssName="Bar"
+      cssName="top-bar"
       name={`bar-${index}`}
       gdkmonitor={gdkmonitor}
       // Layer shell properties
