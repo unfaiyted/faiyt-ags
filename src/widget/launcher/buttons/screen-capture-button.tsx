@@ -130,6 +130,8 @@ export function generateScreenCaptureOptions(): ScreenCaptureOption[] {
 
 export default function ScreenCaptureButton(props: ScreenCaptureButtonProps) {
   const { option } = props;
+  let lastExecutionTime = 0;
+  const DEBOUNCE_DELAY = 200; // 200ms debounce
 
   const handleKeyPress = (self: Gtk.Button, keyval: number) => {
     switch (keyval) {
@@ -143,9 +145,16 @@ export default function ScreenCaptureButton(props: ScreenCaptureButtonProps) {
   };
 
   const executeCapture = async () => {
+    const now = Date.now();
+    if (now - lastExecutionTime < DEBOUNCE_DELAY) {
+      log.debug("Ignoring duplicate execution within debounce period");
+      return;
+    }
+    lastExecutionTime = now;
+
     try {
       log.debug("Executing screen capture", { command: option.command, args: option.args });
-      actions.window.toggle("launcher");
+      actions.window.close("launcher");
 
       // Small delay to ensure launcher is hidden
       await new Promise(resolve => setTimeout(resolve, 200));

@@ -247,6 +247,13 @@ export const defaultConfigOptions: ConfigOptions = {
     cleanupInterval: 300000, // 5 minutes
     captureOnFocus: true,
   },
+  wallpaper: {
+    directory: `/home/${USERNAME}/Pictures/Wallpapers`,
+    enabled: true,
+    changeInterval: 0, // in minutes, 0 = disabled
+    sortBy: "name",
+    supportedFormats: ["jpg", "jpeg", "png", "webp", "gif", "bmp"],
+  },
 };
 
 export default defaultConfigOptions;

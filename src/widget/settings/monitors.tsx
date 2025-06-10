@@ -59,7 +59,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
 
   // Temporary positions for preview
   const tempPositions = Variable<Map<string, { x: number; y: number }>>(new Map());
-  
+
   // Temporary settings for preview (scale, mode, transform, etc.)
   const tempSettings = Variable<Map<string, {
     mode?: string;
@@ -95,8 +95,8 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
   const refreshMonitors = async (skipScreenshots = false) => {
     try {
       const monitorList = await windowManager.getMonitors();
-      
-      log.info("Monitors refreshed", { 
+
+      log.info("Monitors refreshed", {
         count: monitorList.length,
         monitors: monitorList.map(m => ({
           name: m.name,
@@ -104,7 +104,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
           size: { width: m.width, height: m.height }
         }))
       });
-      
+
       monitors.set(monitorList);
 
       // Only capture screenshots if not skipped
@@ -139,19 +139,19 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
     // First calculate the exact real coordinates
     const exactX = (x - CANVAS_PADDING) / CANVAS_SCALE;
     const exactY = (y - CANVAS_PADDING) / CANVAS_SCALE;
-    
+
     // Round to nearest pixel (not 10 pixels) for more precise positioning
     const result = {
       x: Math.round(exactX),
       y: Math.round(exactY),
     };
-    
+
     log.debug("Canvas to real conversion", {
       canvas: { x, y },
       exact: { x: exactX, y: exactY },
       rounded: result
     });
-    
+
     return result;
   };
 
@@ -174,19 +174,19 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
       const isPlacingBelow = Math.abs(y - (pos.y + m.height)) < SNAP_THRESHOLD;
       const isPlacingAbove = Math.abs(y + monitor.height - pos.y) < SNAP_THRESHOLD;
       const isAlignedTop = Math.abs(y - pos.y) < SNAP_THRESHOLD;
-      
+
       // Vertical snapping
       if (isPlacingBelow) {
         // Snap to bottom edge of other monitor - exactly touching
         snapY = pos.y + m.height;
         verticallyAligned = true;
-        
+
         // When placing below, also align horizontally
         // Check which edge alignment makes most sense
         const leftEdgeDiff = Math.abs(x - pos.x);
         const rightEdgeDiff = Math.abs(x + monitor.width - (pos.x + m.width));
         const centerDiff = Math.abs((x + monitor.width / 2) - (pos.x + m.width / 2));
-        
+
         // Prefer left edge alignment when stacking vertically
         if (leftEdgeDiff < SNAP_THRESHOLD || centerDiff < SNAP_THRESHOLD) {
           snapX = pos.x;
@@ -213,11 +213,11 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
         // Snap to top edge of other monitor (placing this monitor above) - exactly touching
         snapY = pos.y - monitor.height;
         verticallyAligned = true;
-        
+
         // Align horizontally when placing above
         const leftEdgeDiff = Math.abs(x - pos.x);
         const rightEdgeDiff = Math.abs(x + monitor.width - (pos.x + m.width));
-        
+
         if (leftEdgeDiff < SNAP_THRESHOLD) {
           snapX = pos.x;
         } else if (rightEdgeDiff < SNAP_THRESHOLD) {
@@ -227,7 +227,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
         // Align tops
         snapY = pos.y;
       }
-      
+
       // Only do horizontal edge snapping if not vertically aligned
       if (!verticallyAligned) {
         // Horizontal snapping - prioritize edge alignment
@@ -235,10 +235,10 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
         const rightEdgeDiff = Math.abs(x + monitor.width - (pos.x + m.width));
         const leftToRightDiff = Math.abs(x - (pos.x + m.width));
         const rightToLeftDiff = Math.abs(x + monitor.width - pos.x);
-        
+
         // Find the smallest difference
         const minDiff = Math.min(leftEdgeDiff, rightEdgeDiff, leftToRightDiff, rightToLeftDiff);
-        
+
         if (minDiff < SNAP_THRESHOLD) {
           if (minDiff === leftEdgeDiff) {
             // Align left edges
@@ -264,14 +264,14 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
     // Only snap to grid if we didn't snap to another monitor
     const finalX = (snapX !== x) ? snapX : snapToGrid(snapX);
     const finalY = (snapY !== y) ? snapY : snapToGrid(snapY);
-    
+
     log.debug("Final snap position", {
       monitor: monitor.name,
       original: { x, y },
       snapped: { x: finalX, y: finalY },
       verticallyAligned
     });
-    
+
     return { x: finalX, y: finalY };
   };
 
@@ -308,7 +308,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
     if (hasScreenshot) {
       log.debug("Creating monitor item with screenshot", { monitor: mon.name, path: screenshotPath });
     }
-    
+
 
     return (
       <button
@@ -390,10 +390,10 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
         };
       })
     });
-    
+
     // Prepare monitor configurations to save
     const monitorConfigs: Record<string, any> = {};
-    
+
     // Check for gaps between monitors
     const checkForGaps = () => {
       for (let i = 0; i < allMonitors.length; i++) {
@@ -402,7 +402,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
           const mon2 = allMonitors[j];
           const pos1 = positions.get(mon1.name) || { x: mon1.x, y: mon1.y };
           const pos2 = positions.get(mon2.name) || { x: mon2.x, y: mon2.y };
-          
+
           // Check if monitors are adjacent horizontally
           if (pos1.y === pos2.y) {
             if (pos1.x + mon1.width === pos2.x) {
@@ -419,7 +419,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
               });
             }
           }
-          
+
           // Check if monitors are adjacent vertically
           if (pos1.x === pos2.x) {
             if (pos1.y + mon1.height === pos2.y) {
@@ -439,20 +439,20 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
         }
       }
     };
-    
+
     checkForGaps();
 
     // Apply all changes for each monitor
     let hasAnyChanges = false;
-    
+
     for (const mon of allMonitors) {
       const pos = positions.get(mon.name);
       const setting = settings.get(mon.name) || {};
-      
+
       // Build the monitor config to save
       const finalPos = pos || { x: mon.x, y: mon.y };
       const finalMode = setting.mode ? windowManager.parseMonitorMode(setting.mode) : null;
-      
+
       monitorConfigs[mon.name] = {
         name: mon.name,
         position: {
@@ -467,7 +467,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
         refreshRate: finalMode?.refreshRate || mon.refreshRate,
         scale: setting.scale !== undefined ? setting.scale : mon.scale
       };
-      
+
       // Apply position changes
       if (pos && (pos.x !== mon.x || pos.y !== mon.y)) {
         const success = await windowManager.setMonitorPosition(mon.name, pos.x, pos.y);
@@ -477,7 +477,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
           hasAnyChanges = true;
         }
       }
-      
+
       // Apply mode changes
       if (setting.mode && setting.mode !== `${mon.width}x${mon.height}@${mon.refreshRate.toFixed(2)}Hz`) {
         const success = await windowManager.setMonitorMode(mon.name, setting.mode);
@@ -487,7 +487,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
           hasAnyChanges = true;
         }
       }
-      
+
       // Apply scale changes
       if (setting.scale !== undefined && Math.abs(setting.scale - mon.scale) > 0.01) {
         const success = await windowManager.setMonitorScale(mon.name, setting.scale);
@@ -497,7 +497,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
           hasAnyChanges = true;
         }
       }
-      
+
       // Apply transform changes
       if (setting.transform !== undefined && setting.transform !== mon.transform) {
         const success = await windowManager.setMonitorTransform(mon.name, setting.transform);
@@ -507,7 +507,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
           hasAnyChanges = true;
         }
       }
-      
+
       // Apply enabled/disabled state
       if (setting.enabled !== undefined && setting.enabled === mon.disabled) {
         const success = await windowManager.toggleMonitor(mon.name, setting.enabled);
@@ -518,7 +518,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
         }
       }
     }
-    
+
     // Don't reload Hyprland - it would reset to config file values
     // The changes should already be applied via hyprctl keyword commands
 
@@ -526,13 +526,13 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
     tempPositions.set(new Map());
     tempSettings.set(new Map());
     hasChanges.set(false);
-    
+
     // Wait a bit for Hyprland to apply the changes
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     // Refresh to get the actual applied state
     await refreshMonitors();
-    
+
     // Check actual positions after refresh
     const actualMonitors = monitors.get();
     log.info("Monitor positions after apply", {
@@ -542,13 +542,13 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
         size: { width: mon.width, height: mon.height }
       }))
     });
-    
+
     // Check for any remaining gaps
     for (let i = 0; i < actualMonitors.length; i++) {
       for (let j = i + 1; j < actualMonitors.length; j++) {
         const mon1 = actualMonitors[i];
         const mon2 = actualMonitors[j];
-        
+
         // Check vertical alignment
         if (mon1.x === mon2.x && mon1.width === mon2.width) {
           const gap = Math.min(
@@ -569,7 +569,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
         }
       }
     }
-    
+
     // Save the monitor configuration to user config
     if (hasAnyChanges) {
       try {
@@ -591,7 +591,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
             scale: mon.scale
           };
         }
-        
+
         configManager.setValue("monitors", finalConfigs);
         await configManager.saveConfig();
         log.info("Monitor configuration saved to user config", { monitors: finalConfigs });
@@ -604,7 +604,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
   // Reset positions
   const resetPositions = () => {
     log.info("Resetting all changes to original");
-    
+
     // Clear all temporary changes
     tempPositions.set(new Map());
     tempSettings.set(new Map());
@@ -674,10 +674,10 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
   const MonitorSettingsPanel = () => {
     // Revealer state - closed by default
     const revealSettings = Variable(false);
-    
+
     // Don't auto-open when monitor is selected
     // User must manually click to expand
-    
+
     return (
       <box cssName="monitors-settings-container" vertical>
         {/* Settings header with toggle */}
@@ -696,12 +696,12 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
         >
           <box spacing={8}>
             <label cssName="monitors-settings-header-title">
-              {bind(selectedMonitor).as(selected => 
+              {bind(selectedMonitor).as(selected =>
                 selected ? `${selected} Settings` : "Monitor Settings"
               )}
             </label>
             <box hexpand />
-            {bind(selectedMonitor).as(selected => 
+            {bind(selectedMonitor).as(selected =>
               selected ? (
                 <label cssName="monitors-settings-header-arrow">
                   {bind(revealSettings).as(revealed => revealed ? "▼" : "▶")}
@@ -712,216 +712,216 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
             )}
           </box>
         </button>
-        
+
         <box
           cssName="monitors-settings-wrapper"
           vertical
           setup={(self) => {
-          let currentPanel: Gtk.Widget | null = null;
+            let currentPanel: Gtk.Widget | null = null;
 
-          const updatePanel = () => {
-            // Remove old panel
-            if (currentPanel) {
-              self.remove(currentPanel);
-              currentPanel = null;
-            }
+            const updatePanel = () => {
+              // Remove old panel
+              if (currentPanel) {
+                self.remove(currentPanel);
+                currentPanel = null;
+              }
 
-            const selected = selectedMonitor.get();
-            if (!selected) {
-              // No monitor selected, show placeholder
-              const placeholder = <box cssName="monitors-settings-placeholder" vexpand hexpand>
-                <label cssName="monitors-settings-placeholder-text">
-                  Select a monitor to configure its settings
+              const selected = selectedMonitor.get();
+              if (!selected) {
+                // No monitor selected, show placeholder
+                const placeholder = <box cssName="monitors-settings-placeholder" vexpand hexpand>
+                  <label cssName="monitors-settings-placeholder-text">
+                    Select a monitor to configure its settings
+                  </label>
+                </box>;
+                currentPanel = placeholder;
+                self.append(placeholder);
+                return;
+              }
+
+              const mon = monitors.get().find(m => m.name === selected);
+              if (!mon) return;
+
+              // Create the settings content
+              const settingsContent = <box cssName="monitors-settings" vertical spacing={12}>
+                <label cssName="monitor-settings-title" xalign={0}>
+                  {mon.name} Settings
                 </label>
-              </box>;
-              currentPanel = placeholder;
-              self.append(placeholder);
-              return;
-            }
 
-            const mon = monitors.get().find(m => m.name === selected);
-            if (!mon) return;
-
-            // Create the settings content
-            const settingsContent = <box cssName="monitors-settings" vertical spacing={12}>
-              <label cssName="monitor-settings-title" xalign={0}>
-                {mon.name} Settings
-              </label>
-
-              <box cssName="monitor-setting-row" spacing={12}>
-                <label cssName="monitor-setting-label">Resolution:</label>
-                <box setup={(self) => {
-                  // Check if there's a pending mode change
-                  const tempSetting = tempSettings.get().get(mon.name);
-                  const currentMode = tempSetting?.mode || `${mon.width}x${mon.height}@${mon.refreshRate.toFixed(2)}Hz`;
-                  
-                  const dropdown = new Gtk.DropDown({
-                    model: Gtk.StringList.new(mon.availableModes),
-                    selected: mon.availableModes.findIndex(mode =>
-                      mode.startsWith(currentMode.replace(/Hz$/, ''))
-                    ),
-                  });
-                  dropdown.set_css_classes(["resolution-dropdown"]);
-
-                  dropdown.connect("notify::selected", () => {
-                    const selectedIdx = dropdown.selected;
-                    const mode = mon.availableModes[selectedIdx];
-                    if (mode && selectedIdx !== -1) {
-                      log.info("Mode selected", { monitor: mon.name, mode });
-                      
-                      // Store in temporary settings
-                      const newSettings = new Map(tempSettings.get());
-                      const monSettings = newSettings.get(mon.name) || {};
-                      monSettings.mode = mode;
-                      newSettings.set(mon.name, monSettings);
-                      tempSettings.set(newSettings);
-                      hasChanges.set(true);
-                    }
-                  });
-
-                  self.append(dropdown);
-                }} />
-              </box>
-
-              <box cssName="monitor-setting-row" spacing={12}>
-                <label cssName="monitor-setting-label">Scale:</label>
-                <box hexpand vertical spacing={8} setup={(self) => {
-                  const validScales = getValidScales(mon.width, mon.height);
-
-                  // Create scale buttons for valid scales
-                  const scaleButtonsBox = <box spacing={4} />;
-
-                  validScales.forEach(scaleValue => {
-                    // Check if this scale is selected in temp settings
+                <box cssName="monitor-setting-row" spacing={12}>
+                  <label cssName="monitor-setting-label">Resolution:</label>
+                  <box setup={(self) => {
+                    // Check if there's a pending mode change
                     const tempSetting = tempSettings.get().get(mon.name);
-                    const currentScale = tempSetting?.scale ?? mon.scale;
-                    
-                    const button = <button
-                      cssName="transform-button"
-                      cssClasses={Math.abs(currentScale - scaleValue) < 0.01 ? ["active"] : []}
-                      onClicked={() => {
-                        log.info("Scale selected", { monitor: mon.name, scale: scaleValue });
-                        
+                    const currentMode = tempSetting?.mode || `${mon.width}x${mon.height}@${mon.refreshRate.toFixed(2)}Hz`;
+
+                    const dropdown = new Gtk.DropDown({
+                      model: Gtk.StringList.new(mon.availableModes),
+                      selected: mon.availableModes.findIndex(mode =>
+                        mode.startsWith(currentMode.replace(/Hz$/, ''))
+                      ),
+                    });
+                    dropdown.set_css_classes(["resolution-dropdown"]);
+
+                    dropdown.connect("notify::selected", () => {
+                      const selectedIdx = dropdown.selected;
+                      const mode = mon.availableModes[selectedIdx];
+                      if (mode && selectedIdx !== -1) {
+                        log.info("Mode selected", { monitor: mon.name, mode });
+
                         // Store in temporary settings
                         const newSettings = new Map(tempSettings.get());
                         const monSettings = newSettings.get(mon.name) || {};
-                        monSettings.scale = scaleValue;
+                        monSettings.mode = mode;
                         newSettings.set(mon.name, monSettings);
                         tempSettings.set(newSettings);
                         hasChanges.set(true);
-                      }}
-                    >
-                      <label>{scaleValue}x</label>
-                    </button>;
-                    scaleButtonsBox.append(button);
-                  });
+                      }
+                    });
 
-                  self.append(scaleButtonsBox);
+                    self.append(dropdown);
+                  }} />
+                </box>
 
-                  // Show info about valid scales
-                  const infoLabel = <label cssName="scale-info-label">
-                    Valid scales for {mon.width}x{mon.height}: {validScales.map(s => s + "x").join(", ")}
-                  </label>;
-                  self.append(infoLabel);
-                }} />
-              </box>
+                <box cssName="monitor-setting-row" spacing={12}>
+                  <label cssName="monitor-setting-label">Scale:</label>
+                  <box hexpand vertical spacing={8} setup={(self) => {
+                    const validScales = getValidScales(mon.width, mon.height);
 
-              <box cssName="transform-controls" vertical spacing={8}>
-                <label xalign={0}>Transform:</label>
-                <box spacing={4}>
-                  {[
-                    { label: "Normal", value: 0 },
-                    { label: "90°", value: 1 },
-                    { label: "180°", value: 2 },
-                    { label: "270°", value: 3 },
-                    { label: "Flipped", value: 4 },
-                    { label: "Flipped 90°", value: 5 },
-                    { label: "Flipped 180°", value: 6 },
-                    { label: "Flipped 270°", value: 7 },
-                  ].map(({ label, value }) => {
-                    // Check if this transform is selected in temp settings
-                    const tempSetting = tempSettings.get().get(mon.name);
-                    const currentTransform = tempSetting?.transform ?? mon.transform;
-                    
-                    return (
-                      <button
+                    // Create scale buttons for valid scales
+                    const scaleButtonsBox = <box spacing={4} />;
+
+                    validScales.forEach(scaleValue => {
+                      // Check if this scale is selected in temp settings
+                      const tempSetting = tempSettings.get().get(mon.name);
+                      const currentScale = tempSetting?.scale ?? mon.scale;
+
+                      const button = <button
                         cssName="transform-button"
-                        cssClasses={currentTransform === value ? ["active"] : []}
+                        cssClasses={Math.abs(currentScale - scaleValue) < 0.01 ? ["active"] : []}
                         onClicked={() => {
-                        log.info("Transform selected", { monitor: mon.name, transform: value });
-                        
-                        // Store in temporary settings
-                        const newSettings = new Map(tempSettings.get());
-                        const monSettings = newSettings.get(mon.name) || {};
-                        monSettings.transform = value;
-                        newSettings.set(mon.name, monSettings);
-                        tempSettings.set(newSettings);
-                        hasChanges.set(true);
+                          log.info("Scale selected", { monitor: mon.name, scale: scaleValue });
+
+                          // Store in temporary settings
+                          const newSettings = new Map(tempSettings.get());
+                          const monSettings = newSettings.get(mon.name) || {};
+                          monSettings.scale = scaleValue;
+                          newSettings.set(mon.name, monSettings);
+                          tempSettings.set(newSettings);
+                          hasChanges.set(true);
                         }}
                       >
-                        <label>{label}</label>
-                      </button>
-                    );
-                  })}
+                        <label>{scaleValue}x</label>
+                      </button>;
+                      scaleButtonsBox.append(button);
+                    });
+
+                    self.append(scaleButtonsBox);
+
+                    // Show info about valid scales
+                    const infoLabel = <label cssName="scale-info-label">
+                      Valid scales for {mon.width}x{mon.height}: {validScales.map(s => s + "x").join(", ")}
+                    </label>;
+                    self.append(infoLabel);
+                  }} />
                 </box>
-              </box>
 
-              <box cssName="monitor-setting-row" vertical spacing={8}>
-                <label cssName="monitor-setting-label">Status:</label>
-                <box spacing={12}>
-                  {/* Check pending enabled state */}
-                  {(() => {
-                    const tempSetting = tempSettings.get().get(mon.name);
-                    const willBeEnabled = tempSetting?.enabled ?? !mon.disabled;
-                    const currentlyDisabled = mon.disabled;
-                    
-                    return (
-                      <button
-                        cssName={currentlyDisabled ? "apply-button" : "reset-button"}
-                        onClicked={() => {
-                      log.info("Toggle monitor selected", { monitor: mon.name, enable: !mon.disabled });
-                      
-                      // Store in temporary settings
-                      const newSettings = new Map(tempSettings.get());
-                      const monSettings = newSettings.get(mon.name) || {};
-                      monSettings.enabled = !mon.disabled;
-                      newSettings.set(mon.name, monSettings);
-                      tempSettings.set(newSettings);
-                      hasChanges.set(true);
-                        }}
-                      >
-                        <label>{willBeEnabled ? "Disable Monitor" : "Enable Monitor"}</label>
-                      </button>
-                    );
-                  })()}
-                  {mon.focused && (
-                    <label cssName="monitor-setting-label">(Primary)</label>
-                  )}
+                <box cssName="transform-controls" vertical spacing={8}>
+                  <label xalign={0}>Transform:</label>
+                  <box spacing={4}>
+                    {[
+                      { label: "Normal", value: 0 },
+                      { label: "90°", value: 1 },
+                      { label: "180°", value: 2 },
+                      { label: "270°", value: 3 },
+                      { label: "Flipped", value: 4 },
+                      { label: "Flipped 90°", value: 5 },
+                      { label: "Flipped 180°", value: 6 },
+                      { label: "Flipped 270°", value: 7 },
+                    ].map(({ label, value }) => {
+                      // Check if this transform is selected in temp settings
+                      const tempSetting = tempSettings.get().get(mon.name);
+                      const currentTransform = tempSetting?.transform ?? mon.transform;
+
+                      return (
+                        <button
+                          cssName="transform-button"
+                          cssClasses={currentTransform === value ? ["active"] : []}
+                          onClicked={() => {
+                            log.info("Transform selected", { monitor: mon.name, transform: value });
+
+                            // Store in temporary settings
+                            const newSettings = new Map(tempSettings.get());
+                            const monSettings = newSettings.get(mon.name) || {};
+                            monSettings.transform = value;
+                            newSettings.set(mon.name, monSettings);
+                            tempSettings.set(newSettings);
+                            hasChanges.set(true);
+                          }}
+                        >
+                          <label>{label}</label>
+                        </button>
+                      );
+                    })}
+                  </box>
                 </box>
-              </box>
-            </box>;
 
-            // Wrap in a revealer
-            const revealer = <revealer
-              revealChild={bind(revealSettings)}
-              transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-              transitionDuration={300}
-            >
-              {settingsContent}
-            </revealer>;
-            
-            currentPanel = revealer;
-            self.append(revealer);
-          };
+                <box cssName="monitor-setting-row" vertical spacing={8}>
+                  <label cssName="monitor-setting-label">Status:</label>
+                  <box spacing={12}>
+                    {/* Check pending enabled state */}
+                    {(() => {
+                      const tempSetting = tempSettings.get().get(mon.name);
+                      const willBeEnabled = tempSetting?.enabled ?? !mon.disabled;
+                      const currentlyDisabled = mon.disabled;
 
-          // Subscribe to changes
-          selectedMonitor.subscribe(updatePanel);
-          monitors.subscribe(updatePanel);
-          tempSettings.subscribe(updatePanel);
+                      return (
+                        <button
+                          cssName={currentlyDisabled ? "apply-button" : "reset-button"}
+                          onClicked={() => {
+                            log.info("Toggle monitor selected", { monitor: mon.name, enable: !mon.disabled });
 
-          // Initial update
-          updatePanel();
-        }}
+                            // Store in temporary settings
+                            const newSettings = new Map(tempSettings.get());
+                            const monSettings = newSettings.get(mon.name) || {};
+                            monSettings.enabled = !mon.disabled;
+                            newSettings.set(mon.name, monSettings);
+                            tempSettings.set(newSettings);
+                            hasChanges.set(true);
+                          }}
+                        >
+                          <label>{willBeEnabled ? "Disable Monitor" : "Enable Monitor"}</label>
+                        </button>
+                      );
+                    })()}
+                    {mon.focused && (
+                      <label cssName="monitor-setting-label">(Primary)</label>
+                    )}
+                  </box>
+                </box>
+              </box>;
+
+              // Wrap in a revealer
+              const revealer = <revealer
+                revealChild={bind(revealSettings)}
+                transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
+                transitionDuration={300}
+              >
+                {settingsContent}
+              </revealer>;
+
+              currentPanel = revealer;
+              self.append(revealer);
+            };
+
+            // Subscribe to changes
+            selectedMonitor.subscribe(updatePanel);
+            monitors.subscribe(updatePanel);
+            tempSettings.subscribe(updatePanel);
+
+            // Initial update
+            updatePanel();
+          }}
         />
       </box>
     );
@@ -955,11 +955,11 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
               if (startX >= canvasPos.x && startX <= canvasPos.x + mon.width * CANVAS_SCALE &&
                 startY >= canvasPos.y && startY <= canvasPos.y + mon.height * CANVAS_SCALE) {
                 selectedMonitor.set(mon.name);
-                
+
                 // Store the click offset within the monitor
                 const clickOffsetX = startX - canvasPos.x;
                 const clickOffsetY = startY - canvasPos.y;
-                
+
                 // Store the monitor's current position and click offset
                 dragState.set({
                   isDragging: true,
@@ -969,7 +969,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
                   offsetX: clickOffsetX,  // Offset within the monitor
                   offsetY: clickOffsetY,
                 });
-                
+
                 log.info("Drag begin", {
                   monitor: mon.name,
                   clickPos: { x: startX, y: startY },
@@ -978,7 +978,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
                   clickOffset: { x: clickOffsetX, y: clickOffsetY },
                   monitorSize: { width: mon.width, height: mon.height }
                 });
-                
+
                 break;
               }
             }
@@ -998,7 +998,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
 
                 const realPos = toRealCoords(newCanvasX, newCanvasY);
                 const snappedPos = getSnapPosition(mon, realPos.x, realPos.y);
-                
+
                 log.info("Drag update", {
                   monitor: mon.name,
                   dragOffset: { x: offsetX, y: offsetY },
@@ -1036,7 +1036,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
           // Set up reactive updates
           const updateMonitors = () => {
             log.debug("updateMonitors called");
-            
+
             // Clear existing children
             let child = fixed.get_first_child();
             while (child) {
@@ -1069,7 +1069,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
             mons.forEach(mon => {
               const pos = tempPositions.get().get(mon.name) || { x: mon.x, y: mon.y };
               const canvasPos = toCanvasCoords(pos.x, pos.y);
-              
+
               // Debug log positions
               if (log.level === "debug" || log.level === "info") {
                 log.info("Rendering monitor", {
@@ -1081,7 +1081,7 @@ const MonitorsWindow = (props: MonitorsWindowProps) => {
                   hasTempPosition: tempPositions.get().has(mon.name)
                 });
               }
-              
+
               const item = <MonitorItem monitor={mon} canvasPos={canvasPos} />;
               // Ensure we use integer positions for the Fixed widget
               const intX = Math.round(canvasPos.x);

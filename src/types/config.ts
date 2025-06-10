@@ -262,4 +262,11 @@ export interface ConfigOptions {
     cleanupInterval: number;
     captureOnFocus: boolean;
   };
+  wallpaper: {
+    directory: string;
+    enabled: boolean;
+    changeInterval: number; // in minutes, 0 = disabled
+    sortBy: "name" | "date" | "random";
+    supportedFormats: string[];
+  };
 }

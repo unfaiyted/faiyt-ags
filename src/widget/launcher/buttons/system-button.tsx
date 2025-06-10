@@ -21,6 +21,10 @@ export interface SystemButtonProps extends Widget.ButtonProps {
 }
 
 export default function SystemButton(props: SystemButtonProps) {
+  let lastExecutionTime = 0;
+  const DEBOUNCE_DELAY = 200; // 200ms debounce
+
+
   if (!props.action) {
     log.error("SystemButton: action is undefined");
     return <box />;
@@ -38,13 +42,21 @@ export default function SystemButton(props: SystemButtonProps) {
   };
 
   const executeAction = () => {
-    log.debug("Executing system action", { 
-      action: props.action.name, 
-      command: props.action.command 
+    const now = Date.now();
+    if (now - lastExecutionTime < DEBOUNCE_DELAY) {
+      log.debug("Ignoring duplicate execution within debounce period");
+      return;
+    }
+    lastExecutionTime = now;
+
+
+    log.debug("Executing system action", {
+      action: props.action.name,
+      command: props.action.command
     });
 
     // Close launcher first
-    actions.window.toggle("launcher");
+    actions.window.close("launcher");
 
     // Execute system action
     if (props.action.confirm) {
@@ -122,5 +134,11 @@ export const SYSTEM_ACTIONS: SystemAction[] = [
     description: "Reload Hyprland configuration",
     icon: "view-refresh-symbolic",
     command: "hyprctl reload"
+  },
+  {
+    name: "Change Wallpaper",
+    description: "Open wallpaper selector",
+    icon: "preferences-desktop-wallpaper-symbolic",
+    command: "ags request 'window toggle desktop-wallpaper'"
   }
 ];

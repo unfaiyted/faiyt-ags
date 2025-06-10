@@ -9,6 +9,7 @@ import SideRight from "./widget/sidebar/views/right";
 import PopupNotificationsWindow from "./widget/overlays/popup-notifications-window";
 import IndicatorsWindow from "./widget/overlays/indicators-window";
 import MusicWindow from "./widget/overlays/music-window";
+import DesktopWallpaperWindow from "./widget/overlays/desktop-wallpaper-window";
 import cliRequestHandler from "./handlers/cli";
 import LauncherBar from "./widget/launcher";
 import {
@@ -75,6 +76,7 @@ App.start({
         PopupNotificationsWindow({ gdkmonitor: gdkmonitor, monitor: index });
         IndicatorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
         MusicWindow({ gdkmonitor: gdkmonitor, monitor: index });
+        DesktopWallpaperWindow({ gdkmonitor: gdkmonitor, monitor: index });
         
         // Settings window
         SettingsWindow({ gdkmonitor: gdkmonitor, monitor: index });
