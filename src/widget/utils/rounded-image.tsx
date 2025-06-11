@@ -26,12 +26,29 @@ export function RoundedImage({
 
     // Load the image
     try {
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-            file,
-            width,
-            height,
-            true // preserve aspect ratio
-        )
+        // First load the image to get its dimensions
+        const originalPixbuf = GdkPixbuf.Pixbuf.new_from_file(file)
+        
+        if (originalPixbuf) {
+            const origWidth = originalPixbuf.get_width()
+            const origHeight = originalPixbuf.get_height()
+            
+            // Calculate scale to fill (not fit)
+            const scaleX = width / origWidth
+            const scaleY = height / origHeight
+            const scale = Math.max(scaleX, scaleY)
+            
+            // Load at the size that will fill the container
+            const scaledWidth = Math.round(origWidth * scale)
+            const scaledHeight = Math.round(origHeight * scale)
+            
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                file,
+                scaledWidth,
+                scaledHeight,
+                false // don't preserve aspect ratio
+            )
+        }
     } catch (e) {
         error = e as Error
         console.error(`Failed to load image: ${file}`, e)
@@ -64,18 +81,14 @@ export function RoundedImage({
 
                     // Draw the image if loaded successfully
                     if (pixbuf) {
-                        // Scale the pixbuf to fit the allocation if needed
-                        const scaledPixbuf = pixbuf.scale_simple(
-                            w,
-                            h,
-                            GdkPixbuf.InterpType.BILINEAR
-                        )
-
-                        if (scaledPixbuf) {
-                            // Use Gdk.cairo_set_source_pixbuf to set the pixbuf as source
-                            Gdk.cairo_set_source_pixbuf(cr, scaledPixbuf, 0, 0)
-                            cr.paint()
-                        }
+                        // Center the image if it's larger than the container
+                        const pixbufWidth = pixbuf.get_width()
+                        const pixbufHeight = pixbuf.get_height()
+                        const offsetX = (w - pixbufWidth) / 2
+                        const offsetY = (h - pixbufHeight) / 2
+                        
+                        Gdk.cairo_set_source_pixbuf(cr, pixbuf, offsetX, offsetY)
+                        cr.paint()
                     } else {
                         // Draw placeholder or error state
                         cr.setSourceRGBA(0.2, 0.2, 0.2, 0.8)
@@ -132,12 +145,29 @@ export function RoundedImageReactive({
                     // Load the image if file path is provided
                     if (currentFile) {
                         try {
-                            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-                                currentFile,
-                                w,
-                                h,
-                                true // preserve aspect ratio
-                            )
+                            // First load the image to get its dimensions
+                            const originalPixbuf = GdkPixbuf.Pixbuf.new_from_file(currentFile)
+                            
+                            if (originalPixbuf) {
+                                const origWidth = originalPixbuf.get_width()
+                                const origHeight = originalPixbuf.get_height()
+                                
+                                // Calculate scale to fill (not fit)
+                                const scaleX = w / origWidth
+                                const scaleY = h / origHeight
+                                const scale = Math.max(scaleX, scaleY)
+                                
+                                // Load at the size that will fill the container
+                                const scaledWidth = Math.round(origWidth * scale)
+                                const scaledHeight = Math.round(origHeight * scale)
+                                
+                                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                                    currentFile,
+                                    scaledWidth,
+                                    scaledHeight,
+                                    false // don't preserve aspect ratio
+                                )
+                            }
                         } catch (e) {
                             error = e as Error
                             console.error(`Failed to load image: ${currentFile}`, e)
@@ -159,7 +189,13 @@ export function RoundedImageReactive({
 
                     // Draw the image if loaded successfully
                     if (pixbuf) {
-                        Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+                        // Center the image if it's larger than the container
+                        const pixbufWidth = pixbuf.get_width()
+                        const pixbufHeight = pixbuf.get_height()
+                        const offsetX = (w - pixbufWidth) / 2
+                        const offsetY = (h - pixbufHeight) / 2
+                        
+                        Gdk.cairo_set_source_pixbuf(cr, pixbuf, offsetX, offsetY)
                         cr.paint()
                     } else if (!currentFile) {
                         // Draw loading state
