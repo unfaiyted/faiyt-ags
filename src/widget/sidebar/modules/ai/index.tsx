@@ -3,6 +3,9 @@ import TabContainer, {
   TabContent,
 } from "../../../utils/containers/tabs";
 import ClaudeAI from "./claude";
+import GeminiAI from "./gemini";
+import OllamaAI from "./ollama";
+import GPTAI from "./gpt";
 
 import { setupCursorHover } from "../../../utils/buttons";
 import AISettings from "./settings";
@@ -37,17 +40,17 @@ export const AI_TABS: Record<AIName, TabContent> = {
   },
   [AIName.GEMINI]: {
     name: AIName.GEMINI,
-    content: ClaudeAI,
-    icon: PhosphorIcons.Diamond,
+    content: GeminiAI,
+    icon: PhosphorIcons.Sparkle,
   },
   [AIName.GPT]: {
     name: AIName.GPT,
-    content: ClaudeAI,
+    content: GPTAI,
     icon: PhosphorIcons.Chat,
   },
   [AIName.OLLAMA]: {
     name: AIName.OLLAMA,
-    content: ClaudeAI,
+    content: OllamaAI,
     icon: PhosphorIcons.Alien,
   },
   [AIName.SETTINGS]: {

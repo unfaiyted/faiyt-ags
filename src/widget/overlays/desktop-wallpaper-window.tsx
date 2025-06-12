@@ -25,13 +25,14 @@ interface WallpaperItem {
   isLoaded?: boolean;
 }
 
-const WALLPAPERS_PER_PAGE = 5;
-const THUMBNAIL_SIZE = 160;
-const ANIMATION_DURATION = 300;
+// Get values from config service
+const configManager = ConfigManager.getInstance();
+const WALLPAPERS_PER_PAGE = configManager.getValue("wallpaper.itemsPerPage") as number;
+const THUMBNAIL_SIZE = configManager.getValue("wallpaper.thumbnailSize") as number;
+const ANIMATION_DURATION = configManager.getValue("wallpaper.animationDuration") as number;
 
 export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
   const { gdkmonitor, monitor } = props;
-  const configManager = ConfigManager.getInstance();
 
   // State variables
   const wallpapers = Variable<WallpaperItem[]>([]);

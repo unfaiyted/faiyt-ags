@@ -40,10 +40,16 @@ export const defaultConfigOptions: ConfigOptions = {
         name: "Gemini",
         apiKey: "",
         baseUrl: "https://generativelanguage.googleapis.com/v1beta",
-        model: "gemini-pro",
+        model: "gemini-1.5-flash",
         temperature: 0.9,
-        maxTokens: 1024,
+        maxTokens: 2048,
         enabled: true,
+        models: [
+          "gemini-1.5-flash",
+          "gemini-1.5-pro",
+          "gemini-1.0-pro"
+        ],
+        cycleModels: false,
       },
       gpt: {
         name: "GPT",
@@ -234,10 +240,10 @@ export const defaultConfigOptions: ConfigOptions = {
       center: {
         left: ["system", "music"],
         middle: ["workspaces"],
-        right: ["utilities"]
+        right: ["utilities"],
       },
-      right: ["battery", "clock", "weather", "statusIndicators", "tray"]
-    }
+      right: ["battery", "clock", "weather", "statusIndicators", "tray"],
+    },
   },
   dir: {
     scripts: `/home/${USERNAME}/.config/ags/scripts`,
@@ -260,6 +266,9 @@ export const defaultConfigOptions: ConfigOptions = {
     directory: `/home/${USERNAME}/Pictures/Wallpapers`,
     enabled: true,
     changeInterval: 0, // in minutes, 0 = disabled
+    itemsPerPage: 5,
+    thumbnailSize: 160,
+    animationDuration: 300,
     sortBy: "name",
     supportedFormats: ["jpg", "jpeg", "png", "webp", "gif", "bmp"],
   },

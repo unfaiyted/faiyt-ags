@@ -52,7 +52,10 @@ export interface ConfigOptions {
         models?: string[];
         cycleModels?: boolean;
       };
-      gemini: AIProvider;
+      gemini: AIProvider & {
+        models?: string[];
+        cycleModels?: boolean;
+      };
       gpt: AIProvider;
       ollama: AIProvider & {
         localUrl?: string;
@@ -236,7 +239,6 @@ export interface ConfigOptions {
     };
     topBar: {
       focus: string;
-      enabledModules: string[];
     };
   };
   bar: {
@@ -276,6 +278,9 @@ export interface ConfigOptions {
     directory: string;
     enabled: boolean;
     changeInterval: number; // in minutes, 0 = disabled
+    itemsPerPage: number;
+    thumbnailSize: number;
+    animationDuration: number;
     sortBy: "name" | "date" | "random";
     supportedFormats: string[];
   };
