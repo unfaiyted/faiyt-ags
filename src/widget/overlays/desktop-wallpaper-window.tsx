@@ -320,6 +320,12 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
     isAnimating.set(true);
     currentPage.set(newPage);
 
+    // Update selected index to last item of new page (coming from right)
+    const newPageStartIdx = newPage * WALLPAPERS_PER_PAGE;
+    const newPageItems = wallpapers.get().slice(newPageStartIdx, newPageStartIdx + WALLPAPERS_PER_PAGE);
+    const lastItemIdx = newPageStartIdx + newPageItems.length - 1;
+    selectedIndex.set(lastItemIdx);
+
     // Preload the new page
     setTimeout(() => {
       preloadCurrentPage();
@@ -339,6 +345,10 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
 
     isAnimating.set(true);
     currentPage.set(newPage);
+
+    // Update selected index to first item of new page (coming from left)
+    const newPageStartIdx = newPage * WALLPAPERS_PER_PAGE;
+    selectedIndex.set(newPageStartIdx);
 
     // Preload the new page
     setTimeout(() => {
@@ -588,6 +598,16 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
                 currentPage.get() < Math.ceil(wallpapers.get().length / WALLPAPERS_PER_PAGE) - 1) {
                 navigateRight();
               }
+            } else if (wallpapers.get().length > 0) {
+              // Wrap to first wallpaper
+              selectedIndex.set(0);
+              if (currentPage.get() !== 0) {
+                currentPage.set(0);
+                setTimeout(() => {
+                  preloadCurrentPage();
+                  preloadNextPage();
+                }, 50);
+              }
             }
             break;
           case Gdk.KEY_k:
@@ -597,6 +617,17 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
               selectedIndex.set(currentIdx - 1);
               if (currentIdx - 1 < pageStartIdx && currentPage.get() > 0) {
                 navigateLeft();
+              }
+            } else if (wallpapers.get().length > 0) {
+              // Wrap to last wallpaper
+              selectedIndex.set(wallpapers.get().length - 1);
+              const lastPage = Math.floor((wallpapers.get().length - 1) / WALLPAPERS_PER_PAGE);
+              if (currentPage.get() !== lastPage) {
+                currentPage.set(lastPage);
+                setTimeout(() => {
+                  preloadCurrentPage();
+                  preloadNextPage();
+                }, 50);
               }
             }
             break;
