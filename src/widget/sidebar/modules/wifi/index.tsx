@@ -6,6 +6,7 @@ import { PhosphorIcons } from "../../../utils/icons/types";
 import { c } from "../../../../utils/style";
 import { sidebarLogger as log } from "../../../../utils/logger";
 import { setupCursorHover } from "../../../utils/buttons";
+import { actions } from "../../../../utils/actions";
 
 const network = Network.get_default();
 
@@ -24,17 +25,23 @@ const WifiStatus = () => {
   const strength = Variable(network.wifi?.strength || 0);
   const isEnabled = Variable(network.wifi?.enabled || false);
 
+  isEnabled.subscribe(value => {
+    log.debug("WiFi enabled state changed", { enabled: value });
+    actions.network.setWifi(value);
+  });
+
+
   // Subscribe to changes
-  network.wifi?.connect("notify", () => {
+  network.get_wifi()?.connect("notify", () => {
     log.debug("WiFi status changed", {
       ssid: network.wifi?.ssid,
       strength: network.wifi?.strength,
       enabled: network.wifi?.enabled
     });
-    isConnected.set(network.wifi?.ssid ? true : false);
-    currentSSID.set(network.wifi?.ssid || "Not connected");
-    strength.set(network.wifi?.strength || 0);
-    isEnabled.set(network.wifi?.enabled || false);
+    isConnected.set(network.get_wifi()?.ssid ? true : false);
+    currentSSID.set(network.get_wifi()?.ssid || "Not connected");
+    strength.set(network.get_wifi()?.strength || 0);
+    isEnabled.set(network.get_wifi()?.enabled || false);
   });
 
   return (
@@ -61,16 +68,12 @@ const WifiStatus = () => {
           <switch
             setup={setupCursorHover}
             active={bind(isEnabled)}
-            onActivate={(self) => {
-              if (self.active) {
-                log.info("Enabling WiFi");
-                self.set_css_classes(["wifi-active"]);
-                execAsync(["nmcli", "radio", "wifi", "on"]);
-              } else {
-                log.info("Disabling WiFi");
-                self.set_css_classes(["wifi-inactive"]);
-                execAsync(["nmcli", "radio", "wifi", "off"]);
-              }
+            canFocus={true}
+            sensitive={true}
+            onStateSet={(self, state) => {
+              log.debug(`Toggle switch state changed: ${state}`);
+              actions.network.setWifi(self.active);
+              return false; // Return false to allow default behavior
             }}
           />
         </box>
@@ -88,11 +91,11 @@ const WifiStatus = () => {
 };
 
 // Password dialog component
-const PasswordDialog = ({ 
-  ssid, 
-  onConnect, 
-  onCancel 
-}: { 
+const PasswordDialog = ({
+  ssid,
+  onConnect,
+  onCancel
+}: {
   ssid: string;
   onConnect: (password: string) => void;
   onCancel: () => void;
@@ -106,7 +109,7 @@ const PasswordDialog = ({
         <PhosphorIcon iconName={PhosphorIcons.WifiHigh} size={20} />
         <label label={`Connect to ${ssid}`} />
       </box>
-      
+
       <box vertical spacing={8}>
         <label cssName="wifi-password-label" xalign={0} label="Enter password:" />
         <box spacing={8}>
@@ -132,7 +135,7 @@ const PasswordDialog = ({
             tooltip_text={bind(showPassword).as(show => show ? "Hide password" : "Show password")}
           >
             <PhosphorIcon
-              iconName={bind(showPassword).as(show => 
+              iconName={bind(showPassword).as(show =>
                 show ? PhosphorIcons.Eye : PhosphorIcons.EyeSlash
               )}
               size={16}
@@ -140,7 +143,7 @@ const PasswordDialog = ({
           </button>
         </box>
       </box>
-      
+
       <box spacing={8} halign={Gtk.Align.END}>
         <button
           cssName="wifi-password-cancel"
@@ -189,15 +192,15 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
     showPasswordDialog.set(false);
     connectionStatus.set("connecting");
     statusMessage.set("Authenticating...");
-    
+
     try {
       await execAsync([
-        "nmcli", "device", "wifi", "connect", 
+        "nmcli", "device", "wifi", "connect",
         wifiNetwork.ssid, "password", password
       ]);
       connectionStatus.set("connected");
       statusMessage.set("Connected successfully");
-      
+
       // Reset status after a delay
       setTimeout(() => {
         connectionStatus.set("idle");
@@ -207,7 +210,7 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
       log.error(`Failed to connect to ${wifiNetwork.ssid}`, { error });
       connectionStatus.set("failed");
       statusMessage.set("Connection failed");
-      
+
       // Reset status after a delay
       setTimeout(() => {
         connectionStatus.set("idle");
@@ -225,7 +228,7 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
 
     connecting.set(true);
     connectionStatus.set("connecting");
-    
+
     try {
       if (wifiNetwork.connected) {
         // Disconnect
@@ -240,7 +243,7 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
           ssid: wifiNetwork.ssid,
           secure: wifiNetwork.secure
         });
-        
+
         if (wifiNetwork.secure) {
           const needsPassword = await checkIfPasswordRequired(wifiNetwork.ssid);
           if (needsPassword) {
@@ -250,12 +253,12 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
             return;
           }
         }
-        
+
         statusMessage.set("Connecting...");
         await execAsync(["nmcli", "device", "wifi", "connect", wifiNetwork.ssid]);
         connectionStatus.set("connected");
         statusMessage.set("Connected successfully");
-        
+
         // Reset status after a delay
         setTimeout(() => {
           connectionStatus.set("idle");
@@ -264,7 +267,7 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
       }
     } catch (error) {
       log.error(`Failed to connect to ${wifiNetwork.ssid}`, { error });
-      
+
       // Check if it's a password error
       const errorStr = error.toString();
       if (errorStr.includes("secrets were required") || errorStr.includes("no secrets provided")) {
@@ -273,7 +276,7 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
       } else {
         connectionStatus.set("failed");
         statusMessage.set("Connection failed");
-        
+
         // Reset status after a delay
         setTimeout(() => {
           connectionStatus.set("idle");
@@ -315,7 +318,7 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
           </box>
           <box vertical hexpand>
             <label cssName="wifi-item-name" xalign={0} label={wifiNetwork.ssid} />
-            {bind(statusMessage).as(msg => 
+            {bind(statusMessage).as(msg =>
               msg ? (
                 <label cssName="wifi-item-status" xalign={0} label={msg} />
               ) : wifiNetwork.connected ? (
@@ -338,7 +341,7 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
           })}
         </box>
       </button>
-      
+
       {bind(showPasswordDialog).as(show =>
         show ? (
           <PasswordDialog
@@ -356,8 +359,30 @@ const WifiItem = ({ network: wifiNetwork }: { network: WifiNetwork }) => {
 const WifiList = () => {
   const networks = Variable<WifiNetwork[]>([]);
   const scanning = Variable(false);
+  const isWifiEnabled = Variable(network.wifi?.enabled || false);
+
+  // Monitor WiFi enable/disable state
+  network.get_wifi()?.connect("state-changed", () => {
+    const enabled = actions.network.getWifiEnabled().get() || false;
+    isWifiEnabled.set(enabled);
+    // Clear the list when WiFi is disabled
+    if (!enabled) {
+      log.debug("WiFi disabled, clearing network list");
+      networks.set([]);
+    } else {
+      // Scan networks when WiFi is enabled
+      scanNetworks();
+    }
+  });
 
   const scanNetworks = async () => {
+    // Don't scan if WiFi is disabled
+    if (!isWifiEnabled.get()) {
+      log.debug("WiFi is disabled, skipping network scan");
+      networks.set([]);
+      return;
+    }
+
     scanning.set(true);
     log.debug("Starting WiFi network scan");
     try {
@@ -400,9 +425,11 @@ const WifiList = () => {
     scanning.set(false);
   };
 
-  // Initial scan
-  log.debug("Performing initial WiFi scan");
-  scanNetworks();
+  // Initial scan only if WiFi is enabled
+  if (network.wifi?.enabled) {
+    log.debug("Performing initial WiFi scan");
+    scanNetworks();
+  }
 
   return (
     <box vertical cssName="wifi-list">
@@ -428,15 +455,27 @@ const WifiList = () => {
         heightRequest={300}
       >
         <box vertical spacing={4}>
-          {bind(networks).as(nets =>
-            nets.length > 0 ? (
-              nets.map(n => <WifiItem network={n} />)
-            ) : (
-              <box cssName="wifi-empty" vertical spacing={8}>
-                <PhosphorIcon iconName={PhosphorIcons.WifiX} size={48} />
-                <label label="No networks found" />
+          {bind(networks).as(nets => nets.length > 0 ? (
+            nets.map(n => <WifiItem network={n} />)
+          ) : <box />)
+          }
+          {bind(isWifiEnabled).as(enabled => {
+            const networkCount = bind(networks).as(nets => nets.length);
+            if (enabled && networkCount.get() == 0) {
+              return (
+                <box cssName="wifi-empty" vertical spacing={8}>
+                  <PhosphorIcon iconName={PhosphorIcons.WifiX} size={48} />
+                  <label label="No networks found" />
+                </box>
+              )
+            } else if (!enabled) {
+              return <box cssName="wifi-empty" vertical spacing={8}>
+                <PhosphorIcon iconName={PhosphorIcons.WifiSlash} size={48} />
+                <label label="WiFi is disabled" />
               </box>
-            )
+            }
+            return <box />
+          }
           )}
         </box>
       </Gtk.ScrolledWindow>

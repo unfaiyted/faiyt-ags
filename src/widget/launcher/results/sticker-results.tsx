@@ -227,6 +227,12 @@ export const StickerResults = ({ query, selectedIndex, resultsCount, onPackBarFo
 
                   // Force load the new pack details immediately
                   await signalStickersService.loadStickerPackDetails(packInfo.id, packInfo.key);
+                  
+                  // Select the newly added pack to ensure it's active
+                  signalStickersService.selectPack(packInfo.id);
+                  
+                  // Force refresh to ensure UI updates
+                  signalStickersService.refreshPackInCache(packInfo.id);
 
                   addStatus.set("success");
                   statusMessage.set(`Successfully added "${packInfo.name}"!`);
@@ -305,15 +311,16 @@ export const StickerResults = ({ query, selectedIndex, resultsCount, onPackBarFo
   const config = configManager.config;
   if (config.search.stickers?.packs?.length > 0) {
     // Always load packs to ensure we have the latest
-    signalStickersService.loadStickerPacks(config.search.stickers.packs).then(() => {
+    signalStickersService.loadStickerPacks(config.search.stickers.packs).then(async () => {
       // After loading packs, load details for each pack
       const packs = signalStickersService.stickerPacks.get();
       log.debug("Loaded packs, now loading details", { packCount: packs.length });
 
-      packs.forEach(pack => {
+      // Load all pack details in parallel
+      const loadPromises = packs.map(pack => {
         if (pack.meta.key) {
           log.debug("Loading details for pack", { packId: pack.meta.id, key: pack.meta.key });
-          signalStickersService.loadStickerPackDetails(pack.meta.id, pack.meta.key).then(() => {
+          return signalStickersService.loadStickerPackDetails(pack.meta.id, pack.meta.key).then(() => {
             log.debug("Successfully loaded pack details", { packId: pack.meta.id });
           }).catch(err => {
             log.error("Failed to load sticker pack details", {
@@ -323,8 +330,15 @@ export const StickerResults = ({ query, selectedIndex, resultsCount, onPackBarFo
           });
         } else {
           log.warn("Pack missing key", { packId: pack.meta.id });
+          return Promise.resolve();
         }
       });
+      
+      // Wait for all packs to load
+      await Promise.all(loadPromises);
+      
+      // Force a refresh after all packs are loaded
+      signalStickersService.refreshPackInCache("");
     }).catch(err => {
       log.error("Failed to load sticker packs", {
         error: err instanceof Error ? err.message : String(err)

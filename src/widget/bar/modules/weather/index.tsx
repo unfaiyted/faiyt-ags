@@ -3,7 +3,7 @@ import { Variable, bind } from "astal";
 import BarGroup from "../../utils/bar-group";
 import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import { exec } from "astal/process";
-import config from "../../../../utils/config";
+import configManager from "../../../../services/config-manager";
 import { actions } from "../../../../utils/actions";
 import { writeFile, readFile } from "astal/file";
 import GLib from "gi://GLib";
@@ -104,8 +104,9 @@ export default function SideModule() {
               const weatherDescription = condition.weatherDesc[0].value;
 
               // Make sure the temperature values exist
-              const tempUnit = `temp_${config.weather.preferredUnit}`;
-              const feelsLikeUnit = `FeelsLike${config.weather.preferredUnit}`;
+              const preferredUnit = configManager.getValue("weather.preferredUnit") || "C";
+              const tempUnit = `temp_${preferredUnit}`;
+              const feelsLikeUnit = `FeelsLike${preferredUnit}`;
 
               if (condition[tempUnit] && condition[feelsLikeUnit] &&
                 WwoCode[weatherCode]) {
@@ -129,8 +130,8 @@ export default function SideModule() {
                   temperature.set(tempValue);
                   feelsLike.set(feelsLikeValue);
                   tempColor.set(getTempColor(tempValue));
-                  weatherDesc.set(`${tempValue}°${config.weather.preferredUnit}`);
-                  tooltipText.set(`${weatherDescription} - Feels like ${feelsLikeValue}°${config.weather.preferredUnit}`);
+                  weatherDesc.set(`${tempValue}°${preferredUnit}`);
+                  tooltipText.set(`${weatherDescription} - Feels like ${feelsLikeValue}°${preferredUnit}`);
                 } catch (symbolErr) {
                   log.error("Weather symbol error", { error: symbolErr });
                   weatherIcon.set(PhosphorIcons.Thermometer);
@@ -236,11 +237,36 @@ export default function SideModule() {
           weatherDesc.set("Weather unavailable");
         }
       });
-  if (config.weather.city != "" && config.weather.city != null) {
-    updateWeatherForCity(config.weather.city.replace(/ /g, "%20"));
+  const weatherCity = configManager.getValue("weather.city");
+  if (weatherCity && weatherCity !== "") {
+    updateWeatherForCity(weatherCity.replace(/ /g, "%20"));
   } else {
     actions.network.ipCityInfo().then(updateWeatherForCity).catch(print);
   }
+
+  // Subscribe to config changes for weather settings
+  configManager.connect("config-changed", (_, path: string) => {
+    if (path.startsWith("weather.")) {
+      log.debug("Weather config changed, updating", { path });
+      const newCity = configManager.getValue("weather.city");
+      if (newCity && newCity !== "") {
+        updateWeatherForCity(newCity.replace(/ /g, "%20"));
+      } else {
+        actions.network.ipCityInfo().then(updateWeatherForCity).catch(print);
+      }
+    }
+  });
+
+  // Update weather every 30 minutes
+  GLib.timeout_add(GLib.PRIORITY_DEFAULT, 30 * 60 * 1000, () => {
+    const city = configManager.getValue("weather.city");
+    if (city && city !== "") {
+      updateWeatherForCity(city.replace(/ /g, "%20"));
+    } else {
+      actions.network.ipCityInfo().then(updateWeatherForCity).catch(print);
+    }
+    return GLib.SOURCE_CONTINUE;
+  });
 
   return (
     <BarGroup>
@@ -256,7 +282,8 @@ export default function SideModule() {
             // Show feels like temperature on hover
             const tempValue = temperature.get();
             const feelsLikeValue = feelsLike.get();
-            box.set_tooltip_text(`${tempValue}°${config.weather.preferredUnit} - Feels like ${feelsLikeValue}°${config.weather.preferredUnit}`);
+            const preferredUnit = configManager.getValue("weather.preferredUnit") || "C";
+            box.set_tooltip_text(`${tempValue}°${preferredUnit} - Feels like ${feelsLikeValue}°${preferredUnit}`);
           });
 
           motionController.connect("leave", () => {

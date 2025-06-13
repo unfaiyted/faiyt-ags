@@ -473,6 +473,9 @@ class SignalStickersService {
         const cached = this.cache.get(config.id);
         if (cached) {
           this.logger.debug(`Using cached pack: ${config.id}`);
+          // Ensure the cached pack has the correct key from config
+          cached.pack.meta.key = config.key;
+          cached.pack.meta.name = config.name || cached.pack.meta.name;
           packs.push(cached.pack);
           cached.lastAccessed = Date.now();
           continue;
@@ -642,6 +645,13 @@ class SignalStickersService {
         const cached = this.cache.get(packId);
         if (cached) {
           cached.pack.manifest = manifest;
+          
+          // Update the stickerPacks Variable to reflect the new manifest
+          const currentPacks = this.stickerPacks.get();
+          const updatedPacks = currentPacks.map(p => 
+            p.meta.id === packId ? cached.pack : p
+          );
+          this.stickerPacks.set(updatedPacks);
         }
         
         // Process stickers (download if needed)
@@ -732,8 +742,11 @@ class SignalStickersService {
     const results: StickerData[] = [];
     const searchLower = query.toLowerCase();
     
-    for (const [packId, cached] of this.cache) {
-      for (const sticker of cached.stickers) {
+    // Use loadedStickers Variable for reactive updates
+    const loadedStickersMap = this.loadedStickers.get();
+    
+    for (const [packId, stickers] of loadedStickersMap) {
+      for (const sticker of stickers) {
         // Check if emoji directly contains the search term
         const directMatch = sticker.emoji.includes(searchLower) ||
           sticker.packTitle.toLowerCase().includes(searchLower) ||
@@ -751,7 +764,8 @@ class SignalStickersService {
     this.logger.debug("Search results", {
       query,
       resultCount: results.length,
-      searchLower
+      searchLower,
+      totalPacks: loadedStickersMap.size
     });
     
     return results;
@@ -762,15 +776,25 @@ class SignalStickersService {
   }
   
   getPackStickers(packId: string): StickerData[] {
+    // First check the loadedStickers Variable (reactive)
+    const loadedStickersMap = this.loadedStickers.get();
+    if (loadedStickersMap.has(packId)) {
+      return loadedStickersMap.get(packId) || [];
+    }
+    
+    // Fallback to cache
     const cached = this.cache.get(packId);
     return cached?.stickers || [];
   }
   
   getAllStickers(): StickerData[] {
     const allStickers: StickerData[] = [];
-    for (const [_, cached] of this.cache) {
-      allStickers.push(...cached.stickers);
+    const loadedStickersMap = this.loadedStickers.get();
+    
+    for (const [_, stickers] of loadedStickersMap) {
+      allStickers.push(...stickers);
     }
+    
     return allStickers;
   }
   
@@ -778,6 +802,12 @@ class SignalStickersService {
     this.cache.clear();
     this.stickerPacks.set([]);
     this.loadedStickers.set(new Map());
+  }
+  
+  refreshPackInCache(packId: string): void {
+    // Force a refresh of the stickerPacks Variable to ensure UI updates
+    const currentPacks = this.stickerPacks.get();
+    this.stickerPacks.set([...currentPacks]);
   }
   
   async previewStickerPackFromUrl(url: string): Promise<{ 

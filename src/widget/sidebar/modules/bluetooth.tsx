@@ -6,6 +6,7 @@ import { PhosphorIcons } from "../../utils/icons/types";
 import BluetoothScanner from "../../../services/bluetooth-scanner";
 import { setupCursorHover } from "../../utils/buttons";
 import { createLogger } from "../../../utils/logger";
+import { actions } from "../../../utils/actions";
 
 const log = createLogger('BluetoothModule');
 
@@ -54,25 +55,17 @@ const getDeviceIcon = (device: BluetoothDevice): PhosphorIcons => {
 
 // Bluetooth status component
 const BluetoothStatus = () => {
-  const isPowered = Variable(bluetooth.is_powered);
   const connectedDevices = Variable(0);
+  const isEnabled = actions.bluetooth.getBluetoothEnabled();
+
 
   // Subscribe to changes
   bluetooth.connect("notify", () => {
-    isPowered.set(bluetooth.is_powered);
 
     // Count connected devices
     const connected = bluetooth.get_devices().filter(d => d.connected).length;
     connectedDevices.set(connected);
   });
-
-  const toggleBluetooth = async () => {
-    try {
-      bluetooth.is_powered = !bluetooth.is_powered;
-    } catch (error) {
-      log.error('Failed to toggle Bluetooth', { error });
-    }
-  };
 
   return (
     <box cssName="bluetooth-status" vertical>
@@ -81,7 +74,7 @@ const BluetoothStatus = () => {
           <PhosphorIcon
             marginStart={12}
             cssName="bluetooth-icon"
-            iconName={bind(isPowered).as(p => p ? PhosphorIcons.Bluetooth : PhosphorIcons.BluetoothX)}
+            iconName={bind(isEnabled).as(p => p ? PhosphorIcons.Bluetooth : PhosphorIcons.BluetoothX)}
             size={24}
           />
         </box>
@@ -98,9 +91,9 @@ const BluetoothStatus = () => {
         <box marginBottom={24} cssName="bluetooth-switch">
           <switch
             setup={setupCursorHover}
-            active={bind(isPowered)}
-            onActivate={(self) => {
-              toggleBluetooth();
+            active={bind(isEnabled)}
+            onStateSet={(self, state) => {
+              actions.bluetooth.toggle();
             }}
           />
         </box>
@@ -269,9 +262,9 @@ const BluetoothDeviceList = () => {
       paired: d.paired,
       connected: d.connected,
       trusted: d.trusted,
-      battery_percentage: d.battery_percentage,
+      // battery_percentage: d.battery_percentage,
       icon_name: d.icon,
-      type: d.type,
+      // type: d.type,
     }));
 
     // Sort devices: connected first, then paired
@@ -364,7 +357,7 @@ const BluetoothDeviceList = () => {
                 const existingDevice = allDevices.find(d => d.address === scanned.address);
                 if (existingDevice) {
                   // Update RSSI for existing paired devices
-                  existingDevice.rssi = scanned.rssi;
+                  // existingDevice.rssi = scanned.rssi;
                   log.debug('Updated RSSI for existing device', { name: existingDevice.name, rssi: scanned.rssi });
                 } else {
                   // Add new unpaired device
@@ -375,10 +368,10 @@ const BluetoothDeviceList = () => {
                     paired: false,
                     connected: false,
                     trusted: false,
-                    battery_percentage: undefined,
-                    icon_name: scanned.icon,
-                    type: undefined,
-                    rssi: scanned.rssi,
+                    // battery_percentage: undefined,
+                    icon_name: scanned.icon || PhosphorIcons.Bluetooth,
+                    // type: undefined,
+                    // rssi: scanned.rssi,
                   });
                 }
               });
@@ -387,7 +380,7 @@ const BluetoothDeviceList = () => {
               scannedDevices.forEach(scanned => {
                 const pairedDevice = allDevices.find(d => d.address === scanned.address);
                 if (pairedDevice) {
-                  pairedDevice.rssi = scanned.rssi;
+                  // pairedDevice.rssi = scanned.rssi;
                   log.debug('Updated RSSI for paired device', { name: pairedDevice.name, rssi: scanned.rssi });
                 }
               });

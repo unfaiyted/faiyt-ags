@@ -3,9 +3,13 @@ import config from "./config";
 import Wp from "gi://AstalWp";
 import Network from "gi://AstalNetwork";
 import Bluetooth from "gi://AstalBluetooth";
+import { Variable } from "astal";
 
 const network = Network.get_default();
 const bluetooth = Bluetooth.get_default();
+
+const wifiState = Variable(network.get_wifi()?.get_enabled() ?? false);
+const bluetoothState = Variable(bluetooth.isPowered);
 
 const wp = Wp.get_default();
 
@@ -32,8 +36,24 @@ export const actions = {
     play: () => execAsync("playerctl play").catch(print),
   },
   network: {
-    toggleWifi: () =>
+    toggleWifi: () => {
       network.get_wifi()?.set_enabled(!network.get_wifi()?.get_enabled()),
+        wifiState.set(!wifiState.get());
+    },
+    enableWifi: () => {
+      network.get_wifi()?.set_enabled(true),
+        wifiState.set(true);
+    },
+    disableWifi: () => {
+      network.get_wifi()?.set_enabled(false),
+        wifiState.set(false);
+    },
+    setWifi: (enabled: boolean) => {
+      network.get_wifi()?.set_enabled(enabled);
+      wifiState.set(enabled);
+    },
+    // I cant trust the wifi util state...
+    getWifiEnabled: () => wifiState,
     ipInfo: () => execAsync("curl ipinfo.io"), // returns JSON with ip info and location
     ipCityInfo: () =>
       execAsync("curl ipinfo.io").then((output) =>
@@ -41,9 +61,23 @@ export const actions = {
       ),
   },
   bluetooth: {
-    toggle: () => bluetooth.toggle(),
-    disable: () => execAsync("rfkill block bluetooth").catch(print),
-    enable: () => execAsync("rfkill unblock bluetooth").catch(print),
+    toggle: () => {
+      bluetoothState.set(!bluetoothState.get());
+      if (bluetoothState.get()) {
+        execAsync("rfkill unblock bluetooth").catch(print)
+      } else {
+        execAsync("rfkill block bluetooth").catch(print)
+      }
+    },
+    disable: () => {
+      execAsync("rfkill block bluetooth").catch(print)
+      bluetoothState.set(false);
+    },
+    enable: () => {
+      execAsync("rfkill unblock bluetooth").catch(print)
+      bluetoothState.set(true);
+    },
+    getBluetoothEnabled: () => bluetoothState,
   },
   brightness: {
     // TODO: implement brightness control
