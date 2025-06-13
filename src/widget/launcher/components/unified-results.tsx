@@ -23,6 +23,7 @@ import getListPrefixesResults, { ListPrefixesResult, createListPrefixesButton } 
 import { HyprlandClient } from "../components/hyprland-results";
 import getKillResults, { KillButtonResult } from "./kill-results";
 import KillButton from "../buttons/kill-button";
+import { StickerResults } from "../sticker-results";
 
 // TODO: Add in new types for emojis/icons. 
 // TODO: memes/gifs. Maybe use a custom widget for this?
@@ -55,7 +56,7 @@ export interface UnifiedResultsListProps extends Widget.BoxProps {
   selectedIndex: Variable<number>;
   selectedItem?: Variable<any>;
   focusedItem?: Variable<ItemDetails<any> | null>;
-  entryRef?: () => Gtk.Entry | null;
+  entryRef?: Gtk.Entry;
   refs?: (ref: UnifiedResultsRef) => void;
 }
 
@@ -71,6 +72,7 @@ interface UnifiedResults {
   hyprland: HyprlandWindowResult[];
   listPrefixes: ListPrefixesResult[];
   kill: KillButtonResult[];
+  stickers: any[];
   total: number;
 }
 
@@ -97,6 +99,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     hyprland: [],
     listPrefixes: [],
     kill: [],
+    stickers: [],
     total: 0
   });
   const MIN_SEARCH_LENGTH = 2;
@@ -188,6 +191,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         directories: [],
         hyprland: [],
         listPrefixes: [],
+        kill: [],
         total: 0
       });
       activeResultType.set(SearchType.ALL);
@@ -256,6 +260,10 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
           log.debug("Searching processes to kill", { query: parsed.query });
           killList = await getKillResults(parsed.query, true);
           break;
+        case SearchType.STICKERS:
+          log.debug("Searching stickers", { query: parsed.query });
+          // For stickers, we'll handle it differently - not adding to regular results
+          break;
         case SearchType.ALL:
         default:
           log.debug("Searching all types", { query: parsed.query });
@@ -293,6 +301,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         hyprland: hyprlandList,
         listPrefixes: listPrefixesList,
         kill: killList,
+        stickers: [],
         total
       });
     }, DEBOUNCE_DELAY);
@@ -429,7 +438,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     // If at index 0, go back to entry
     if (currentIndex === 0) {
       if (entryRef) {
-        const entry = entryRef();
+        const entry = entryRef;
         if (entry) {
           log.debug("Going back to entry from first result");
           selectedIndex.set(-1); // Use -1 to indicate entry is selected
@@ -498,245 +507,256 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         }
       }}
     >
-      <revealer
-        transitionDuration={config.animations?.durationLarge || 300}
-        revealChild={bind(searchResults).as((l) => l.total > 0)}
-        transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-        halign={Gtk.Align.START}
-      >
-        <box
-          cssName="launcher-results"
-          widthRequest={400}
-          vertical
-          hexpand
-        >
-          {(() => {
-            const scrollWindow = new Gtk.ScrolledWindow({
-              hexpand: true,
-              vexpand: false,
-              hscrollbar_policy: Gtk.PolicyType.NEVER,
-              vscrollbar_policy: Gtk.PolicyType.AUTOMATIC, // We'll update this based on content
-              max_content_height: 300,
-              min_content_height: 300,
-            });
+      {bind(Variable.derive([activeResultType, debouncedSearchText], (type, text) =>
+        type === SearchType.STICKERS ? (
+          <StickerResults
+            query={parseSearchText(text).query}
+            selectedIndex={selectedIndex}
+            resultsCount={Variable(0)}
+            entryRef={entryRef}
+          />
+        ) : (
+          <revealer
+            transitionDuration={config.animations?.durationLarge || 300}
+            revealChild={bind(searchResults).as((l) => l.total > 0)}
+            transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
+            halign={Gtk.Align.START}
+          >
+            <box
+              cssName="launcher-results"
+              widthRequest={400}
+              vertical
+              hexpand
+            >
+              {(() => {
+                const scrollWindow = new Gtk.ScrolledWindow({
+                  hexpand: true,
+                  vexpand: false,
+                  hscrollbar_policy: Gtk.PolicyType.NEVER,
+                  vscrollbar_policy: Gtk.PolicyType.AUTOMATIC, // We'll update this based on content
+                  max_content_height: 300,
+                  min_content_height: 300,
+                });
 
-            // Store reference for auto-scrolling
-            scrolledWindowRef = scrollWindow;
+                // Store reference for auto-scrolling
+                scrolledWindowRef = scrollWindow;
 
-            const resultsBox = (
-              <box vertical cssName="launcher-results-list">
+                const resultsBox = (
+                  <box vertical cssName="launcher-results-list">
 
-                {bind(Variable.derive([searchResults, activeResultType], (results, type) =>
-                  <box vertical>
-                    <ResultGroupWrapper
-                      groupName="Apps"
-                      revealed={(results.apps.length > 0 && (type === SearchType.ALL || type === SearchType.APPS))}
-                    >
-                      {results.apps.map((appResult, index) =>
-                        createAppButton(appResult, {
-                          index,
-                          selected: bind(selectedIndex).as(i => i === index),
-                          ref: (button: Gtk.Button) => {
-                            buttonRefs.set(index, button);
-                          }
-                        })
-                      )}
-                    </ResultGroupWrapper>
+                    {bind(Variable.derive([searchResults, activeResultType], (results, type) =>
+                      <box vertical>
+                        <ResultGroupWrapper
+                          groupName="Apps"
+                          revealed={(results.apps.length > 0 && (type === SearchType.ALL || type === SearchType.APPS))}
+                        >
+                          {results.apps.map((appResult, index) =>
+                            createAppButton(appResult, {
+                              index,
+                              selected: bind(selectedIndex).as(i => i === index),
+                              ref: (button: Gtk.Button) => {
+                                buttonRefs.set(index, button);
+                              }
+                            })
+                          )}
+                        </ResultGroupWrapper>
 
-                    <ResultGroupWrapper
-                      groupName="Screen Captures"
-                      revealed={(results.screenCaptures.length > 0 && (type === SearchType.ALL || type === SearchType.SCREENCAPTURE))}
-                    >
-                      {results.screenCaptures.map((screenResult, index) => {
-                        const adjustedIndex = results.apps.length + index;
-                        return (
-                          <ScreenCaptureButton
-                            option={screenResult.screenCapture}
-                            index={adjustedIndex}
-                            selected={bind(selectedIndex).as(i => i === adjustedIndex)}
-                            ref={(button: Gtk.Button) => {
-                              buttonRefs.set(adjustedIndex, button);
-                            }}
-                          />
-                        );
-                      })}
-                    </ResultGroupWrapper>
+                        <ResultGroupWrapper
+                          groupName="Screen Captures"
+                          revealed={(results.screenCaptures.length > 0 && (type === SearchType.ALL || type === SearchType.SCREENCAPTURE))}
+                        >
+                          {results.screenCaptures.map((screenResult, index) => {
+                            const adjustedIndex = results.apps.length + index;
+                            return (
+                              <ScreenCaptureButton
+                                option={screenResult.screenCapture}
+                                index={adjustedIndex}
+                                selected={bind(selectedIndex).as(i => i === adjustedIndex)}
+                                ref={(button: Gtk.Button) => {
+                                  buttonRefs.set(adjustedIndex, button);
+                                }}
+                              />
+                            );
+                          })}
+                        </ResultGroupWrapper>
 
-                    <ResultGroupWrapper
-                      groupName="Commands"
-                      revealed={(results.commands.length > 0 && (type === SearchType.ALL || type === SearchType.COMMANDS))}
-                    >
-                      {results.commands.map((cmdResult, index) => {
-                        if (!cmdResult || !cmdResult.command) {
-                          log.error("Invalid command result", { cmdResult, index });
-                          return null;
-                        }
-                        const adjustedIndex = results.apps.length + results.screenCaptures.length + index;
-                        return (
-                          <CommandButton
-                            option={cmdResult.command}
-                            index={adjustedIndex}
-                            selected={bind(selectedIndex).as(i => i === adjustedIndex)}
-                            ref={(button: Gtk.Button) => {
-                              buttonRefs.set(adjustedIndex, button);
-                            }}
-                          />
-                        );
-                      })}
-                    </ResultGroupWrapper>
+                        <ResultGroupWrapper
+                          groupName="Commands"
+                          revealed={(results.commands.length > 0 && (type === SearchType.ALL || type === SearchType.COMMANDS))}
+                        >
+                          {results.commands.map((cmdResult, index) => {
+                            if (!cmdResult || !cmdResult.command) {
+                              log.error("Invalid command result", { cmdResult, index });
+                              return null;
+                            }
+                            const adjustedIndex = results.apps.length + results.screenCaptures.length + index;
+                            return (
+                              <CommandButton
+                                option={cmdResult.command}
+                                index={adjustedIndex}
+                                selected={bind(selectedIndex).as(i => i === adjustedIndex)}
+                                ref={(button: Gtk.Button) => {
+                                  buttonRefs.set(adjustedIndex, button);
+                                }}
+                              />
+                            );
+                          })}
+                        </ResultGroupWrapper>
 
-                    <ResultGroupWrapper
-                      groupName="System Actions"
-                      revealed={(results.system.length > 0 && (type === SearchType.ALL || type === SearchType.SYSTEM))}
-                    >
-                      {results.system.map((sysResult, index) => {
-                        if (!sysResult || !sysResult.action) {
-                          log.error("Invalid system result", { sysResult, index });
-                          return null;
-                        }
-                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
-                          results.commands.length + index;
-                        return (
-                          <SystemButton
-                            action={sysResult.action}
-                            index={adjustedIndex}
-                            selected={bind(selectedIndex).as(i => i === adjustedIndex)}
-                            ref={(button: Gtk.Button) => {
-                              buttonRefs.set(adjustedIndex, button);
-                            }}
-                          />
-                        );
-                      })}
-                    </ResultGroupWrapper>
+                        <ResultGroupWrapper
+                          groupName="System Actions"
+                          revealed={(results.system.length > 0 && (type === SearchType.ALL || type === SearchType.SYSTEM))}
+                        >
+                          {results.system.map((sysResult, index) => {
+                            if (!sysResult || !sysResult.action) {
+                              log.error("Invalid system result", { sysResult, index });
+                              return null;
+                            }
+                            const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                              results.commands.length + index;
+                            return (
+                              <SystemButton
+                                action={sysResult.action}
+                                index={adjustedIndex}
+                                selected={bind(selectedIndex).as(i => i === adjustedIndex)}
+                                ref={(button: Gtk.Button) => {
+                                  buttonRefs.set(adjustedIndex, button);
+                                }}
+                              />
+                            );
+                          })}
+                        </ResultGroupWrapper>
 
-                    <ResultGroupWrapper
-                      groupName="Clipboard History"
-                      revealed={(results.clipboard.length > 0 && (type === SearchType.ALL || type === SearchType.CLIPBOARD))}
-                    >
-                      {results.clipboard.map((clipResult, index) => {
-                        if (!clipResult || !clipResult.entry) {
-                          log.error("Invalid clipboard result", { clipResult, index });
-                          return null;
-                        }
-                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
-                          results.commands.length + results.system.length + index;
-                        return (
-                          <ClipboardButton
-                            entry={clipResult.entry}
-                            index={adjustedIndex}
-                            selected={bind(selectedIndex).as(i => i === adjustedIndex)}
-                            ref={(button: Gtk.Button) => {
-                              buttonRefs.set(adjustedIndex, button);
-                            }}
-                          />
-                        );
-                      })}
-                    </ResultGroupWrapper>
+                        <ResultGroupWrapper
+                          groupName="Clipboard History"
+                          revealed={(results.clipboard.length > 0 && (type === SearchType.ALL || type === SearchType.CLIPBOARD))}
+                        >
+                          {results.clipboard.map((clipResult, index) => {
+                            if (!clipResult || !clipResult.entry) {
+                              log.error("Invalid clipboard result", { clipResult, index });
+                              return null;
+                            }
+                            const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                              results.commands.length + results.system.length + index;
+                            return (
+                              <ClipboardButton
+                                entry={clipResult.entry}
+                                index={adjustedIndex}
+                                selected={bind(selectedIndex).as(i => i === adjustedIndex)}
+                                ref={(button: Gtk.Button) => {
+                                  buttonRefs.set(adjustedIndex, button);
+                                }}
+                              />
+                            );
+                          })}
+                        </ResultGroupWrapper>
 
-                    <ResultGroupWrapper
-                      groupName="Web Search"
-                      revealed={(results.externalSearch.length > 0 && (type === SearchType.ALL || type === SearchType.EXTERNAL_SEARCH))}
-                    >
-                      {results.externalSearch.map((searchResult, index) => {
-                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
-                          results.commands.length + results.system.length + results.clipboard.length + index;
-                        return createExternalSearchButton(searchResult, {
-                          index: adjustedIndex,
-                          selected: bind(selectedIndex).as(i => i === adjustedIndex),
-                          ref: (button: Gtk.Button) => {
-                            buttonRefs.set(adjustedIndex, button);
-                          }
-                        });
-                      })}
-                    </ResultGroupWrapper>
+                        <ResultGroupWrapper
+                          groupName="Web Search"
+                          revealed={(results.externalSearch.length > 0 && (type === SearchType.ALL || type === SearchType.EXTERNAL_SEARCH))}
+                        >
+                          {results.externalSearch.map((searchResult, index) => {
+                            const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                              results.commands.length + results.system.length + results.clipboard.length + index;
+                            return createExternalSearchButton(searchResult, {
+                              index: adjustedIndex,
+                              selected: bind(selectedIndex).as(i => i === adjustedIndex),
+                              ref: (button: Gtk.Button) => {
+                                buttonRefs.set(adjustedIndex, button);
+                              }
+                            });
+                          })}
+                        </ResultGroupWrapper>
 
-                    <ResultGroupWrapper
-                      groupName="Files & Directories"
-                      revealed={(results.directories.length > 0 && (type === SearchType.ALL || type === SearchType.DIRECTORY))}
-                    >
-                      {results.directories.map((dirResult, index) => {
-                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
-                          results.commands.length + results.system.length + results.clipboard.length +
-                          results.externalSearch.length + index;
-                        return createDirectoryButton(dirResult, {
-                          index: adjustedIndex,
-                          selected: bind(selectedIndex).as(i => i === adjustedIndex),
-                          ref: (button: Gtk.Button) => {
-                            buttonRefs.set(adjustedIndex, button);
-                          }
-                        });
-                      })}
-                    </ResultGroupWrapper>
+                        <ResultGroupWrapper
+                          groupName="Files & Directories"
+                          revealed={(results.directories.length > 0 && (type === SearchType.ALL || type === SearchType.DIRECTORY))}
+                        >
+                          {results.directories.map((dirResult, index) => {
+                            const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                              results.commands.length + results.system.length + results.clipboard.length +
+                              results.externalSearch.length + index;
+                            return createDirectoryButton(dirResult, {
+                              index: adjustedIndex,
+                              selected: bind(selectedIndex).as(i => i === adjustedIndex),
+                              ref: (button: Gtk.Button) => {
+                                buttonRefs.set(adjustedIndex, button);
+                              }
+                            });
+                          })}
+                        </ResultGroupWrapper>
 
-                    <ResultGroupWrapper
-                      groupName="Open Windows"
-                      revealed={(results.hyprland.length > 0 && (type === SearchType.ALL || type === SearchType.HYPRLAND))}
-                    >
-                      {results.hyprland.map((windowResult, index) => {
-                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
-                          results.commands.length + results.system.length + results.clipboard.length +
-                          results.externalSearch.length + results.directories.length + index;
-                        return createHyprlandButton(windowResult, {
-                          index: adjustedIndex,
-                          selected: bind(selectedIndex).as(i => i === adjustedIndex),
-                          ref: (button: Gtk.Button) => {
-                            buttonRefs.set(adjustedIndex, button);
-                          }
-                        });
-                      })}
-                    </ResultGroupWrapper>
+                        <ResultGroupWrapper
+                          groupName="Open Windows"
+                          revealed={(results.hyprland.length > 0 && (type === SearchType.ALL || type === SearchType.HYPRLAND))}
+                        >
+                          {results.hyprland.map((windowResult, index) => {
+                            const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                              results.commands.length + results.system.length + results.clipboard.length +
+                              results.externalSearch.length + results.directories.length + index;
+                            return createHyprlandButton(windowResult, {
+                              index: adjustedIndex,
+                              selected: bind(selectedIndex).as(i => i === adjustedIndex),
+                              ref: (button: Gtk.Button) => {
+                                buttonRefs.set(adjustedIndex, button);
+                              }
+                            });
+                          })}
+                        </ResultGroupWrapper>
 
-                    <ResultGroupWrapper
-                      groupName="Search Prefixes"
-                      revealed={(results.listPrefixes.length > 0 && (type === SearchType.ALL || type === SearchType.LIST_PREFIXES))}
-                    >
-                      {results.listPrefixes.map((prefixResult, index) => {
-                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
-                          results.commands.length + results.system.length + results.clipboard.length +
-                          results.externalSearch.length + results.directories.length + results.hyprland.length + index;
-                        return createListPrefixesButton(prefixResult, {
-                          index: adjustedIndex,
-                          selected: bind(selectedIndex).as(i => i === adjustedIndex),
-                          ref: (button: Gtk.Button) => {
-                            buttonRefs.set(adjustedIndex, button);
-                          },
-                          entryRef: entryRef
-                        });
-                      })}
-                    </ResultGroupWrapper>
+                        <ResultGroupWrapper
+                          groupName="Search Prefixes"
+                          revealed={(results.listPrefixes.length > 0 && (type === SearchType.ALL || type === SearchType.LIST_PREFIXES))}
+                        >
+                          {results.listPrefixes.map((prefixResult, index) => {
+                            const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                              results.commands.length + results.system.length + results.clipboard.length +
+                              results.externalSearch.length + results.directories.length + results.hyprland.length + index;
+                            return createListPrefixesButton(prefixResult, {
+                              index: adjustedIndex,
+                              selected: bind(selectedIndex).as(i => i === adjustedIndex),
+                              ref: (button: Gtk.Button) => {
+                                buttonRefs.set(adjustedIndex, button);
+                              },
+                              entryRef: entryRef
+                            });
+                          })}
+                        </ResultGroupWrapper>
 
-                    <ResultGroupWrapper
-                      groupName="Kill Processes"
-                      revealed={(results.kill.length > 0 && (type === SearchType.ALL || type === SearchType.KILL))}
-                    >
-                      {results.kill.map((killResult, index) => {
-                        const adjustedIndex = results.apps.length + results.screenCaptures.length +
-                          results.commands.length + results.system.length + results.clipboard.length +
-                          results.externalSearch.length + results.directories.length + results.hyprland.length +
-                          results.listPrefixes.length + index;
-                        return (
-                          <KillButton
-                            action={killResult.action}
-                            index={adjustedIndex}
-                            selected={bind(selectedIndex).as(i => i === adjustedIndex)}
-                            ref={(button: Gtk.Button) => {
-                              buttonRefs.set(adjustedIndex, button);
-                            }}
-                          />
-                        );
-                      })}
-                    </ResultGroupWrapper>
+                        <ResultGroupWrapper
+                          groupName="Kill Processes"
+                          revealed={(results.kill.length > 0 && (type === SearchType.ALL || type === SearchType.KILL))}
+                        >
+                          {results.kill.map((killResult, index) => {
+                            const adjustedIndex = results.apps.length + results.screenCaptures.length +
+                              results.commands.length + results.system.length + results.clipboard.length +
+                              results.externalSearch.length + results.directories.length + results.hyprland.length +
+                              results.listPrefixes.length + index;
+                            return (
+                              <KillButton
+                                action={killResult.action}
+                                index={adjustedIndex}
+                                selected={bind(selectedIndex).as(i => i === adjustedIndex)}
+                                ref={(button: Gtk.Button) => {
+                                  buttonRefs.set(adjustedIndex, button);
+                                }}
+                              />
+                            );
+                          })}
+                        </ResultGroupWrapper>
+                      </box>
+                    ))}
+
                   </box>
-                ))}
+                );
 
-              </box>
-            );
-
-            scrollWindow.set_child(resultsBox);
-            return scrollWindow;
-          })()}
-        </box>
-      </revealer>
-    </box >
+                scrollWindow.set_child(resultsBox);
+                return scrollWindow;
+              })()}
+            </box>
+          </revealer>
+        )
+      ))}
+    </box>
   );
 }

@@ -54,6 +54,17 @@ interface LoggerConfig {
   logFile?: string;
 }
 
+export interface LoggerConfig {
+  level: LogLevel;
+  useColors: boolean;
+  showTimestamp: boolean;
+  showLevel: boolean;
+  showComponent: boolean;
+  showLocation: boolean;
+  timestampFormat: "full" | "time" | "short";
+  logFile?: string;
+}
+
 class Logger {
   private config: LoggerConfig = {
     level: LogLevel.INFO,
@@ -67,6 +78,7 @@ class Logger {
 
   private logHistory = Variable<string[]>([]);
   private maxHistorySize = 1000;
+  private componentWhitelist: Set<string> | null = null;
 
   constructor() {
     // Set log level from environment (GJS compatible)
@@ -254,6 +266,7 @@ class Logger {
     message: string,
     component?: string,
     meta?: any,
+    subclass?: string,
   ): string {
     const parts: string[] = [];
     const callerInfo = this.config.showLocation ? this.getCallerInfo() : null;
@@ -273,7 +286,8 @@ class Logger {
 
       // Component
       if (this.config.showComponent && component) {
-        parts.push(`${colors.bright}[${component}]${colors.reset}`);
+        const componentDisplay = subclass ? `${component}/${subclass}` : component;
+        parts.push(`${colors.bright}[${componentDisplay}]${colors.reset}`);
       }
 
       // Message
@@ -371,7 +385,8 @@ class Logger {
         parts.push(`[${logLevelNames[level].padEnd(5)}]`);
       }
       if (this.config.showComponent && component) {
-        parts.push(`[${component}]`);
+        const componentDisplay = subclass ? `${component}/${subclass}` : component;
+        parts.push(`[${componentDisplay}]`);
       }
       parts.push(message);
       if (this.config.showLocation && callerInfo) {
@@ -438,14 +453,24 @@ class Logger {
     message: string,
     component?: string,
     meta?: any,
+    subclass?: string,
   ) {
     if (level > this.config.level) return;
+
+    // Check whitelist if configured
+    if (this.componentWhitelist !== null && component) {
+      const fullComponent = subclass ? `${component}/${subclass}` : component;
+      if (!this.componentWhitelist.has(fullComponent) && !this.componentWhitelist.has(component)) {
+        return;
+      }
+    }
 
     const formattedMessage = this.formatMessage(
       level,
       message,
       component,
       meta,
+      subclass,
     );
 
     // Output to console using GJS print
@@ -609,7 +634,7 @@ class Logger {
   }
 
   // Public API
-  error(message: string | Error, component?: string, meta?: any) {
+  error(message: string | Error, component?: string, meta?: any, subclass?: string) {
     // Process metadata to source-map any embedded stack traces
     const processedMeta = this.processMetadata(meta);
 
@@ -654,26 +679,26 @@ class Logger {
       }
 
       // Log with formatted stack
-      this.log(LogLevel.ERROR, message.message, component, errorMeta);
+      this.log(LogLevel.ERROR, message.message, component, errorMeta, subclass);
     } else {
-      this.log(LogLevel.ERROR, message, component, processedMeta);
+      this.log(LogLevel.ERROR, message, component, processedMeta, subclass);
     }
   }
 
-  warn(message: string, component?: string, meta?: any) {
-    this.log(LogLevel.WARN, message, component, meta);
+  warn(message: string, component?: string, meta?: any, subclass?: string) {
+    this.log(LogLevel.WARN, message, component, meta, subclass);
   }
 
-  info(message: string, component?: string, meta?: any) {
-    this.log(LogLevel.INFO, message, component, meta);
+  info(message: string, component?: string, meta?: any, subclass?: string) {
+    this.log(LogLevel.INFO, message, component, meta, subclass);
   }
 
-  debug(message: string, component?: string, meta?: any) {
-    this.log(LogLevel.DEBUG, message, component, meta);
+  debug(message: string, component?: string, meta?: any, subclass?: string) {
+    this.log(LogLevel.DEBUG, message, component, meta, subclass);
   }
 
-  verbose(message: string, component?: string, meta?: any) {
-    this.log(LogLevel.VERBOSE, message, component, meta);
+  verbose(message: string, component?: string, meta?: any, subclass?: string) {
+    this.log(LogLevel.VERBOSE, message, component, meta, subclass);
   }
 
   setLevel(level: LogLevel) {
@@ -700,6 +725,19 @@ class Logger {
     this.logHistory.set([]);
   }
 
+  // Set component whitelist for filtering
+  setComponentWhitelist(components: string[] | null) {
+    if (components === null) {
+      this.componentWhitelist = null;
+    } else {
+      this.componentWhitelist = new Set(components);
+    }
+  }
+
+  getComponentWhitelist(): string[] | null {
+    return this.componentWhitelist ? Array.from(this.componentWhitelist) : null;
+  }
+
   // Performance timer
   time(label: string, component?: string) {
     const start = Date.now();
@@ -720,30 +758,35 @@ const logger = new Logger();
 
 // Component logger wrapper
 export class ComponentLogger {
-  constructor(private component: string) {}
+  constructor(private component: string, private subclass?: string) {}
 
   error(message: string | Error, meta?: any) {
-    logger.error(message, this.component, meta);
+    logger.error(message, this.component, meta, this.subclass);
   }
 
   warn(message: string, meta?: any) {
-    logger.warn(message, this.component, meta);
+    logger.warn(message, this.component, meta, this.subclass);
   }
 
   info(message: string, meta?: any) {
-    logger.info(message, this.component, meta);
+    logger.info(message, this.component, meta, this.subclass);
   }
 
   debug(message: string, meta?: any) {
-    logger.debug(message, this.component, meta);
+    logger.debug(message, this.component, meta, this.subclass);
   }
 
   verbose(message: string, meta?: any) {
-    logger.verbose(message, this.component, meta);
+    logger.verbose(message, this.component, meta, this.subclass);
   }
 
   time(label: string) {
     return logger.time(label, this.component);
+  }
+
+  // Create a subclass logger
+  subClass(subclass: string): ComponentLogger {
+    return new ComponentLogger(this.component, subclass);
   }
 }
 
@@ -767,6 +810,11 @@ export const configureLogger = (options: Partial<LoggerConfig>) =>
   logger.configure(options);
 
 export const getLoggerConfig = () => logger.getConfig();
+
+export const setLogWhitelist = (components: string[] | null) => 
+  logger.setComponentWhitelist(components);
+
+export const getLogWhitelist = () => logger.getComponentWhitelist();
 
 // Export LoggerConfig type
 export type { LoggerConfig };

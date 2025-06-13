@@ -14,13 +14,13 @@ export interface ListPrefixesButtonProps extends Widget.ButtonProps {
   index: number;
   selected?: Binding<boolean>;
   ref?: (button: Gtk.Button) => void;
-  entryRef?: () => Gtk.Entry | null;
+  entryRef?: Gtk.Entry;
 }
 
 export default function ListPrefixesButton(props: ListPrefixesButtonProps) {
   const handleActivate = () => {
     if (props.entryRef) {
-      const entry = props.entryRef();
+      const entry = props.entryRef;
       if (entry) {
         // Get the first prefix from the comma-separated list
         const firstPrefix = props.prefixInfo.prefix.split(',')[0].trim();

@@ -23,14 +23,16 @@ import windowManager from "./services/window-manager";
 import configManager from "./services/config-manager"; // Initialize config manager
 import SettingsWindow from "./widget/settings";
 import MonitorsWindow from "./widget/settings/monitors";
+import { WallpaperThumbnailService } from "./services/wallpaper-thumbnail-service";
 
 // Set log level from environment or default to info
 import { GLib } from "astal";
-setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.INFO);
 
 // Ensure ConfigManager is initialized
 log.info("Initializing ConfigManager");
 const configInstance = configManager; // This will trigger the singleton initialization
+
+setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.INFO);
 
 // Init shell modes for all active monitors
 initialMonitorShellModes();
@@ -43,7 +45,7 @@ App.start({
     // Log system info on startup
     log.info("AGS Application Starting");
     logSystemInfo();
-    
+
     // Start window manager service
     try {
       windowManager.start();
@@ -51,6 +53,12 @@ App.start({
     } catch (error) {
       log.error("Failed to start Window Manager service", { error });
     }
+
+    // Generate wallpaper thumbnails in background
+    const thumbnailService = WallpaperThumbnailService.getInstance();
+    thumbnailService.generateAllThumbnails().catch((error) => {
+      log.error("Failed to generate wallpaper thumbnails", { error });
+    });
 
     // Windows
     const monitors = App.get_monitors();
@@ -77,10 +85,10 @@ App.start({
         IndicatorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
         MusicWindow({ gdkmonitor: gdkmonitor, monitor: index });
         DesktopWallpaperWindow({ gdkmonitor: gdkmonitor, monitor: index });
-        
+
         // Settings window
         SettingsWindow({ gdkmonitor: gdkmonitor, monitor: index });
-        
+
         // Monitors window
         MonitorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
 

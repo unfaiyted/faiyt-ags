@@ -1,0 +1,331 @@
+@use "styles/colors";
+
+.sticker-results-container {
+  padding: 8px;
+}
+
+.sticker-pack-bar-container {
+  background: colors.c(background, 0.7);
+  border-radius: 8px;
+  padding: 4px;
+  padding-top: 0px;
+  max-height: 30px;
+  min-height: 30px;
+  min-width: 600px;
+}
+
+.sticker-pack-bar {
+  padding: 2px;
+}
+
+.sticker-pack-button {
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  padding: 4px;
+  transition: all 0.2s ease;
+  min-width: 28px;
+  min-height: 28px;
+  max-height: 28px;
+
+  &:hover {
+    background: colors.c(surface, 0.1);
+  }
+
+  &.selected {
+    border-color: colors.c(accent);
+    background: colors.c(accent, 0.2);
+  }
+
+  &.filtered {
+    border-color: colors.c(primary);
+    background: colors.c(primary, 0.3);
+    box-shadow: 0 0 8px colors.c(primary, 0.4);
+  }
+
+  &.focused {
+    border-color: colors.c(accent);
+    box-shadow: 0 0 12px colors.c(accent, 0.5);
+    transform: scale(1.1);
+  }
+}
+
+.pack-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pack-sticker-bg {
+  opacity: 0.9;
+  border-radius: 4px;
+}
+
+.pack-emoji-overlay {
+  font-size: 10px;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.sticker-grid-scroll {
+  background: colors.c(base, 0.2);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 390px;
+  min-width: 800px;
+}
+
+.sticker-grid {
+  padding: 4px;
+}
+
+.sticker-row {
+  margin-bottom: 8px;
+}
+
+.sticker-button {
+  background: colors.c(surface, 0.05);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 12px;
+  transition: all 0.2s ease;
+  min-width: 90px;
+  min-height: 90px;
+
+  &:hover {
+    background: colors.c(surface, 0.1);
+    transform: scale(1.05);
+  }
+
+  &.selected {
+    border-color: colors.c(accent);
+    background: colors.c(accent, 0.2);
+    transform: scale(1.05);
+  }
+
+  &.empty {
+    visibility: hidden;
+  }
+}
+
+.sticker-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.sticker-image-container {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: colors.c(surface, 0.05);
+  border-radius: 8px;
+}
+
+.sticker-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+}
+
+.sticker-placeholder {
+  font-size: 16px;
+
+  &.loading {
+    opacity: 0.5;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.sticker-pack-name {
+  font-size: 12px;
+  opacity: 0.7;
+  text-align: center;
+}
+
+.sticker-add-container {
+  background: colors.c(surface, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 750px;
+}
+
+.sticker-add-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: colors.c(accent);
+  margin-bottom: 12px;
+}
+
+.sticker-add-url {
+  font-size: 12px;
+  font-family: monospace;
+  opacity: 0.8;
+  word-break: break-all;
+  padding: 8px;
+  background: colors.c(background, 0.5);
+  border-radius: 6px;
+}
+
+.sticker-add-button {
+  background: colors.c(accent);
+  color: colors.c(background);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: colors.c(accent, 0.8);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    transform: none;
+  }
+}
+
+.sticker-add-status {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin: 8px 0;
+
+  &.status-loading {
+    background: colors.c(accent, 0.2);
+    color: colors.c(accent);
+  }
+
+  &.status-success {
+    background: colors.c(success, 0.2);
+    color: colors.c(success);
+  }
+
+  &.status-exists {
+    background: colors.c(warning, 0.2);
+    color: colors.c(warning);
+  }
+
+  &.status-error {
+    background: colors.c(error, 0.2);
+    color: colors.c(error);
+  }
+}
+
+.sticker-loading-more {
+  padding: 10px;
+  opacity: 0.7;
+  font-size: 12px;
+  color: colors.c(text, 0.7);
+}
+
+.sticker-preview-section {
+  background: colors.c(surface, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 0;
+}
+
+.sticker-preview-header {
+  align-items: center;
+}
+
+.sticker-preview-info {
+  flex: 1;
+}
+
+.sticker-preview-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: colors.c(accent);
+}
+
+.sticker-preview-author {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.sticker-preview-count {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.sticker-preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.sticker-preview-item {
+  width: 60px;
+  height: 60px;
+  background: colors.c(surface, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: colors.c(accent, 0.3);
+    transform: scale(1.05);
+  }
+}
+
+.sticker-preview-emoji {
+  font-size: 28px;
+}
+
+.sticker-preview-more {
+  width: 60px;
+  height: 60px;
+  background: colors.c(surface, 0.05);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed colors.c(accent, 0.3);
+  font-size: 16px;
+  font-weight: bold;
+  color: colors.c(accent, 0.7);
+}
+
+.sticker-add-button {
+  &.loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.exists {
+    background: colors.c(warning, 0.2);
+    color: colors.c(warning);
+    cursor: not-allowed;
+    
+    &:hover {
+      transform: none;
+    }
+  }
+}

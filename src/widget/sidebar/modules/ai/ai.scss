@@ -149,9 +149,10 @@ chat-avatar-wrapper {
     background: colors.c(primary, 0.1);
     border-radius: 50%;
     border: 2px solid colors.c(border);
-    
+
     image {
       color: colors.c(primary);
+      margin-left: 5px;
     }
   }
 
@@ -159,7 +160,7 @@ chat-avatar-wrapper {
     background: linear-gradient(135deg, colors.c(accent, 0.15), colors.c(accent, 0.25));
     border-radius: 50%;
     border: 2px solid colors.c(accent, 0.3);
-    
+
     image {
       color: colors.c(accent);
     }

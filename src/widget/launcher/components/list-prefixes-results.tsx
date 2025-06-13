@@ -15,7 +15,7 @@ export function createListPrefixesButton(
     index: number;
     selected: Binding<boolean>;
     ref?: (button: Gtk.Button) => void;
-    entryRef?: () => Gtk.Entry | null;
+    entryRef: Gtk.Entry;
   }
 ) {
   return (
@@ -37,7 +37,7 @@ export default function getListPrefixesResults(
 
   // Group prefixes by SearchType
   const prefixesByType: Map<SearchType, string[]> = new Map();
-  
+
   for (const [prefix, type] of Object.entries(SEARCH_PREFIXES)) {
     if (!prefixesByType.has(type)) {
       prefixesByType.set(type, []);
@@ -58,6 +58,8 @@ export default function getListPrefixesResults(
     [SearchType.DIRECTORY]: "Search directories and files",
     [SearchType.HYPRLAND]: "Switch between Hyprland windows",
     [SearchType.LIST_PREFIXES]: "List all search prefixes",
+    [SearchType.KILL]: "Kill processes and applications",
+    [SearchType.STICKERS]: "Search and use Signal stickers",
   };
 
   for (const [type, prefixes] of prefixesByType.entries()) {
@@ -66,12 +68,12 @@ export default function getListPrefixesResults(
 
     const prefixList = prefixes.join(", ");
     const description = typeDescriptions[type] || "Unknown search type";
-    
+
     // Filter by query if provided
-    if (!query || 
-        prefixList.toLowerCase().includes(query.toLowerCase()) ||
-        description.toLowerCase().includes(query.toLowerCase()) ||
-        type.toLowerCase().includes(query.toLowerCase())) {
+    if (!query ||
+      prefixList.toLowerCase().includes(query.toLowerCase()) ||
+      description.toLowerCase().includes(query.toLowerCase()) ||
+      type.toLowerCase().includes(query.toLowerCase())) {
       results.push({
         id: `prefix-${type}`,
         prefix: prefixList,
@@ -81,9 +83,9 @@ export default function getListPrefixesResults(
     }
   }
 
-  log.debug("List prefixes results", { 
+  log.debug("List prefixes results", {
     totalResults: results.length,
-    results: results.slice(0, maxResults) 
+    results: results.slice(0, maxResults)
   });
 
   return results.slice(0, maxResults);

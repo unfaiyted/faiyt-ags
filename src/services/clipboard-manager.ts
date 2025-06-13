@@ -29,7 +29,7 @@ class ClipboardManager {
       "clipboard-images",
     ]);
     GLib.mkdir_with_parents(this.imageCacheDir, 0o755);
-    
+
     // Create thumbnail cache directory
     this.thumbnailCacheDir = GLib.build_filenamev([
       GLib.get_user_cache_dir(),
@@ -127,25 +127,27 @@ class ClipboardManager {
           type = "image";
           // Save image to cache and get path
           imagePath = await this.saveImageFromClipboard(id);
-          
+
           // Extract image info from cliphist format if available
           // Format: [[ binary data 2 MiB png 1278x958 ]]
-          const match = content.match(/\[\[\s*binary data\s+([^\s]+)\s+([^\s]+)\s+(\d+x\d+)?\s*\]\]/);
+          const match = content.match(
+            /\[\[\s*binary data\s+([^\s]+)\s+([^\s]+)\s+(\d+x\d+)?\s*\]\]/,
+          );
           if (match) {
             const [, size, format, dimensions] = match;
-            preview = `Image (${format.toUpperCase()}) ${size}${dimensions ? ` • ${dimensions}` : ''}`;
+            preview = `Image (${format.toUpperCase()}) ${size}${dimensions ? ` • ${dimensions}` : ""}`;
           } else {
             preview = "Image";
           }
-          
-          log.debug("Detected image clipboard entry", { 
-            id, 
-            hasImagePath: !!imagePath,
-            contentLength: content.length,
-            preview,
-            imagePath
-          });
-          
+
+          // log.debug("Detected image clipboard entry", {
+          //   id,
+          //   hasImagePath: !!imagePath,
+          //   contentLength: content.length,
+          //   preview,
+          //   imagePath
+          // });
+
           // Skip this entry if we couldn't save the image
           if (!imagePath) {
             log.warn("Skipping image entry without valid image path", { id });
@@ -183,7 +185,7 @@ class ClipboardManager {
       }
 
       this.history.set(entries);
-      log.debug("Updated clipboard history", { count: entries.length });
+      // log.debug("Updated clipboard history", { count: entries.length });
     } catch (error) {
       log.error("Failed to update clipboard history", error);
     }
@@ -230,33 +232,36 @@ class ClipboardManager {
     try {
       const imagePath = GLib.build_filenamev([
         this.imageCacheDir,
-        `${cliphistId.replace(/[^a-zA-Z0-9]/g, '_')}.png`,
+        `${cliphistId.replace(/[^a-zA-Z0-9]/g, "_")}.png`,
       ]);
 
       // Check if we already have this image cached
       if (GLib.file_test(imagePath, GLib.FileTest.EXISTS)) {
-        log.debug("Image already cached", { imagePath });
+        // log.debug("Image already cached", { imagePath });
         return imagePath;
       }
 
       // Use cliphist decode to get the actual image data
       // The ID might need to be escaped for shell command
       const escapedId = cliphistId.replace(/'/g, "'\\''");
-      
+
       // First try direct decode
       const command = `cliphist decode '${escapedId}' > "${imagePath}"`;
-      
-      log.debug("Saving image from clipboard", { 
-        cliphistId, 
+
+      log.debug("Saving image from clipboard", {
+        cliphistId,
         escapedId,
-        imagePath, 
-        command 
+        imagePath,
+        command,
       });
-      
+
       try {
         await execAsync(["sh", "-c", command]);
       } catch (e) {
-        log.error("Failed to decode image with cliphist", { error: e, cliphistId });
+        log.error("Failed to decode image with cliphist", {
+          error: e,
+          cliphistId,
+        });
         // Try alternative: use the ID directly without quotes if it's numeric
         if (/^\d+$/.test(cliphistId)) {
           const altCommand = `cliphist decode ${cliphistId} > "${imagePath}"`;
@@ -348,14 +353,14 @@ class ClipboardManager {
     try {
       // Cleanup image cache
       this.cleanupDirectory(this.imageCacheDir);
-      
+
       // Cleanup thumbnail cache
       this.cleanupDirectory(this.thumbnailCacheDir);
     } catch (error) {
       log.error("Failed to cleanup old images", error);
     }
   }
-  
+
   private cleanupDirectory(dirPath: string) {
     try {
       const dir = GLib.Dir.open(dirPath, 0);
@@ -376,7 +381,7 @@ class ClipboardManager {
 
       // Delete orphaned files
       for (const file of files) {
-        const id = file.split('_')[0]; // Extract ID from filename
+        const id = file.split("_")[0]; // Extract ID from filename
         if (!currentIds.has(id)) {
           const filePath = GLib.build_filenamev([dirPath, file]);
           try {

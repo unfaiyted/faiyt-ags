@@ -5,6 +5,8 @@ import {
   getLogLevel,
   configureLogger,
   getLoggerConfig,
+  setLogWhitelist,
+  getLogWhitelist,
   type LoggerConfig
 } from '../services/logger';
 
@@ -18,7 +20,7 @@ export const widgetLogger = createLogger('Widget');
 export const systemLogger = createLogger('System');
 
 // Re-export useful functions and types
-export { createLogger, LogLevel, getLogLevel, configureLogger, getLoggerConfig, type LoggerConfig };
+export { createLogger, LogLevel, getLogLevel, configureLogger, getLoggerConfig, setLogWhitelist, getLogWhitelist, type LoggerConfig };
 
 // Re-export setLogLevel with proper type
 export const setLogLevel = (level: LogLevel | string) => {

@@ -10,6 +10,7 @@ export enum SearchType {
   HYPRLAND = "hyprland",
   LIST_PREFIXES = "list_prefixes",
   KILL = "kill",
+  STICKERS = "stickers",
 }
 
 // Keywords that trigger screen capture options

@@ -281,7 +281,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
                               // Clear the initial text after using it
                               launcherState.clearInitialText();
                             }
-                            
+
                             // Use a small delay to ensure proper focus
                             setTimeout(() => {
                               self.grab_focus();
@@ -321,12 +321,12 @@ export default function LauncherBar(launcherProps: LauncherProps) {
                   </box>
 
                   {/* Search Icon */}
-                  <label
-                    cssClasses={["search-icon"]}
-                    halign={Gtk.Align.START}
-                    valign={Gtk.Align.CENTER}
-                    sensitive={false}
-                  />
+                  {/* <label */}
+                  {/*   cssClasses={["search-icon"]} */}
+                  {/*   halign={Gtk.Align.START} */}
+                  {/*   valign={Gtk.Align.CENTER} */}
+                  {/*   sensitive={false} */}
+                  {/* /> */}
 
                   {/* Search Results */}
                   <box
@@ -338,7 +338,7 @@ export default function LauncherBar(launcherProps: LauncherProps) {
                       selectedIndex={selectedIndex}
                       selectedItem={selectedItem}
                       focusedItem={focusedItem}
-                      entryRef={() => entryRef}
+                      entryRef={entryRef || undefined}
                       refs={(ref: UnifiedResultsRef) => {
                         log.debug("Setting UnifiedResults ref in variable");
                         unifiedResultsRef.set(ref);

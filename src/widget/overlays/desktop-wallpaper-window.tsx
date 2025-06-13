@@ -1,14 +1,14 @@
 import { App, Astal, Gtk, Gdk, Widget } from "astal/gtk4";
 import { Variable, bind } from "astal";
-import { exec, execAsync } from "astal/process";
+import { execAsync } from "astal/process";
 import GLib from "gi://GLib";
 import Gio from "gi://Gio";
 import GdkPixbuf from "gi://GdkPixbuf";
 import { ConfigManager } from "../../services/config-manager";
-import { RoundedImageReactive } from "../utils/rounded-image";
 import { DrawingArea } from "../utils/containers/drawing-area";
-import Cairo from "gi://cairo";
 import { createLogger } from "../../utils/logger";
+import { WallpaperThumbnailService } from "../../services/wallpaper-thumbnail-service";
+import KeyboardShortcut from "../utils/keyboard-shortcut";
 
 const log = createLogger("DesktopWallpaper");
 
@@ -30,6 +30,8 @@ const configManager = ConfigManager.getInstance();
 const WALLPAPERS_PER_PAGE = configManager.getValue("wallpaper.itemsPerPage") as number;
 const THUMBNAIL_SIZE = configManager.getValue("wallpaper.thumbnailSize") as number;
 const ANIMATION_DURATION = configManager.getValue("wallpaper.animationDuration") as number;
+const WIN_ACTIVE_OPACITY = configManager.getValue("wallpaper.winActiveOpacity") as number;
+const WIN_INACTIVE_OPACITY = configManager.getValue("wallpaper.winInactiveOpacity") as number;
 
 export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
   const { gdkmonitor, monitor } = props;
@@ -40,9 +42,8 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
   const selectedIndex = Variable(0);
   const isAnimating = Variable(false);
 
-  // Thumbnail cache
-  const thumbnailCache = new Map<string, GdkPixbuf.Pixbuf>();
-  const loadingQueue = new Set<string>();
+  // Thumbnail service
+  const thumbnailService = WallpaperThumbnailService.getInstance();
 
   // Store original opacity values
   let originalActiveOpacity: number | null = null;
@@ -117,7 +118,7 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
   };
 
   const applyWallpaperModeOpacity = async () => {
-    await setHyprlandOpacity(0.3, 0.2);
+    await setHyprlandOpacity(WIN_ACTIVE_OPACITY, WIN_INACTIVE_OPACITY);
   };
 
   const restoreOriginalOpacity = async () => {
@@ -126,84 +127,7 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
     }
   };
 
-  // Pre-load thumbnail for a wallpaper
-  const preloadThumbnail = async (wallpaperPath: string): Promise<GdkPixbuf.Pixbuf | null> => {
-    if (thumbnailCache.has(wallpaperPath)) {
-      return thumbnailCache.get(wallpaperPath)!;
-    }
 
-    if (loadingQueue.has(wallpaperPath)) {
-      return null; // Already loading
-    }
-
-    loadingQueue.add(wallpaperPath);
-
-    try {
-      const width = Math.round(THUMBNAIL_SIZE * 16 / 9);
-      const height = THUMBNAIL_SIZE;
-
-      // Load original to get dimensions
-      const originalPixbuf = GdkPixbuf.Pixbuf.new_from_file(wallpaperPath);
-
-      if (originalPixbuf) {
-        const origWidth = originalPixbuf.get_width();
-        const origHeight = originalPixbuf.get_height();
-
-        // Calculate scale to fill (not fit)
-        const scaleX = width / origWidth;
-        const scaleY = height / origHeight;
-        const scale = Math.max(scaleX, scaleY);
-
-        // Load at the size that will fill the container
-        const scaledWidth = Math.round(origWidth * scale);
-        const scaledHeight = Math.round(origHeight * scale);
-
-        const pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-          wallpaperPath,
-          scaledWidth,
-          scaledHeight,
-          false
-        );
-
-        if (pixbuf) {
-          thumbnailCache.set(wallpaperPath, pixbuf);
-          loadingQueue.delete(wallpaperPath);
-          return pixbuf;
-        }
-      }
-    } catch (error) {
-      log.error(`Failed to preload thumbnail: ${wallpaperPath}`, error);
-    }
-
-    loadingQueue.delete(wallpaperPath);
-    return null;
-  };
-
-  // Pre-load thumbnails for current page
-  const preloadCurrentPage = () => {
-    const items = pageItems.get();
-    items.forEach(item => {
-      preloadThumbnail(item.path).catch(err =>
-        log.error("Failed to preload thumbnail", err)
-      );
-    });
-  };
-
-  // Pre-load thumbnails for next page in background
-  const preloadNextPage = () => {
-    setTimeout(() => {
-      const totalPages = Math.ceil(wallpapers.get().length / WALLPAPERS_PER_PAGE);
-      const nextPage = (currentPage.get() + 1) % totalPages;
-      const startIdx = nextPage * WALLPAPERS_PER_PAGE;
-      const items = wallpapers.get().slice(startIdx, startIdx + WALLPAPERS_PER_PAGE);
-
-      items.forEach(item => {
-        preloadThumbnail(item.path).catch(err =>
-          log.error("Failed to preload next page thumbnail", err)
-        );
-      });
-    }, 1000); // Delay to not interfere with current page loading
-  };
 
   // Load wallpapers from directory
   const loadWallpapers = async () => {
@@ -326,12 +250,6 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
     const lastItemIdx = newPageStartIdx + newPageItems.length - 1;
     selectedIndex.set(lastItemIdx);
 
-    // Preload the new page
-    setTimeout(() => {
-      preloadCurrentPage();
-      preloadNextPage();
-    }, 50);
-
     setTimeout(() => {
       isAnimating.set(false);
     }, ANIMATION_DURATION);
@@ -350,22 +268,17 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
     const newPageStartIdx = newPage * WALLPAPERS_PER_PAGE;
     selectedIndex.set(newPageStartIdx);
 
-    // Preload the new page
-    setTimeout(() => {
-      preloadCurrentPage();
-      preloadNextPage();
-    }, 50);
-
     setTimeout(() => {
       isAnimating.set(false);
     }, ANIMATION_DURATION);
   };
 
-  // Fast thumbnail component using pre-cached pixbuf
-  const FastThumbnail = ({ path, pixbuf }: { path: string; pixbuf?: GdkPixbuf.Pixbuf | null }) => {
+  // Fast thumbnail component using pre-generated thumbnails
+  const FastThumbnail = ({ path }: { path: string }) => {
     const width = Math.round(THUMBNAIL_SIZE * 16 / 9);
     const height = THUMBNAIL_SIZE;
     const radius = 14;
+    const thumbnailPath = thumbnailService.getThumbnailForWallpaper(path);
 
     return (
       <DrawingArea
@@ -373,6 +286,9 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
         widthRequest={width}
         heightRequest={height}
         setup={(self) => {
+          let pixbuf: GdkPixbuf.Pixbuf | null = null;
+          let loadAttempted = false;
+
           const drawFunc = () => {
             self.set_draw_func((widget, cr) => {
               const allocation = widget.get_allocation();
@@ -392,27 +308,43 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
               // Clip to the rounded rectangle
               cr.clip();
 
-              // Draw the image if we have a pixbuf
-              const cachedPixbuf = pixbuf || thumbnailCache.get(path);
+              // Try to load the thumbnail if not already loaded
+              if (!pixbuf && thumbnailPath && !loadAttempted) {
+                loadAttempted = true;
+                try {
+                  pixbuf = GdkPixbuf.Pixbuf.new_from_file(thumbnailPath);
+                  if (pixbuf) {
+                    self.queue_draw();
+                  }
+                } catch (error) {
+                  log.error(`Failed to load thumbnail: ${thumbnailPath}`, error);
+                }
+              }
 
-              if (cachedPixbuf) {
-                // Center the image if it's larger than the container
-                const pixbufWidth = cachedPixbuf.get_width();
-                const pixbufHeight = cachedPixbuf.get_height();
+              if (pixbuf) {
+                // Center the image
+                const pixbufWidth = pixbuf.get_width();
+                const pixbufHeight = pixbuf.get_height();
                 const offsetX = (w - pixbufWidth) / 2;
                 const offsetY = (h - pixbufHeight) / 2;
 
-                Gdk.cairo_set_source_pixbuf(cr, cachedPixbuf, offsetX, offsetY);
+                Gdk.cairo_set_source_pixbuf(cr, pixbuf, offsetX, offsetY);
                 cr.paint();
               } else {
                 // Draw loading state
                 cr.setSourceRGBA(0.3, 0.3, 0.3, 0.5);
                 cr.paint();
 
-                // Try to load the thumbnail if not in cache
-                preloadThumbnail(path).then(() => {
-                  self.queue_draw();
-                });
+                // Check for thumbnail availability periodically
+                if (!thumbnailPath) {
+                  setTimeout(() => {
+                    const newPath = thumbnailService.getThumbnailForWallpaper(path);
+                    if (newPath) {
+                      loadAttempted = false;
+                      self.queue_draw();
+                    }
+                  }, 500);
+                }
               }
 
               return true;
@@ -420,19 +352,6 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
           };
 
           drawFunc();
-
-          // Subscribe to cache updates
-          const checkCache = setInterval(() => {
-            if (thumbnailCache.has(path)) {
-              self.queue_draw();
-              clearInterval(checkCache);
-            }
-          }, 100);
-
-          // Clean up on destroy
-          self.connect("destroy", () => {
-            clearInterval(checkCache);
-          });
         }}
       />
     );
@@ -477,22 +396,6 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
           cssName="wallpaper-thumbnail-container">
 
           <FastThumbnail path={item.path} />
-
-          {/* {bind(isSelected).as(selected => selected && ( */}
-          {/*   <box */}
-          {/*     cssName="wallpaper-selected-indicator" */}
-          {/*     halign={Gtk.Align.FILL} */}
-          {/*     valign={Gtk.Align.FILL} */}
-          {/*   > */}
-          {/*     <centerbox */}
-          {/*       halign={Gtk.Align.FILL} */}
-          {/*       valign={Gtk.Align.FILL} */}
-          {/*       centerWidget={ */}
-          {/*         <image iconName="object-select-symbolic" pixelSize={48} /> */}
-          {/*       } */}
-          {/*     /> */}
-          {/*   </box> */}
-          {/* ) || <box />)} */}
 
         </box>
       </button>
@@ -555,10 +458,6 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
                 const lastPage = Math.floor((wallpapers.get().length - 1) / WALLPAPERS_PER_PAGE);
                 if (currentPage.get() !== lastPage) {
                   currentPage.set(lastPage);
-                  setTimeout(() => {
-                    preloadCurrentPage();
-                    preloadNextPage();
-                  }, 50);
                 }
               }
             }
@@ -582,8 +481,8 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
                 if (currentPage.get() !== 0) {
                   currentPage.set(0);
                   setTimeout(() => {
-                    preloadCurrentPage();
-                    preloadNextPage();
+                    // preloadCurrentPage();
+                    // preloadNextPage();
                   }, 50);
                 }
               }
@@ -604,8 +503,8 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
               if (currentPage.get() !== 0) {
                 currentPage.set(0);
                 setTimeout(() => {
-                  preloadCurrentPage();
-                  preloadNextPage();
+                  // preloadCurrentPage();
+                  // preloadNextPage();
                 }, 50);
               }
             }
@@ -625,8 +524,8 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
               if (currentPage.get() !== lastPage) {
                 currentPage.set(lastPage);
                 setTimeout(() => {
-                  preloadCurrentPage();
-                  preloadNextPage();
+                  // preloadCurrentPage();
+                  // preloadNextPage();
                 }, 50);
               }
             }
@@ -638,8 +537,8 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
             if (currentPage.get() !== 0) {
               currentPage.set(0);
               setTimeout(() => {
-                preloadCurrentPage();
-                preloadNextPage();
+                // preloadCurrentPage();
+                // preloadNextPage();
               }, 50);
             }
             break;
@@ -651,8 +550,8 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
               if (currentPage.get() !== lastPage) {
                 currentPage.set(lastPage);
                 setTimeout(() => {
-                  preloadCurrentPage();
-                  preloadNextPage();
+                  // preloadCurrentPage();
+                  // preloadNextPage();
                 }, 50);
               }
             }
@@ -673,13 +572,7 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
           await saveOriginalOpacity();
           await applyWallpaperModeOpacity();
 
-          loadWallpapers().then(() => {
-            // Preload current page thumbnails after wallpapers are loaded
-            setTimeout(() => {
-              preloadCurrentPage();
-              preloadNextPage();
-            }, 100);
-          });
+          loadWallpapers();
         });
 
         // Restore opacity when window is hidden
@@ -741,11 +634,29 @@ export default function DesktopWallpaperWindow(props: WallpaperWindowProps) {
           </button>
         </box>
 
-        <box cssName="wallpaper-footer" spacing={8}>
-          <label
-            label={bind(pageIndicator)}
-            cssName="page-indicator"
-          />
+        <box cssName="wallpaper-footer" spacing={20}>
+          <box hexpand halign={Gtk.Align.START}>
+            <label
+              label={bind(pageIndicator)}
+              cssName="page-indicator"
+            />
+          </box>
+          <box hexpand halign={Gtk.Align.END} spacing={16}>
+            <box spacing={8}>
+              <KeyboardShortcut keys={["h"]} compact={false} />
+              <label label="/" cssClasses={["action-label"]} />
+              <KeyboardShortcut keys={["l"]} compact={false} />
+              <label label="Navigate" cssClasses={["action-label"]} />
+            </box>
+            <box spacing={8}>
+              <KeyboardShortcut keys={["Ctrl", "h/l"]} compact={false} />
+              <label label="Jump pages" cssClasses={["action-label"]} />
+            </box>
+            <box spacing={8}>
+              <KeyboardShortcut keys={["↵"]} compact={false} />
+              <label label="Select" cssClasses={["action-label"]} />
+            </box>
+          </box>
         </box>
       </box>
     </window>

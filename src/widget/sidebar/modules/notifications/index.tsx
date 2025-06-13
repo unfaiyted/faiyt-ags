@@ -1,8 +1,5 @@
 import { Widget, Gtk } from "astal/gtk4";
 import config from "../../../../utils/config";
-import gobject from "gi://GObject";
-import { VarMap } from "../../../../types/var-map";
-import Notification from "./notification";
 import Notifd from "gi://AstalNotifd";
 import { Variable, Binding, bind } from "astal";
 import {
@@ -23,8 +20,8 @@ const notifd = getNotifd();
 
 export const NotificationListEmpty = (props: Widget.BoxProps) => {
   return (
-    <box 
-      cssClasses={["notification-empty"]} 
+    <box
+      cssClasses={["notification-empty"]}
       valign={Gtk.Align.CENTER}
       halign={Gtk.Align.CENTER}
       hexpand

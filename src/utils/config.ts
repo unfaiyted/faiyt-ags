@@ -44,11 +44,7 @@ export const defaultConfigOptions: ConfigOptions = {
         temperature: 0.9,
         maxTokens: 2048,
         enabled: true,
-        models: [
-          "gemini-1.5-flash",
-          "gemini-1.5-pro",
-          "gemini-1.0-pro"
-        ],
+        models: ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"],
         cycleModels: false,
       },
       gpt: {
@@ -150,6 +146,7 @@ export const defaultConfigOptions: ConfigOptions = {
       directorySearch: true,
       aiSearch: true,
       webSearch: true,
+      stickers: true,
     },
     evaluators: {
       baseConverter: true,
@@ -181,6 +178,20 @@ export const defaultConfigOptions: ConfigOptions = {
         url: "https://claude.ai/new?q=%s",
         icon: "robot",
       },
+    },
+    stickers: {
+      packs: [
+        {
+          id: "65416f7802bc665180d5ab1b6e48fb41",
+          key: "5a8ce7501299bf580d9fb00edb507ec9a29cbaa0d71e3bd54421a93fd0772dd0",
+          name: "FFXIV Emotes HQ",
+        },
+        {
+          id: "74a7f27901d37720fa0ebaef9b714b74",
+          key: "36d8c2da117b9694be3827d508e1410a546b298f93bd60cbb99614739c91f68a",
+          name: "Fat Cat",
+        },
+      ],
     },
   },
   time: {
@@ -268,6 +279,8 @@ export const defaultConfigOptions: ConfigOptions = {
     changeInterval: 0, // in minutes, 0 = disabled
     itemsPerPage: 5,
     thumbnailSize: 160,
+    winActiveOpacity: 0.2,
+    winInactiveOpacity: 0.1,
     animationDuration: 300,
     sortBy: "name",
     supportedFormats: ["jpg", "jpeg", "png", "webp", "gif", "bmp"],

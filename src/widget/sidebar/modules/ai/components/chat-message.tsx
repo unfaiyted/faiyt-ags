@@ -76,7 +76,9 @@ export const ChatMessage = (props: ChatMessageProps) => {
       <box cssName="chat-avatar-wrapper" valign={Gtk.Align.START}>
         {isUser ? (
           avatarPath && GLib.file_test(avatarPath, GLib.FileTest.EXISTS) ? (
-            <image file={avatarPath} pixelSize={32} cssClasses={["chat-avatar"]} />
+            <box cssClasses={["chat-avatar"]} widthRequest={32} heightRequest={32} overflow={Gtk.Overflow.HIDDEN}>
+              <image file={avatarPath} pixelSize={32} />
+            </box>
           ) : (
             <box cssClasses={["chat-avatar-placeholder"]} widthRequest={32} heightRequest={32}>
               <PhosphorIcon iconName={PhosphorIcons.User} size={16} />
@@ -84,11 +86,11 @@ export const ChatMessage = (props: ChatMessageProps) => {
           )
         ) : (
           <box cssClasses={["chat-avatar-ai"]} widthRequest={32} heightRequest={32}>
-            <PhosphorIcon iconName={PhosphorIcons.Robot} size={16} />
+            <PhosphorIcon iconName={PhosphorIcons.Robot} marginStart={6} size={16} />
           </box>
         )}
       </box>
-      
+
       {/* Message content */}
       <box vertical hexpand>
         <label

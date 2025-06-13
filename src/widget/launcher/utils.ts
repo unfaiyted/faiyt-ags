@@ -57,6 +57,10 @@ export const SEARCH_PREFIXES: Record<string, SearchType> = {
   "k:": SearchType.KILL,
   "killall:": SearchType.KILL,
   "pkill:": SearchType.KILL,
+  "sticker:": SearchType.STICKERS,
+  "stickers:": SearchType.STICKERS,
+  "stkr:": SearchType.STICKERS,
+  "st:": SearchType.STICKERS,
 };
 
 export interface ParsedSearch {

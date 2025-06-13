@@ -151,6 +151,7 @@ export interface ConfigOptions {
       directorySearch: boolean;
       aiSearch: boolean;
       webSearch: boolean;
+      stickers: boolean;
     };
     evaluators: {
       baseConverter: boolean;
@@ -170,6 +171,13 @@ export interface ConfigOptions {
         url: string;
         icon: string;
       };
+    };
+    stickers: {
+      packs: Array<{
+        id: string;
+        key: string;
+        name?: string;
+      }>;
     };
   };
   time: {
@@ -280,6 +288,8 @@ export interface ConfigOptions {
     changeInterval: number; // in minutes, 0 = disabled
     itemsPerPage: number;
     thumbnailSize: number;
+    winActiveOpacity: number;
+    winInactiveOpacity: number;
     animationDuration: number;
     sortBy: "name" | "date" | "random";
     supportedFormats: string[];
