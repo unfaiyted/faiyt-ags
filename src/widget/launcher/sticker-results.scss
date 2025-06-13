@@ -11,7 +11,7 @@
   padding-top: 0px;
   max-height: 30px;
   min-height: 30px;
-  min-width: 600px;
+  min-width: 800px;
 }
 
 .sticker-pack-bar {
@@ -71,8 +71,13 @@
   background: colors.c(base, 0.2);
   border-radius: 12px;
   padding: 12px;
-  min-height: 390px;
+  min-height: 410px;
   min-width: 800px;
+}
+
+.sticker-grid-revealer {
+  transition: all 0.2s ease;
+  width: 800px;
 }
 
 .sticker-grid {

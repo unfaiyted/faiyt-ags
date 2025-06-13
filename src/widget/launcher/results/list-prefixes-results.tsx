@@ -15,7 +15,7 @@ export function createListPrefixesButton(
     index: number;
     selected: Binding<boolean>;
     ref?: (button: Gtk.Button) => void;
-    entryRef: Gtk.Entry;
+    entryRef?: Gtk.Entry;
   }
 ) {
   return (

@@ -1,6 +1,7 @@
 import { Widget, Gtk } from "astal/gtk4";
 import { Variable, Binding, bind } from "astal";
 import { ItemDetails } from "../components/unified-results";
+import { RoundedImageReactive } from "../../utils/rounded-image";
 
 export interface DetailPanelProps extends Widget.BoxProps {
   monitorIndex: number;

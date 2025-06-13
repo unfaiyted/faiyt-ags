@@ -7,7 +7,7 @@ export interface KeyboardShortcutProps extends Widget.BoxProps {
 
 export default function KeyboardShortcut({ keys, compact = false, ...props }: KeyboardShortcutProps) {
   return (
-    <box 
+    <box
       {...props}
       spacing={compact ? 2 : 4}
       cssClasses={["keyboard-shortcut"]}
@@ -17,14 +17,20 @@ export default function KeyboardShortcut({ keys, compact = false, ...props }: Ke
       {keys.map((key, index) => (
         <>
           {index > 0 && !compact && (
-            <label 
+            <label
               cssClasses={["keyboard-shortcut-plus"]}
               label="+"
               valign={Gtk.Align.CENTER}
             />
           )}
-          <box cssClasses={["keyboard-key", ...(compact ? ["compact"] : [])]}>
-            <label 
+          <box
+            halign={Gtk.Align.CENTER}
+            valign={Gtk.Align.CENTER}
+
+            cssClasses={["keyboard-key", ...(compact ? ["compact"] : [])]}>
+            <label
+              halign={Gtk.Align.CENTER}
+              valign={Gtk.Align.CENTER}
               label={key}
               cssClasses={["keyboard-key-label"]}
             />
@@ -43,7 +49,7 @@ export function formatShortcut(shortcut: string): string[] {
     .filter(k => k.length > 0)
     .map(k => {
       // Convert common key names to symbols
-      switch(k.toLowerCase()) {
+      switch (k.toLowerCase()) {
         case "ctrl":
         case "control":
           return "Ctrl";

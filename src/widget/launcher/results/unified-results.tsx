@@ -20,13 +20,12 @@ import getExternalSearchResults, { ExternalSearchResult, createExternalSearchBut
 import getDirectoryResults, { DirectoryButtonResult, createDirectoryButton } from "./directory-results";
 import getHyprlandResults, { HyprlandWindowResult, createHyprlandButton } from "./hyprland-results";
 import getListPrefixesResults, { ListPrefixesResult, createListPrefixesButton } from "./list-prefixes-results";
-import { HyprlandClient } from "../components/hyprland-results";
+import { HyprlandClient } from "./hyprland-results";
 import getKillResults, { KillButtonResult } from "./kill-results";
 import KillButton from "../buttons/kill-button";
-import { StickerResults } from "../sticker-results";
+import { StickerResults } from "./sticker-results";
 
 // TODO: Add in new types for emojis/icons. 
-// TODO: memes/gifs. Maybe use a custom widget for this?
 // For one I want to be able to quickly type in some keyworkds and find different memes and
 // copy them to the clipboard. Custom button type widget. Also, for displaying the gifs.
 // That might be a bit tricky though. (Gtk.PixbufAnimation?)
@@ -36,6 +35,7 @@ export interface UnifiedResultsRef {
   selectNext: () => void;
   selectPrevious: () => void;
   activateSelected: () => void;
+  focusEntry?: () => void;
 }
 
 export interface ItemDetails<HyprlandItemOptions> {
@@ -56,6 +56,7 @@ export interface UnifiedResultsListProps extends Widget.BoxProps {
   selectedIndex: Variable<number>;
   selectedItem?: Variable<any>;
   focusedItem?: Variable<ItemDetails<any> | null>;
+  searchType: Variable<SearchType>;
   entryRef?: Gtk.Entry;
   refs?: (ref: UnifiedResultsRef) => void;
 }
@@ -155,6 +156,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         hyprland: [],
         listPrefixes: [],
         kill: [],
+        stickers: [],
         total: 0
       });
       activeResultType.set(SearchType.ALL);
@@ -192,6 +194,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         hyprland: [],
         listPrefixes: [],
         kill: [],
+        stickers: [],
         total: 0
       });
       activeResultType.set(SearchType.ALL);
@@ -221,51 +224,63 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
 
       switch (parsed.type) {
         case SearchType.APPS:
+          props.searchType.set(SearchType.APPS);
           log.debug("Searching apps only", { query: parsed.query });
           appList = getAppResults(parsed.query);
           break;
         case SearchType.SCREENCAPTURE:
+          props.searchType.set(SearchType.SCREENCAPTURE);
           log.debug("Searching screen captures only", { query: parsed.query });
           screenList = getScreenCaptureResults(parsed.query, true);
           break;
         case SearchType.COMMANDS:
+          props.searchType.set(SearchType.COMMANDS);
           log.debug("Searching commands only", { query: parsed.query });
           commandList = getCommandResults(parsed.query, true);
           break;
         case SearchType.SYSTEM:
+          props.searchType.set(SearchType.SYSTEM);
           log.debug("Searching system actions only", { query: parsed.query });
           systemList = getSystemResults(parsed.query, true);
           break;
         case SearchType.CLIPBOARD:
+          props.searchType.set(SearchType.CLIPBOARD);
           log.debug("Searching clipboard only", { query: parsed.query });
           clipboardList = getClipboardResults(parsed.query, true);
           break;
         case SearchType.EXTERNAL_SEARCH:
+          props.searchType.set(SearchType.EXTERNAL_SEARCH);
           log.debug("Searching external providers", { query: parsed.query });
           externalSearchList = getExternalSearchResults(text);
           break;
         case SearchType.DIRECTORY:
+          props.searchType.set(SearchType.DIRECTORY);
           log.debug("Searching directories", { query: parsed.query });
           directoryList = await getDirectoryResults(parsed.query);
           break;
         case SearchType.HYPRLAND:
+          props.searchType.set(SearchType.HYPRLAND);
           log.debug("Searching Hyprland windows", { query: parsed.query });
           hyprlandList = await getHyprlandResults(parsed.query);
           break;
         case SearchType.LIST_PREFIXES:
+          props.searchType.set(SearchType.LIST_PREFIXES);
           log.debug("Listing search prefixes", { query: parsed.query });
           listPrefixesList = getListPrefixesResults(parsed.query, maxResults);
           break;
         case SearchType.KILL:
+          props.searchType.set(SearchType.KILL);
           log.debug("Searching processes to kill", { query: parsed.query });
           killList = await getKillResults(parsed.query, true);
           break;
         case SearchType.STICKERS:
+          props.searchType.set(SearchType.STICKERS);
           log.debug("Searching stickers", { query: parsed.query });
           // For stickers, we'll handle it differently - not adding to regular results
           break;
         case SearchType.ALL:
         default:
+          props.searchType.set(SearchType.ALL);
           log.debug("Searching all types", { query: parsed.query });
           appList = getAppResults(parsed.query);
           screenList = getScreenCaptureResults(parsed.query, false);
@@ -509,12 +524,19 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     >
       {bind(Variable.derive([activeResultType, debouncedSearchText], (type, text) =>
         type === SearchType.STICKERS ? (
-          <StickerResults
-            query={parseSearchText(text).query}
-            selectedIndex={selectedIndex}
-            resultsCount={Variable(0)}
-            entryRef={entryRef}
-          />
+          <revealer
+            transitionDuration={config.animations?.durationLarge || 300}
+            revealChild={true}
+            transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
+            halign={Gtk.Align.START}
+          >
+            <StickerResults
+              query={parseSearchText(text).query}
+              selectedIndex={selectedIndex}
+              resultsCount={Variable(0)}
+              entryRef={entryRef}
+            />
+          </revealer>
         ) : (
           <revealer
             transitionDuration={config.animations?.durationLarge || 300}

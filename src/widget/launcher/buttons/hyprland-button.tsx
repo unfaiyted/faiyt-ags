@@ -1,4 +1,4 @@
-import { Widget, App, Gtk, Gdk } from "astal/gtk4";
+import { Widget, Gtk, Gdk } from "astal/gtk4";
 import LauncherButton from "./index";
 import { Variable, Binding, bind } from "astal";
 import { execAsync } from "astal/process";
@@ -10,7 +10,6 @@ import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { PhosphorIcons, PhosphorIconStyle } from "../../utils/icons/types";
 import windowManager from "../../../services/window-manager";
 import { RoundedImageReactive } from "../../utils/rounded-image";
-import { c } from "../../../utils/style";
 
 const log = createLogger("HyprlandButton");
 
@@ -78,7 +77,7 @@ async function focusWindow(address: string) {
 
 export default function HyprlandButton(props: HyprlandButtonProps) {
   const { client, index, ...rest } = props;
-  
+
   log.debug("HyprlandButton props", {
     hasClient: !!client,
     hasSelected: !!props.selected,
@@ -142,7 +141,7 @@ export default function HyprlandButton(props: HyprlandButtonProps) {
     <box vertical cssClasses={["window-screenshot-container"]} spacing={0}>
       <box cssClasses={["window-screenshot-frame"]}>
         <RoundedImageReactive
-          file={screenshotPath}
+          file={bind(screenshotPath)}
           size={76}
           radius={12}
           cssClasses={["window-screenshot-preview"]}
