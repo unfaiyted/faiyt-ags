@@ -88,6 +88,26 @@ export function generateScreenCaptureOptions(): ScreenCaptureOption[] {
     });
   });
 
+  // High-quality recording options for YouTube
+  options.push({
+    name: "HQ Record Selection",
+    description: "Record selected area in high quality (YouTube-ready)",
+    icon: "camera-video-symbolic",
+    command: "/home/faiyt/.config/ags/scripts/screen-capture.sh",
+    args: ["record-hq", "selection"]
+  });
+
+  // Add monitor-specific high-quality recording options
+  monitors.forEach(monitor => {
+    options.push({
+      name: `HQ Record ${monitor}`,
+      description: `Record ${monitor} in high quality (60fps, H.264, YouTube-ready)`,
+      icon: "camera-video-symbolic",
+      command: "/home/faiyt/.config/ags/scripts/screen-capture.sh",
+      args: ["record-hq", monitor]
+    });
+  });
+
   // Check if recording is active
   let isRecording = false;
   try {
@@ -123,6 +143,14 @@ export function generateScreenCaptureOptions(): ScreenCaptureOption[] {
     icon: "phone-symbolic",
     command: "/home/faiyt/.config/ags/scripts/screen-capture.sh",
     args: ["convert", "iphone"]
+  });
+
+  options.push({
+    name: "Convert for YouTube",
+    description: "Convert recordings to YouTube-optimized format (H.264, high quality)",
+    icon: "video-display-symbolic",
+    command: "/home/faiyt/.config/ags/scripts/screen-capture.sh",
+    args: ["convert", "youtube"]
   });
 
   return options;

@@ -2,11 +2,7 @@
 
 A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Shell)](https://github.com/Aylur/ags) for Wayland environments. This configuration provides a complete desktop experience with a customizable bar, application launcher, sidebars, and system overlays.
 
-## Demo Video
 
-https://github.com/unfaiyted/faiyt-ags/assets/unfaiyted/demo.mp4
-
-> **Note**: If the video doesn't display above, you can [download it directly](https://github.com/unfaiyted/faiyt-ags/raw/main/docs/demo.mp4) or drag and drop the `docs/demo.mp4` file into this section when editing.
 
 ![Desktop Shell](docs/wallpaper-window-manager.png)
 
@@ -227,7 +223,6 @@ Contributions are welcome! Please ensure:
 - Code follows existing patterns
 - TypeScript types are properly defined
 - Components are reactive and efficient
-- Styles use Tailwind classes where possible
 
 ## License
 
@@ -238,3 +233,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [Aylur's GTK Shell (AGS)](https://github.com/Aylur/ags) - The framework powering this configuration
 - [Hyprland](https://hyprland.org/) - The Wayland compositor
 - [Astal](https://github.com/Aylur/astal) - The reactive framework for AGS
+
+## Special Thanks
+
+- [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) - Inspiration for many UI components and design patterns.
+- [signalstickers/stickers-client](https://github.com/signalstickers/stickers-client) - Reference implementation for Signal sticker integration logic

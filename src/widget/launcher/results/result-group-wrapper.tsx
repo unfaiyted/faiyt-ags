@@ -1,11 +1,6 @@
 import { Widget, Gtk } from "astal/gtk4";
-import { Variable, Binding, bind } from "astal";
-import ScreenCaptureButton, {
-  ScreenCaptureOption,
-  generateScreenCaptureOptions
-} from "../buttons/screen-capture-button";
+import { Binding } from "astal";
 import config from "../../../utils/config";
-import { SCREEN_TRIGGER_KEYWORDS } from "../types";
 
 export interface ResultGroupWrapperProps extends Widget.BoxProps {
   groupName: string;
