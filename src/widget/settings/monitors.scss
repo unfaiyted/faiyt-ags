@@ -14,9 +14,7 @@ monitors-window-wrapper {
 monitors-container {
   margin: auto;
   width: 900px;
-  max-width: 95%;
   height: 600px;
-  max-height: 90%;
   background: colors.c(background-elevated, 0.85);
   backdrop-filter: blur(24px) saturate(200%);
   -webkit-backdrop-filter: blur(24px) saturate(200%);
@@ -130,7 +128,6 @@ monitor-item {
   }
 
   &.dragging {
-    cursor: grabbing;
     opacity: 0.8;
     box-shadow:
       0 12px 24px colors.c(base, 0.5),
@@ -284,19 +281,18 @@ monitors-settings-header {
   background: colors.c(background-alt, 0.1);
   border: none;
   transition: background 150ms ease;
-  
+
   &:hover {
     background: colors.c(background-alt, 0.15);
   }
-  
+
   &:active {
     background: colors.c(background-alt, 0.2);
   }
-  
+
   &:disabled {
     opacity: 0.6;
-    cursor: not-allowed;
-    
+
     &:hover {
       background: colors.c(background-alt, 0.1);
     }
@@ -330,7 +326,7 @@ monitors-settings-wrapper {
 // Monitor settings placeholder
 monitors-settings-placeholder {
   padding: 40px;
-  
+
   monitors-settings-placeholder-text {
     font-size: 14px;
     color: colors.c(text, 0.5);
@@ -348,7 +344,7 @@ revealer {
   &.reveal-child {
     animation: slideDown 300ms ease-out;
   }
-  
+
   &:not(.reveal-child) {
     animation: slideUp 300ms ease-out;
   }
@@ -359,6 +355,7 @@ revealer {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -370,6 +367,7 @@ revealer {
     opacity: 1;
     transform: translateY(0);
   }
+
   to {
     opacity: 0;
     transform: translateY(-10px);
@@ -491,7 +489,6 @@ apply-button {
 
   &:disabled {
     opacity: 0.5;
-    cursor: not-allowed;
   }
 }
 

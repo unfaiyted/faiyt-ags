@@ -25,12 +25,6 @@ const WifiStatus = () => {
   const strength = Variable(network.wifi?.strength || 0);
   const isEnabled = Variable(network.wifi?.enabled || false);
 
-  isEnabled.subscribe(value => {
-    log.debug("WiFi enabled state changed", { enabled: value });
-    actions.network.setWifi(value);
-  });
-
-
   // Subscribe to changes
   network.get_wifi()?.connect("notify", () => {
     log.debug("WiFi status changed", {

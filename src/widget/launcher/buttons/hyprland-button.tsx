@@ -4,7 +4,7 @@ import { Variable, Binding, bind } from "astal";
 import { execAsync } from "astal/process";
 import GLib from "gi://GLib";
 import actions from "../../../utils/actions";
-import { HyprlandClient } from "../components/hyprland-results";
+import { HyprlandClient } from "../results/hyprland-results";
 import { createLogger } from "../../../utils/logger";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { PhosphorIcons, PhosphorIconStyle } from "../../utils/icons/types";

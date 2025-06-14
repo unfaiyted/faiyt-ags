@@ -120,7 +120,8 @@ function cleanCSS(cssContent) {
   // Remove unsupported properties
   unsupportedProperties.forEach(prop => {
     // Match property declarations including vendor prefixes
-    const regex = new RegExp(`\\s*-?(?:webkit-|moz-|ms-|o-)?${prop}\\s*:[^;]+;`, 'gi');
+    // Updated regex to match complete property names including any prefix before hyphen
+    const regex = new RegExp(`\\s*[\\w-]*?(?:webkit-|moz-|ms-|o-)?${prop}\\s*:[^;]+;`, 'gi');
     cleaned = cleaned.replace(regex, '');
   });
   
@@ -132,8 +133,15 @@ function cleanCSS(cssContent) {
     cleaned = cleaned.replace(regex, '');
   });
   
-  // Remove empty rules
-  cleaned = cleaned.replace(/[^{}]+\{\s*\}/g, '');
+  // Remove empty rules - multiple passes to catch nested cases
+  let previousLength;
+  do {
+    previousLength = cleaned.length;
+    // Remove rules with empty or whitespace-only content
+    cleaned = cleaned.replace(/[^{}]+\{\s*\}/g, '');
+    // Remove incomplete rules (opening brace without closing)
+    cleaned = cleaned.replace(/[^{}]+\{\s*(?=[^}]*(?:\{|$))/g, '');
+  } while (cleaned.length !== previousLength);
   
   // Clean up extra newlines
   cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n');

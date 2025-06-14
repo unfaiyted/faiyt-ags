@@ -14,7 +14,6 @@ settings-window-wrapper {
 settings-container {
   margin: auto;
   width: 600px;
-  max-width: 90%;
   height: 500px;
   max-height: 90%;
   background: colors.c(background-elevated, 0.85);
@@ -376,32 +375,40 @@ keybind-input {
   font-size: 13px;
   font-family: monospace;
   transition: all 150ms ease;
-  
+
   &:hover {
     background: colors.c(background-alt, 0.4);
     border-color: colors.c(border, 0.25);
   }
-  
+
   &:focus {
     border-color: colors.c(primary, 0.5);
     box-shadow: 0 0 0 2px colors.c(primary, 0.2);
   }
-  
+
   &.recording {
     background: colors.c(primary, 0.2);
     border-color: colors.c(primary, 0.6);
     animation: pulse 1s ease-in-out infinite;
   }
-  
+
   label {
     font-size: 13px;
   }
 }
 
 @keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.7; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 keybind-cancel,
@@ -414,17 +421,17 @@ keybind-clear {
   min-height: 28px;
   color: colors.c(text, 0.7);
   transition: all 150ms ease;
-  
+
   &:hover {
     background: colors.c(background-alt, 0.5);
     border-color: colors.c(border, 0.2);
     color: colors.c(text);
   }
-  
+
   &:active {
     transform: scale(0.95);
   }
-  
+
   label {
     font-size: 14px;
   }

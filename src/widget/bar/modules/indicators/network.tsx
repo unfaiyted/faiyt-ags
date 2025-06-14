@@ -82,10 +82,12 @@ export const NetworkWifiIndicator = (props: NetworkWifiIndicatorProps) => {
   if (!network.wifi) return <box></box>;
 
   const shown = Variable(Network.Internet.DISCONNECTED.toString());
+  // Generate a unique ID for this instance to avoid duplicate Stack child names
+  const instanceId = Math.random().toString(36).substring(7);
 
   if (network.wifi.internet == Network.Internet.CONNECTED) {
     log.info("WiFi connected", { strength: network.wifi.strength });
-    shown.set(String(Math.ceil(network.wifi.strength / 25)));
+    shown.set(String(Math.ceil(network.wifi.strength / 25)) + `-${instanceId}`);
     log.info("WiFi connected as shown", { shown: shown.get() });
   } else {
     shown.set(Network.Internet.DISCONNECTED.toString());
@@ -95,7 +97,7 @@ export const NetworkWifiIndicator = (props: NetworkWifiIndicatorProps) => {
     log.info("Wifi network state changed", { state: network.wifi.state });
     log.info("New WiFi state", { state: newState });
     log.info("WiFi connected", { strength: network.wifi.strength });
-    shown.set(String(Math.ceil(network.wifi.strength / 25)));
+    shown.set(String(Math.ceil(network.wifi.strength / 25)) + `-${instanceId}`);
   });
 
 
@@ -108,45 +110,45 @@ export const NetworkWifiIndicator = (props: NetworkWifiIndicatorProps) => {
       visibleChildName={bind(shown)}
     >
       <PhosphorIcon
-        name="disabled"
+        name={`disabled-${instanceId}`}
         style={PhosphorIconStyle.Duotone}
         iconName={PhosphorIcons.WifiSlash}
       />
       <PhosphorIcon
-        name={Network.Internet.DISCONNECTED.toString()}
+        name={`${Network.Internet.DISCONNECTED.toString()}-${instanceId}`}
         iconName={PhosphorIcons.WifiX}
       />
       <PhosphorIcon
-        name={Network.Internet.CONNECTING.toString()}
+        name={`${Network.Internet.CONNECTING.toString()}-${instanceId}`}
         iconName={PhosphorIcons.Network}
       />
       <PhosphorIcon
-        name="0"
+        name={`0-${instanceId}`}
         style={PhosphorIconStyle.Regular}
         iconName={PhosphorIcons.WifiNone}
       />
       <PhosphorIcon
-        name="1"
+        name={`1-${instanceId}`}
         style={PhosphorIconStyle.Regular}
         iconName={PhosphorIcons.WifiLow}
       />
       <PhosphorIcon
-        name="2"
+        name={`2-${instanceId}`}
         style={PhosphorIconStyle.Regular}
         iconName={PhosphorIcons.WifiMedium}
       />
       <PhosphorIcon
-        name="3"
+        name={`3-${instanceId}`}
         style={PhosphorIconStyle.Regular}
         iconName={PhosphorIcons.WifiMedium}
       />
       <PhosphorIcon
-        name="4"
+        name={`4-${instanceId}`}
         style={PhosphorIconStyle.Regular}
         iconName={PhosphorIcons.WifiHigh}
       />
       <PhosphorIcon
-        name="5"
+        name={`5-${instanceId}`}
         style={PhosphorIconStyle.Regular}
         iconName={PhosphorIcons.WifiHigh}
       />

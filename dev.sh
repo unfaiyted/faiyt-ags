@@ -55,6 +55,12 @@ echo "Running tailwind-patch..."
     exit 1
 }
 
+./scripts/fix-gtk4-css.js ./src/output.css || {
+    echo "fix-gtk4-css failed"
+    notify-send "AGS Error" "fix-gtk4-css failed"
+    exit 1
+}
+
 killall swaync 2>/dev/null || true
 nwg-look -a
 

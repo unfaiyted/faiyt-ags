@@ -93,7 +93,17 @@ const BluetoothStatus = () => {
             setup={setupCursorHover}
             active={bind(isEnabled)}
             onStateSet={(self, state) => {
-              actions.bluetooth.toggle();
+              // Only toggle if the state is different from current state
+              // This prevents recursion when the switch updates from the bound variable
+              if (state !== isEnabled.get()) {
+                if (state) {
+                  actions.bluetooth.enable();
+                } else {
+                  actions.bluetooth.disable();
+                }
+              }
+              // Return true to accept the state change
+              return true;
             }}
           />
         </box>
