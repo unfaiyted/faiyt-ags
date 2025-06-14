@@ -2,7 +2,13 @@
 
 A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Shell)](https://github.com/Aylur/ags) for Wayland environments. This configuration provides a complete desktop experience with a customizable bar, application launcher, sidebars, and system overlays.
 
-![Desktop Shell](https://github.com/user-attachments/assets/desktop-preview.png)
+## Demo Video
+
+https://github.com/unfaiyted/faiyt-ags/assets/unfaiyted/demo.mp4
+
+> **Note**: If the video doesn't display above, you can [download it directly](https://github.com/unfaiyted/faiyt-ags/raw/main/docs/demo.mp4) or drag and drop the `docs/demo.mp4` file into this section when editing.
+
+![Desktop Shell](docs/wallpaper-window-manager.png)
 
 ## Features
 
@@ -33,6 +39,12 @@ A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Sh
 - Fuzzy matching for applications
 - Keyboard navigation
 - Click-outside to dismiss
+- Signal sticker integration
+- List actions for quick access
+
+![Launcher Basic](docs/launcher-basic.png)
+![Launcher List Actions](docs/launcher-list-actions.png)
+![Launcher Stickers](docs/launcher-stickers.png)
 
 ### Sidebars
 - Slide-out panels from screen edges
@@ -47,6 +59,8 @@ A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Sh
     - Notification center
     - Calendar widget
   - Additional system tools
+
+![Side Panels](docs/side-panels.png)
 
 ### System Overlays
 - On-screen displays for:

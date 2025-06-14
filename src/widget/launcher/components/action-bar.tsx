@@ -11,7 +11,7 @@ export interface ActionBarProps {
   focusedItem: Binding<any>;
   searchType: Binding<SearchType>;
   entryRef?: Gtk.Entry;
-  evaluatorResult: Variable<EvaluatorResult | null>;
+  evaluatorResult: Binding<EvaluatorResult | null>;
 }
 function DefaultActionBar(props: ActionBarProps) {
   return (

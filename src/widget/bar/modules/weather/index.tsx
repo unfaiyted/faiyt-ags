@@ -85,9 +85,33 @@ export default function SideModule() {
 
   const WEATHER_CACHE_PATH = WEATHER_CACHE_FOLDER + "/wttr.in.txt";
 
-  const updateWeatherForCity = (city: string) =>
-    actions.weather
-      .update(city)
+  const updateWeatherForCity = (city: string) => {
+    // Format city name for wttr.in API
+    // Replace spaces with + for better compatibility
+    const formattedCity = city.replace(/ /g, "+");
+
+    return actions.weather
+      .update(formattedCity)
+      .then((output) => {
+        log.debug("Raw weather API response", { city: formattedCity, output: output.substring(0, 200) });
+
+        // Check if the response is an error message (not JSON)
+        if (output.startsWith("Unknown location") || output.includes("please try")) {
+          log.warn("Weather API returned location error", { city: formattedCity, response: output });
+
+          // Try to extract coordinates from the error message
+          const coordMatch = output.match(/~(-?\d+\.\d+),(-?\d+\.\d+)/);
+          if (coordMatch) {
+            const [, lat, lon] = coordMatch;
+            log.info("Retrying with coordinates from error message", { lat, lon });
+            return actions.weather.update(`${lat},${lon}`);
+          }
+
+          throw new Error(`Location not recognized: ${city}`);
+        }
+
+        return output;
+      })
       .then((output) => {
         try {
           const weather = JSON.parse(output);
@@ -157,13 +181,30 @@ export default function SideModule() {
             weatherDesc.set("Weather data unavailable");
           }
         } catch (err) {
-          log.error("Error parsing weather data", { error: err });
+          log.error("Error parsing weather data", {
+            error: err instanceof Error ? {
+              message: err.message,
+              stack: err.stack,
+              name: err.name
+            } : err,
+            rawOutput: output ? output.substring(0, 500) : 'No output',
+            outputType: typeof output,
+            city
+          });
           weatherIcon.set(PhosphorIcons.Thermometer);
           weatherIconColor.set(theme.foreground);
-          weatherDesc.set("Weather parse error");
+          weatherDesc.set("?");
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        log.error("Failed to fetch weather from API", {
+          city,
+          error: error instanceof Error ? {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          } : error
+        });
         try {
           // Read from cache
           const weather = JSON.parse(readFile(WEATHER_CACHE_PATH));
@@ -179,8 +220,9 @@ export default function SideModule() {
               const weatherDescription = condition.weatherDesc[0].value;
 
               // Make sure the temperature values exist
-              const tempUnit = `temp_${config.weather.preferredUnit}`;
-              const feelsLikeUnit = `FeelsLike${config.weather.preferredUnit}`;
+              const preferredUnit = configManager.getValue("weather.preferredUnit") || "C";
+              const tempUnit = `temp_${preferredUnit}`;
+              const feelsLikeUnit = `FeelsLike${preferredUnit}`;
 
               if (condition[tempUnit] && condition[feelsLikeUnit] &&
                 WwoCode[weatherCode]) {
@@ -203,8 +245,8 @@ export default function SideModule() {
                   temperature.set(tempValue);
                   feelsLike.set(feelsLikeValue);
                   tempColor.set(getTempColor(tempValue));
-                  weatherDesc.set(`${tempValue}°${config.weather.preferredUnit}`);
-                  tooltipText.set(`${weatherDescription} - Feels like ${feelsLikeValue}°${config.weather.preferredUnit}`);
+                  weatherDesc.set(`${tempValue}°${preferredUnit}`);
+                  tooltipText.set(`${weatherDescription} - Feels like ${feelsLikeValue}°${preferredUnit}`);
                 } catch (symbolErr) {
                   log.error("Weather symbol error", { error: symbolErr });
                   weatherIcon.set(PhosphorIcons.Thermometer);
@@ -237,11 +279,29 @@ export default function SideModule() {
           weatherDesc.set("Weather unavailable");
         }
       });
+  };
+
   const weatherCity = configManager.getValue("weather.city");
+  log.debug("Weather city configuration", { configuredCity: weatherCity });
+
   if (weatherCity && weatherCity !== "") {
-    updateWeatherForCity(weatherCity.replace(/ /g, "%20"));
+    log.info("Using configured weather city", { city: weatherCity });
+    updateWeatherForCity(weatherCity);
   } else {
-    actions.network.ipCityInfo().then(updateWeatherForCity).catch(print);
+    log.info("No weather city configured, detecting from IP");
+    actions.network.ipCityInfo()
+      .then((detectedCity) => {
+        log.info("Detected city from IP", { city: detectedCity });
+        updateWeatherForCity(detectedCity);
+      })
+      .catch((error) => {
+        log.error("Failed to detect city from IP", {
+          error: error instanceof Error ? {
+            message: error.message,
+            stack: error.stack
+          } : error
+        });
+      });
   }
 
   // Subscribe to config changes for weather settings
@@ -250,7 +310,7 @@ export default function SideModule() {
       log.debug("Weather config changed, updating", { path });
       const newCity = configManager.getValue("weather.city");
       if (newCity && newCity !== "") {
-        updateWeatherForCity(newCity.replace(/ /g, "%20"));
+        updateWeatherForCity(newCity);
       } else {
         actions.network.ipCityInfo().then(updateWeatherForCity).catch(print);
       }
@@ -261,7 +321,7 @@ export default function SideModule() {
   GLib.timeout_add(GLib.PRIORITY_DEFAULT, 30 * 60 * 1000, () => {
     const city = configManager.getValue("weather.city");
     if (city && city !== "") {
-      updateWeatherForCity(city.replace(/ /g, "%20"));
+      updateWeatherForCity(city);
     } else {
       actions.network.ipCityInfo().then(updateWeatherForCity).catch(print);
     }

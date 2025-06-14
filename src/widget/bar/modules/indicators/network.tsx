@@ -4,9 +4,9 @@ import { Widget, Gtk } from "astal/gtk4";
 import { Variable, bind } from "astal";
 import PhosphorIcon from "../../../utils/icons/phosphor";
 import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
-import { c } from "../../../../utils/style"
 import { theme } from "../../../../utils/color"
 const network = Network.get_default();
+import { barLogger as log } from "../../../../utils/logger";
 
 const NetworkWiredIndicator = (props: Widget.StackProps) => {
   if (!network.wired) return <box></box>;
@@ -18,6 +18,8 @@ const NetworkWiredIndicator = (props: Widget.StackProps) => {
     [Network.Internet.CONNECTING, Network.Internet.CONNECTED].includes(internet)
   )
     shown.set(internet);
+
+  log.info("Wired network indicator shown", { shown: shown.get() });
 
   return (
     <stack
@@ -79,25 +81,32 @@ export interface NetworkWifiIndicatorProps extends Widget.StackProps { }
 export const NetworkWifiIndicator = (props: NetworkWifiIndicatorProps) => {
   if (!network.wifi) return <box></box>;
 
-  const shown = new Variable(Network.Internet.DISCONNECTED.toString());
-  const { internet } = network.wifi;
+  const shown = Variable(Network.Internet.DISCONNECTED.toString());
 
   if (network.wifi.internet == Network.Internet.CONNECTED) {
+    log.info("WiFi connected", { strength: network.wifi.strength });
     shown.set(String(Math.ceil(network.wifi.strength / 25)));
+    log.info("WiFi connected as shown", { shown: shown.get() });
+  } else {
+    shown.set(Network.Internet.DISCONNECTED.toString());
   }
 
-  if (
-    [Network.Internet.CONNECTING, Network.Internet.CONNECTED].includes(internet)
-  )
-    shown.set(internet.toString());
+  network.wifi.connect("state-changed", (self, newState) => {
+    log.info("Wifi network state changed", { state: network.wifi.state });
+    log.info("New WiFi state", { state: newState });
+    log.info("WiFi connected", { strength: network.wifi.strength });
+    shown.set(String(Math.ceil(network.wifi.strength / 25)));
+  });
+
+
+  log.info("WiFi shown", { shown: shown.get() });
 
   return (
     <stack
       transitionType={Gtk.StackTransitionType.SLIDE_UP_DOWN}
       transitionDuration={config.animations.durationSmall}
-      visibleChildName={bind(shown).as((v) => v.toString())}
+      visibleChildName={bind(shown)}
     >
-
       <PhosphorIcon
         name="disabled"
         style={PhosphorIconStyle.Duotone}
@@ -113,27 +122,32 @@ export const NetworkWifiIndicator = (props: NetworkWifiIndicatorProps) => {
       />
       <PhosphorIcon
         name="0"
-        style={PhosphorIconStyle.Duotone}
+        style={PhosphorIconStyle.Regular}
         iconName={PhosphorIcons.WifiNone}
       />
       <PhosphorIcon
         name="1"
-        style={PhosphorIconStyle.Duotone}
+        style={PhosphorIconStyle.Regular}
         iconName={PhosphorIcons.WifiLow}
       />
       <PhosphorIcon
         name="2"
-        style={PhosphorIconStyle.Duotone}
+        style={PhosphorIconStyle.Regular}
         iconName={PhosphorIcons.WifiMedium}
       />
       <PhosphorIcon
         name="3"
-        style={PhosphorIconStyle.Duotone}
+        style={PhosphorIconStyle.Regular}
         iconName={PhosphorIcons.WifiMedium}
       />
       <PhosphorIcon
         name="4"
-        style={PhosphorIconStyle.Duotone}
+        style={PhosphorIconStyle.Regular}
+        iconName={PhosphorIcons.WifiHigh}
+      />
+      <PhosphorIcon
+        name="5"
+        style={PhosphorIconStyle.Regular}
         iconName={PhosphorIcons.WifiHigh}
       />
     </stack>

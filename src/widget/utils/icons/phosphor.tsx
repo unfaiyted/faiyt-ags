@@ -237,6 +237,7 @@ export function PhosphorIcon(props: PhosphorIconProps) {
 
   // Return the image component
   return <image
+    name={rest.name || ""}
     cssName={rest.cssName || ""}
     cssClasses={rest.cssClasses || []}
     {...rest}

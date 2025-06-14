@@ -360,6 +360,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     });
 
     // Find which result type and item is selected
+    // TODO: This is a bit hacky, but it works for now, not scalable 
     if (index < results.apps.length) {
       // App result
       focusedItem.set(null); // Apps don't have screenshots yet
