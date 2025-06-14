@@ -32,7 +32,7 @@ import { GLib } from "astal";
 log.info("Initializing ConfigManager");
 const configInstance = configManager; // This will trigger the singleton initialization
 
-setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.INFO);
+setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.ERROR);
 
 // Init shell modes for all active monitors
 initialMonitorShellModes();

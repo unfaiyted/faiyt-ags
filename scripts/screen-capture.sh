@@ -30,6 +30,13 @@ Commands:
       HDMI-A-1           - Record HDMI-A-1 display in high quality
       stop               - Stop current recording
 
+  record-gif <target>    Start/stop GIF recording
+    Targets:
+      selection           - Record selected area as GIF
+      eDP-1              - Record eDP-1 display as GIF
+      HDMI-A-1           - Record HDMI-A-1 display as GIF
+      stop               - Stop current recording
+
   status                 Check if recording is active (exit 0 if recording, 1 if not)
 
   convert <format>       Convert recordings
@@ -37,13 +44,15 @@ Commands:
       webm               - Convert MKV files to WebM
       iphone             - Convert MKV files for iPhone
       youtube            - Convert MKV files for YouTube (high quality)
+      gif                - Convert MKV/MP4 files to GIF
 
 Examples:
   $SCRIPT_NAME screenshot selection
   $SCRIPT_NAME record eDP-1
   $SCRIPT_NAME record-hq eDP-1
+  $SCRIPT_NAME record-gif selection
   $SCRIPT_NAME record stop
-  $SCRIPT_NAME convert youtube
+  $SCRIPT_NAME convert gif
 
 EOF
   exit 1
@@ -109,6 +118,53 @@ record_high_quality() {
       -B 192000 \
       --pixel-format yuv420p \
       -g 30
+  fi
+}
+
+record_gif() {
+  local output_file="$1"
+  shift
+  
+  # Record temporary video first (MKV format for better quality)
+  local temp_video="/tmp/gif_recording_$(date +%s).mkv"
+  echo "$temp_video" >/tmp/gif_temp_video.txt
+  
+  # GIF-optimized recording settings:
+  # - Lower framerate (15 fps) for smaller file size
+  # - No audio recording
+  # - Standard codec for compatibility
+  wf-recorder "$@" -f "$temp_video" \
+    -c libvpx-vp9 \
+    -r 15 \
+    --pixel-format yuv420p \
+    --no-audio
+  
+  # After recording stops, convert to GIF
+  if [ -f "$temp_video" ]; then
+    notify-send "Converting to GIF" "Processing recording..."
+    
+    # Create high-quality GIF with optimized palette
+    # Using ffmpeg with palette generation for better colors
+    ffmpeg -i "$temp_video" \
+      -vf "fps=15,scale=iw:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=128:stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" \
+      -loop 0 \
+      "$output_file" 2>/tmp/gif_conversion.log
+    
+    if [ $? -eq 0 ]; then
+      # Clean up temp file
+      rm -f "$temp_video"
+      rm -f /tmp/gif_temp_video.txt
+      
+      # Copy to clipboard and notify
+      wl-copy <"$output_file"
+      file_size=$(du -h "$output_file" | cut -f1)
+      notify-send "GIF Created" "Size: $file_size - Copied to clipboard"
+    else
+      error=$(cat /tmp/gif_conversion.log | tail -n 5)
+      notify-send "GIF Conversion Failed" "Error: $error"
+      rm -f "$temp_video"
+      rm -f /tmp/gif_temp_video.txt
+    fi
   fi
 }
 
@@ -208,6 +264,39 @@ case "$COMMAND" in
         ;;
       *)
         echo "Error: Invalid record-hq target '$TARGET'"
+        usage
+        ;;
+    esac
+    ;;
+  
+  "record-gif")
+    # GIF files go to a specific location
+    GIF="${HOME}/Videos/Recordings/$(date +%Y-%m-%d_%H-%m-%s).gif"
+    
+    case "$TARGET" in
+      "stop")
+        wf-recorder_check
+        ;;
+      "selection")
+        wf-recorder_check
+        echo "$GIF" >/tmp/recording.txt
+        notify-send "GIF Recording" "Starting GIF recording (15 FPS)..."
+        record_gif "$GIF" -g "$(slurp)"
+        ;;
+      "eDP-1")
+        wf-recorder_check
+        echo "$GIF" >/tmp/recording.txt
+        notify-send "GIF Recording" "Starting GIF recording on eDP-1..."
+        record_gif "$GIF" -o eDP-1
+        ;;
+      "HDMI-A-1")
+        wf-recorder_check
+        echo "$GIF" >/tmp/recording.txt
+        notify-send "GIF Recording" "Starting GIF recording on HDMI-A-1..."
+        record_gif "$GIF" -o HDMI-A-1
+        ;;
+      *)
+        echo "Error: Invalid record-gif target '$TARGET'"
         usage
         ;;
     esac
@@ -392,6 +481,78 @@ Total files checked: $TOTAL_FILES"
           notify-send "YouTube Conversion Complete" "Converted: $CONVERTED files
 Skipped (already YouTube): $SKIPPED_YOUTUBE files
 Skipped (has YouTube version): $SKIPPED_EXISTING files
+Total files checked: $TOTAL_FILES"
+        fi
+        ;;
+
+      "gif")
+        # Check if ffmpeg is installed
+        if ! command -v ffmpeg >/dev/null 2>&1; then
+          notify-send "Error" "ffmpeg is not installed. Please install it to use this feature."
+          exit 1
+        fi
+
+        RECORDING_DIR="${HOME}/Videos/Recordings"
+        CONVERTED=0
+        SKIPPED_GIF=0
+        SKIPPED_EXISTING=0
+        TOTAL_FILES=0
+        
+        # Process both MKV and MP4 files
+        for video_file in "${RECORDING_DIR}"/*.{mkv,mp4}; do
+          if [ -f "$video_file" ]; then
+            TOTAL_FILES=$((TOTAL_FILES+1))
+            base_filename=$(basename "$video_file")
+            
+            # Skip files already GIFs
+            if [[ $base_filename == *.gif ]]; then
+              SKIPPED_GIF=$((SKIPPED_GIF+1))
+              continue
+            fi
+            
+            # Create GIF filename
+            gif_file="${video_file%.*}.gif"
+            
+            # Check if GIF version doesn't already exist
+            if [ ! -f "$gif_file" ]; then
+              notify-send "Converting to GIF" "Processing: $(basename "$video_file")"
+              
+              # Get video dimensions for scaling
+              width=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "$video_file")
+              
+              # Scale down if wider than 800px to keep file size reasonable
+              if [ "$width" -gt 800 ]; then
+                scale_filter="scale=800:-1:flags=lanczos,"
+              else
+                scale_filter=""
+              fi
+              
+              # Create high-quality GIF with optimized palette
+              ffmpeg -i "$video_file" \
+                -vf "${scale_filter}fps=15,split[s0][s1];[s0]palettegen=max_colors=256:stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" \
+                -loop 0 \
+                "$gif_file" 2>/tmp/ffmpeg_error.log
+              
+              if [ $? -eq 0 ]; then
+                CONVERTED=$((CONVERTED+1))
+                file_size=$(du -h "$gif_file" | cut -f1)
+                notify-send "GIF Conversion Success" "$(basename "$video_file") → $(basename "$gif_file") ($file_size)"
+              else
+                error=$(cat /tmp/ffmpeg_error.log | tail -n 5)
+                notify-send "GIF Conversion Failed" "Error converting $(basename "$video_file"): $error"
+              fi
+            else
+              SKIPPED_EXISTING=$((SKIPPED_EXISTING+1))
+            fi
+          fi
+        done
+        
+        if [ $TOTAL_FILES -eq 0 ]; then
+          notify-send "GIF Conversion" "No video files found in Recordings folder"
+        else
+          notify-send "GIF Conversion Complete" "Converted: $CONVERTED files
+Skipped (already GIF): $SKIPPED_GIF files
+Skipped (has GIF version): $SKIPPED_EXISTING files
 Total files checked: $TOTAL_FILES"
         fi
         ;;

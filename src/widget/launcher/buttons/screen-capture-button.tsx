@@ -108,6 +108,26 @@ export function generateScreenCaptureOptions(): ScreenCaptureOption[] {
     });
   });
 
+  // GIF recording options
+  options.push({
+    name: "GIF Record Selection",
+    description: "Record selected area as animated GIF (15fps)",
+    icon: "image-x-generic-symbolic",
+    command: "/home/faiyt/.config/ags/scripts/screen-capture.sh",
+    args: ["record-gif", "selection"]
+  });
+
+  // Add monitor-specific GIF recording options
+  monitors.forEach(monitor => {
+    options.push({
+      name: `GIF Record ${monitor}`,
+      description: `Record ${monitor} as animated GIF`,
+      icon: "image-x-generic-symbolic",
+      command: "/home/faiyt/.config/ags/scripts/screen-capture.sh",
+      args: ["record-gif", monitor]
+    });
+  });
+
   // Check if recording is active
   let isRecording = false;
   try {
@@ -151,6 +171,14 @@ export function generateScreenCaptureOptions(): ScreenCaptureOption[] {
     icon: "video-display-symbolic",
     command: "/home/faiyt/.config/ags/scripts/screen-capture.sh",
     args: ["convert", "youtube"]
+  });
+
+  options.push({
+    name: "Convert to GIF",
+    description: "Convert video recordings to animated GIF format",
+    icon: "image-x-generic-symbolic",
+    command: "/home/faiyt/.config/ags/scripts/screen-capture.sh",
+    args: ["convert", "gif"]
   });
 
   return options;
