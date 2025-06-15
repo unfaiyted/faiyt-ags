@@ -1,6 +1,28 @@
 import { defineConfig } from "vite";
 
+// Plugin to add ?inline to app.scss imports for AGS compatibility
+const agsScssPlugin = () => {
+  return {
+    name: 'ags-scss-inline',
+    transform(code: string, id: string) {
+      // Only transform TypeScript files
+      if (!id.endsWith('.ts') && !id.endsWith('.tsx')) return;
+      
+      // Add ?inline to app.scss import
+      const transformed = code.replace(
+        /from\s+["']\.\/app\.scss["']/g,
+        'from "./app.scss?inline"'
+      );
+      
+      if (transformed !== code) {
+        return { code: transformed, map: null };
+      }
+    }
+  };
+};
+
 export default defineConfig({
+  plugins: [agsScssPlugin()],
   build: {
     // target: "firefox60", // Since GJS 1.53.90
     // target: "firefox68", // Since GJS 1.63.90

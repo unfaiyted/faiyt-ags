@@ -4,8 +4,8 @@ import { App } from "astal/gtk4";
 import GdkPixbuf from "gi://GdkPixbuf";
 import GLib from "gi://GLib?version=2.0";
 import { launcherLogger as log } from "../../../utils/logger";
-import { c } from "../../../utils/style";
-import clipboardManager, { ClipboardEntry } from "../../../services/clipboard-manager";
+import clipboardManager from "../../../services/clipboard-manager";
+import type { ClipboardEntry } from "../../../services/clipboard-manager";
 import { RoundedImageReactive } from "../../utils/rounded-image";
 import LauncherButton from "./index";
 

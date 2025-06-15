@@ -1,5 +1,5 @@
-@use "styles/colors";
-@use "styles/theme-variables";
+@use "./styles/colors";
+@use "./styles/theme-variables";
 
 // TAILWIND CSS
 @forward "./output.css";

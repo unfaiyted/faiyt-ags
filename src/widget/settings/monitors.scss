@@ -1,4 +1,4 @@
-@use "styles/colors";
+@use "../../styles/colors";
 
 monitors-window {
   background: colors.c(base, 0.3); // Semi-transparent overlay
