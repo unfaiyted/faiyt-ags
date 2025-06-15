@@ -177,21 +177,28 @@ function handleWindowCommand(
     }
   }
 
+  // Add a small delay to prevent Wayland protocol errors from rapid toggling
+  const setVisibility = (visible: boolean) => {
+    setTimeout(() => {
+      window.visible = visible;
+    }, 10);
+  };
+
   switch (action) {
     case "toggle":
-      window.visible = !window.visible;
+      setVisibility(!window.visible);
       log.info("Toggled window visibility", {
         windowName,
-        visible: window.visible,
+        visible: !window.visible,
       });
       break;
     case "show":
-      window.visible = true;
+      setVisibility(true);
       log.info("Showing window", { windowName });
       break;
     case "close":
     case "hide":
-      window.visible = false;
+      setVisibility(false);
       log.info("Hiding window", { windowName });
       break;
     default:

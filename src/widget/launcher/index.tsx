@@ -33,12 +33,27 @@ export default function LauncherBar(launcherProps: LauncherProps) {
   const evaluatorResult = Variable<EvaluatorResult | null>(null);
 
 
+  // Track if we're in the process of closing to prevent rapid operations
+  let isClosing = false;
+  
   // Close the launcher
   const closeLauncher = () => {
+    if (isClosing) {
+      log.debug("Already closing launcher, ignoring request");
+      return;
+    }
+    
+    isClosing = true;
     log.debug("Closing launcher");
     const window = App.get_window(`launcher${monitorSuffix}`);
-    if (window) {
-      window.hide();
+    if (window && window.visible) {
+      // Add a small delay to prevent Wayland protocol errors
+      setTimeout(() => {
+        window.hide();
+        isClosing = false;
+      }, 10);
+    } else {
+      isClosing = false;
     }
   };
 
@@ -167,6 +182,14 @@ export default function LauncherBar(launcherProps: LauncherProps) {
           // When launcher is shown, ensure selectedIndex starts at -1 (entry focused)
           if (win.visible) {
             selectedIndex.set(-1);
+            isClosing = false; // Reset closing flag when shown
+            
+            // Focus the entry after a small delay to ensure window is ready
+            setTimeout(() => {
+              if (entryRef) {
+                entryRef.grab_focus();
+              }
+            }, 50);
           } else {
             // Clear the kill cache when launcher is hidden
             // This ensures fresh data when the launcher is reopened
