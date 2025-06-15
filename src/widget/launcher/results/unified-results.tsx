@@ -290,9 +290,17 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         default:
           props.searchType.set(SearchType.ALL);
           log.debug("Searching all types", { query: parsed.query });
+          // Search all relevant types except stickers
           appList = getAppResults(parsed.query);
           screenList = getScreenCaptureResults(parsed.query, false);
-          // Don't search commands/system/clipboard in ALL mode unless explicitly triggered
+          commandList = getCommandResults(parsed.query, false);
+          systemList = getSystemResults(parsed.query, false);
+          clipboardList = getClipboardResults(parsed.query, false);
+          // Also search directories and hyprland windows for ALL
+          directoryList = await getDirectoryResults(parsed.query);
+          hyprlandList = await getHyprlandResults(parsed.query);
+          // External search is included for web searches
+          externalSearchList = getExternalSearchResults(text);
           break;
       }
 

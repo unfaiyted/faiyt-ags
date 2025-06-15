@@ -26,7 +26,6 @@ export LAYER_SHELL_ENABLE=1
 export PATH="$HOME/.bun/bin:$HOME/go/bin:$PATH"
 
 
-
 # Check if commands exist
 if ! command -v bunx &> /dev/null; then
     echo "bunx not found in PATH"
@@ -61,8 +60,11 @@ echo "Running tailwind-patch..."
     exit 1
 }
 
+# Kills swaync which prevents ags from starting a lot 
 killall swaync 2>/dev/null || true
-nwg-look -a
+
+# Applys the mouse and other cursor themes
+nwg-look -a 
 
 
 echo "Starting AGS..."
