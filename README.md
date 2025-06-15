@@ -178,8 +178,8 @@ A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Sh
 
 5. **Build and run**
    ```bash
-   bun build
-   bun start
+   bun build:app
+   bun start:app
    ```
 
 ## Development
