@@ -1,0 +1,82 @@
+// Theme CSS Variables - dynamically set by theme-manager service
+:root {
+  // Base Colors
+  --theme-base: #191724;
+  --theme-surface: #1f1d2e;
+  --theme-overlay: #26233a;
+
+  // Text Colors
+  --theme-muted: #6e6a86;
+  --theme-subtle: #908caa;
+  --theme-text: #e0def4;
+
+  // Accent Colors
+  --theme-love: #eb6f92;
+  --theme-gold: #f6c177;
+  --theme-rose: #ebbcba;
+  --theme-pine: #31748f;
+  --theme-foam: #9ccfd8;
+  --theme-iris: #c4a7e7;
+
+  // Semantic Color Roles
+  --theme-primary: #c4a7e7;
+  --theme-secondary: #31748f;
+  --theme-accent: #eb6f92;
+  --theme-success: #9ccfd8;
+  --theme-warning: #f6c177;
+  --theme-error: #eb6f92;
+  --theme-info: #31748f;
+
+  // UI Component Colors
+  --theme-background: #191724;
+  --theme-background-alt: #1f1d2e;
+  --theme-background-elevated: #26233a;
+  --theme-foreground: #e0def4;
+  --theme-foreground-alt: #908caa;
+  --theme-foreground-muted: #6e6a86;
+  --theme-border: #26233a;
+  --theme-border-alt: #6e6a86;
+
+  // State Colors
+  --theme-hover: #26233a;
+  --theme-active: #393552;
+  --theme-focus: #c4a7e7;
+  --theme-disabled: #6e6a86;
+}
+
+// Helper classes using CSS variables
+.theme-bg {
+  background-color: var(--theme-background);
+}
+
+.theme-bg-alt {
+  background-color: var(--theme-background-alt);
+}
+
+.theme-bg-elevated {
+  background-color: var(--theme-background-elevated);
+}
+
+.theme-text {
+  color: var(--theme-foreground);
+}
+
+.theme-text-alt {
+  color: var(--theme-foreground-alt);
+}
+
+.theme-text-muted {
+  color: var(--theme-foreground-muted);
+}
+
+.theme-primary {
+  color: var(--theme-primary);
+}
+
+.theme-accent {
+  color: var(--theme-accent);
+}
+
+.theme-border {
+  border-color: var(--theme-border);
+}

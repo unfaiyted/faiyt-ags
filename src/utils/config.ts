@@ -28,12 +28,14 @@ export const defaultConfigOptions: ConfigOptions = {
         temperature: 0.9,
         maxTokens: 1024,
         enabled: true,
+        contextLength: 100000,
         models: [
           "claude-3-5-sonnet-20241022",
           "claude-3-5-haiku-20241022",
           "claude-3-opus-20240229",
           "claude-3-haiku-20240307",
         ],
+        selectedModel: 0,
         cycleModels: false,
       },
       gemini: {
@@ -45,6 +47,7 @@ export const defaultConfigOptions: ConfigOptions = {
         maxTokens: 2048,
         enabled: true,
         models: ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"],
+        selectedModel: 0,
         cycleModels: false,
       },
       gpt: {
@@ -55,6 +58,8 @@ export const defaultConfigOptions: ConfigOptions = {
         temperature: 0.9,
         maxTokens: 1024,
         enabled: true,
+        models: ["gpt-4", "gpt-3.5-turbo"],
+        selectedModel: 0,
       },
       ollama: {
         name: "Ollama",
@@ -64,8 +69,26 @@ export const defaultConfigOptions: ConfigOptions = {
         temperature: 0.9,
         maxTokens: 1024,
         enabled: true,
+        models: ["llama2", "mistral", "codellama"],
+        selectedModel: 0,
         localUrl: "http://localhost:11434",
       },
+    },
+    mcp: {
+      enabled: false,
+      servers: [],
+      connectionTimeout: 10,
+      autoReconnect: true,
+    },
+    chat: {
+      autoSave: true,
+      streamResponses: true,
+      saveLocation: "~/.config/ags/chats",
+      exportFormat: "markdown",
+      contextWindow: 4,
+      responseTimeout: 30,
+      retryAttempts: 3,
+      enableLogging: false,
     },
   },
   animations: {

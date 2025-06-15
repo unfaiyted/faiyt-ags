@@ -3,22 +3,10 @@ import { Variable, bind } from "astal";
 import PhosphorIcon from "../../../../utils/icons/phosphor";
 import { PhosphorIcons } from "../../../../utils/icons/types";
 import { sidebarLogger as log } from "../../../../../utils/logger";
+import configManager from "../../../../../services/config-manager";
+import { AIProvider, MCPServer } from "../../../../../types/config";
 
 export interface AISettingsProps extends Widget.BoxProps { }
-
-interface AIProvider {
-  id: string;
-  name: string;
-  icon: PhosphorIcons;
-  hasApiKey: boolean;
-  models: string[];
-  selectedModel: number;
-  settings: {
-    temperature?: number;
-    maxTokens?: number;
-    contextLength?: number;
-  };
-}
 
 interface SettingsSectionProps {
   title: string;
@@ -61,12 +49,13 @@ const SettingsSection = (props: SettingsSectionProps) => {
   );
 };
 
-const SettingsInput = ({ label, value, placeholder, type = "text", onChanged }: {
+const SettingsInput = ({ label, value, placeholder, type = "text", onChanged, configPath }: {
   label: string;
   value: Variable<string>;
   placeholder?: string;
   type?: "text" | "password" | "number";
   onChanged?: (value: string) => void;
+  configPath?: string;
 }) => {
   return (
     <box vertical cssClasses={["spacing-v-5"]}>
@@ -81,19 +70,23 @@ const SettingsInput = ({ label, value, placeholder, type = "text", onChanged }: 
           const newValue = self.get_text();
           value.set(newValue);
           onChanged?.(newValue);
+          if (configPath) {
+            configManager.setValue(configPath, newValue);
+          }
         }}
       />
     </box>
   );
 };
 
-const SettingsSlider = ({ label, value, min = 0, max = 1, step = 0.1, onChanged }: {
+const SettingsSlider = ({ label, value, min = 0, max = 1, step = 0.1, onChanged, configPath }: {
   label: string;
   value: Variable<number>;
   min?: number;
   max?: number;
   step?: number;
   onChanged?: (value: number) => void;
+  configPath?: string;
 }) => {
   return (
     <box vertical cssClasses={["spacing-v-5"]}>
@@ -112,17 +105,21 @@ const SettingsSlider = ({ label, value, min = 0, max = 1, step = 0.1, onChanged 
           const newValue = self.value;
           value.set(newValue);
           onChanged?.(newValue);
+          if (configPath) {
+            configManager.setValue(configPath, newValue);
+          }
         }}
       />
     </box>
   );
 };
 
-const SettingsDropdown = ({ label, options, selected, onChanged }: {
+const SettingsDropdown = ({ label, options, selected, onChanged, configPath }: {
   label: string;
   options: string[];
   selected: Variable<number>;
   onChanged?: (index: number) => void;
+  configPath?: string;
 }) => {
   const showDropdown = Variable(false);
 
@@ -152,6 +149,9 @@ const SettingsDropdown = ({ label, options, selected, onChanged }: {
                 selected.set(idx);
                 showDropdown.set(false);
                 onChanged?.(idx);
+                if (configPath) {
+                  configManager.setValue(configPath, idx);
+                }
               }}
             >
               <label label={option} halign={Gtk.Align.START} />
@@ -163,8 +163,35 @@ const SettingsDropdown = ({ label, options, selected, onChanged }: {
   );
 };
 
+const SettingsToggle = ({ label, value, onChanged, configPath }: {
+  label: string;
+  value: Variable<boolean>;
+  onChanged?: (value: boolean) => void;
+  configPath?: string;
+}) => {
+  return (
+    <box cssClasses={["spacing-h-10"]}>
+      <button
+        cssName="settings-toggle"
+        cssClasses={bind(value).as(active => active ? ["active"] : [])}
+        onClicked={() => {
+          const newValue = !value.get();
+          value.set(newValue);
+          onChanged?.(newValue);
+          if (configPath) {
+            configManager.setValue(configPath, newValue);
+          }
+        }}
+      >
+        <box cssClasses={["toggle-indicator"]} />
+      </button>
+      <label label={label} />
+    </box>
+  );
+};
+
 const MCPServerItem = ({ server, onToggle, onRemove }: {
-  server: { id: string; name: string; url: string; enabled: boolean };
+  server: MCPServer;
   onToggle: () => void;
   onRemove: () => void;
 }) => {
@@ -191,18 +218,41 @@ const MCPServerItem = ({ server, onToggle, onRemove }: {
   );
 };
 
-const AIProviderSettings = ({ provider }: { provider: AIProvider }) => {
-  const apiKey = Variable("");
-  const temperature = Variable(provider.settings.temperature || 0.7);
-  const maxTokens = Variable(provider.settings.maxTokens || 2048);
-  const selectedModel = Variable(provider.selectedModel);
+const AIProviderSettings = ({ providerId }: { providerId: string }) => {
+  const provider = configManager.getValue(`ai.providers.${providerId}`);
+  if (!provider) return null;
+
+  const apiKey = Variable(provider.apiKey || "");
+  const temperature = Variable(provider.temperature || 0.7);
+  const maxTokens = Variable(provider.maxTokens || 2048);
+  const selectedModel = Variable(provider.selectedModel || 0);
+
+  // Listen for config changes
+  configManager.connect("config-changed", (self, path: string) => {
+    if (path.startsWith(`ai.providers.${providerId}`)) {
+      const updatedProvider = configManager.getValue(`ai.providers.${providerId}`);
+      if (updatedProvider) {
+        apiKey.set(updatedProvider.apiKey || "");
+        temperature.set(updatedProvider.temperature || 0.7);
+        maxTokens.set(updatedProvider.maxTokens || 2048);
+        selectedModel.set(updatedProvider.selectedModel || 0);
+      }
+    }
+  });
+
+  const iconMap: Record<string, PhosphorIcons> = {
+    claude: PhosphorIcons.Brain,
+    gemini: PhosphorIcons.Diamond,
+    gpt: PhosphorIcons.Chat,
+    ollama: PhosphorIcons.Alien,
+  };
 
   return (
     <box vertical cssName="ai-provider-settings" cssClasses={["spacing-v-15"]}>
       <box cssName="ai-provider-header" cssClasses={["spacing-h-10"]}>
-        <PhosphorIcon iconName={provider.icon} size={24} />
+        <PhosphorIcon iconName={iconMap[providerId] || PhosphorIcons.Robot} size={24} />
         <label label={provider.name} cssName="ai-provider-name" />
-        {provider.hasApiKey && (
+        {provider.apiKey && (
           <box cssClasses={["spacing-h-5"]} halign={Gtk.Align.END} hexpand>
             <PhosphorIcon iconName={PhosphorIcons.CheckCircle} size={16} cssName="icon-success" />
             <label label="Connected" cssName="text-success" />
@@ -216,19 +266,25 @@ const AIProviderSettings = ({ provider }: { provider: AIProvider }) => {
           value={apiKey}
           placeholder="Enter your API key..."
           type="password"
+          configPath={`ai.providers.${providerId}.apiKey`}
           onChanged={(key) => {
-            log.debug(`API key updated for ${provider.id}`);
+            log.debug(`API key updated for ${providerId}`);
           }}
         />
 
-        <SettingsDropdown
-          label="Model"
-          options={provider.models}
-          selected={selectedModel}
-          onChanged={(idx) => {
-            log.debug(`Model changed for ${provider.id}:`, provider.models[idx]);
-          }}
-        />
+        {provider.models && (
+          <SettingsDropdown
+            label="Model"
+            options={provider.models}
+            selected={selectedModel}
+            configPath={`ai.providers.${providerId}.selectedModel`}
+            onChanged={(idx) => {
+              log.debug(`Model changed for ${providerId}:`, provider.models[idx]);
+              // Also update the model field
+              configManager.setValue(`ai.providers.${providerId}.model`, provider.models[idx]);
+            }}
+          />
+        )}
 
         <SettingsSlider
           label="Temperature"
@@ -236,8 +292,9 @@ const AIProviderSettings = ({ provider }: { provider: AIProvider }) => {
           min={0}
           max={2}
           step={0.1}
+          configPath={`ai.providers.${providerId}.temperature`}
           onChanged={(val) => {
-            log.debug(`Temperature updated for ${provider.id}:`, val);
+            log.debug(`Temperature updated for ${providerId}:`, val);
           }}
         />
 
@@ -247,8 +304,9 @@ const AIProviderSettings = ({ provider }: { provider: AIProvider }) => {
           min={256}
           max={4096}
           step={256}
+          configPath={`ai.providers.${providerId}.maxTokens`}
           onChanged={(val) => {
-            log.debug(`Max tokens updated for ${provider.id}:`, val);
+            log.debug(`Max tokens updated for ${providerId}:`, val);
           }}
         />
       </box>
@@ -262,70 +320,43 @@ export default function AISettings(props: AISettingsProps) {
   // Section expansion states - only one can be expanded at a time
   const expandedSection = Variable<string | null>("providers");
 
-  const providers: AIProvider[] = [
-    {
-      id: "claude",
-      name: "Claude",
-      icon: PhosphorIcons.Brain,
-      hasApiKey: true,
-      models: ["Claude 3.5 Sonnet", "Claude 3 Opus", "Claude 3 Haiku"],
-      selectedModel: 0,
-      settings: {
-        temperature: 0.7,
-        maxTokens: 2048,
-        contextLength: 100000,
-      }
-    },
-    {
-      id: "gemini",
-      name: "Gemini",
-      icon: PhosphorIcons.Diamond,
-      hasApiKey: false,
-      models: ["Gemini Pro", "Gemini Pro Vision"],
-      selectedModel: 0,
-      settings: {
-        temperature: 0.9,
-        maxTokens: 2048,
-      }
-    },
-    {
-      id: "gpt",
-      name: "ChatGPT",
-      icon: PhosphorIcons.Chat,
-      hasApiKey: false,
-      models: ["GPT-4", "GPT-3.5 Turbo"],
-      selectedModel: 0,
-      settings: {
-        temperature: 0.7,
-        maxTokens: 2048,
-      }
-    },
-    {
-      id: "ollama",
-      name: "Ollama",
-      icon: PhosphorIcons.Alien,
-      hasApiKey: true,
-      models: ["llama2", "mistral", "codellama"],
-      selectedModel: 0,
-      settings: {
-        temperature: 0.8,
-        maxTokens: 2048,
-      }
-    }
-  ];
+  // Load config values
+  const aiConfig = configManager.getValue("ai");
+  const mcpConfig = aiConfig?.mcp || { enabled: false, servers: [], connectionTimeout: 10, autoReconnect: true };
+  const chatConfig = aiConfig?.chat || {
+    autoSave: true,
+    streamResponses: true,
+    saveLocation: "~/.config/ags/chats",
+    exportFormat: "markdown",
+    contextWindow: 4,
+    responseTimeout: 30,
+    retryAttempts: 3,
+    enableLogging: false,
+  };
 
-  const enableMCP = Variable(false);
+  // Create variables for settings
+  const enableMCP = Variable(mcpConfig.enabled);
+  const mcpServerName = Variable("");
   const mcpServerUrl = Variable("");
-  const autoSaveChat = Variable(true);
-  const streamResponses = Variable(true);
-  const contextWindow = Variable(4);
-  const responseTimeout = Variable(30);
-  const retryAttempts = Variable(3);
-  const saveLocation = Variable("~/.config/ags/chats");
-  const exportFormat = Variable(0);
-  const enableLogging = Variable(false);
-  const defaultProvider = Variable(0);
-  const mcpServers = Variable<Array<{ id: string, name: string, url: string, enabled: boolean }>>([]);
+  const autoSaveChat = Variable(chatConfig.autoSave);
+  const streamResponses = Variable(chatConfig.streamResponses);
+  const contextWindow = Variable(chatConfig.contextWindow);
+  const responseTimeout = Variable(chatConfig.responseTimeout);
+  const retryAttempts = Variable(chatConfig.retryAttempts);
+  const saveLocation = Variable(chatConfig.saveLocation);
+  const exportFormat = Variable(chatConfig.exportFormat === "markdown" ? 0 : chatConfig.exportFormat === "json" ? 1 : 2);
+  const enableLogging = Variable(chatConfig.enableLogging);
+  const defaultProvider = Variable(
+    aiConfig?.defaultGPTProvider === "claude" ? 0 :
+    aiConfig?.defaultGPTProvider === "gemini" ? 1 :
+    aiConfig?.defaultGPTProvider === "gpt" ? 2 : 3
+  );
+  const mcpServers = Variable<MCPServer[]>(mcpConfig.servers || []);
+  const connectionTimeout = Variable(mcpConfig.connectionTimeout);
+  const autoReconnect = Variable(mcpConfig.autoReconnect);
+
+  // Provider list
+  const providers = ["claude", "gemini", "gpt", "ollama"];
 
   // Create individual variables for each section's expanded state
   const providersExpanded = Variable(expandedSection.get() === "providers");
@@ -355,6 +386,28 @@ export default function AISettings(props: AISettingsProps) {
     }
   };
 
+  const addMCPServer = () => {
+    const name = mcpServerName.get().trim();
+    const url = mcpServerUrl.get().trim();
+    
+    if (name && url) {
+      const newServer: MCPServer = {
+        id: Date.now().toString(),
+        name,
+        url,
+        enabled: true
+      };
+      
+      const servers = [...mcpServers.get(), newServer];
+      mcpServers.set(servers);
+      configManager.setValue("ai.mcp.servers", servers);
+      
+      // Clear inputs
+      mcpServerName.set("");
+      mcpServerUrl.set("");
+    }
+  };
+
   return (
     <Gtk.ScrolledWindow
       vexpand
@@ -371,8 +424,8 @@ export default function AISettings(props: AISettingsProps) {
           onToggle={() => toggleSection("providers")}
         >
           <>
-            {providers.map((provider, _idx) => (
-              <AIProviderSettings provider={provider} />
+            {providers.map((providerId) => (
+              <AIProviderSettings providerId={providerId} />
             ))}
           </>
         </SettingsSection>
@@ -385,16 +438,11 @@ export default function AISettings(props: AISettingsProps) {
           onToggle={() => toggleSection("mcp")}
         >
           <box vertical cssClasses={["spacing-v-10"]}>
-            <box cssClasses={["spacing-h-10"]}>
-              <button
-                cssName="settings-toggle"
-                cssClasses={bind(enableMCP).as(active => active ? ["active"] : [])}
-                onClicked={() => enableMCP.set(!enableMCP.get())}
-              >
-                <box cssClasses={["toggle-indicator"]} />
-              </button>
-              <label label="Enable MCP Server Integration" />
-            </box>
+            <SettingsToggle
+              label="Enable MCP Server Integration"
+              value={enableMCP}
+              configPath="ai.mcp.enabled"
+            />
 
             <revealer
               revealChild={bind(enableMCP)}
@@ -407,18 +455,18 @@ export default function AISettings(props: AISettingsProps) {
                   <label label="Add New MCP Server" cssName="settings-subsection-title" halign={Gtk.Align.START} />
                   <SettingsInput
                     label="Server Name"
-                    value={Variable("")}
+                    value={mcpServerName}
                     placeholder="My MCP Server"
                   />
                   <SettingsInput
                     label="Server URL"
                     value={mcpServerUrl}
                     placeholder="http://localhost:3000"
-                    onChanged={(url) => {
-                      log.debug("MCP Server URL updated:", url);
-                    }}
                   />
-                  <button cssName="settings-button-secondary">
+                  <button 
+                    cssName="settings-button-secondary"
+                    onClicked={addMCPServer}
+                  >
                     <box cssClasses={["spacing-h-10"]}>
                       <PhosphorIcon iconName={PhosphorIcons.Plus} size={16} />
                       <label label="Add Server" />
@@ -440,9 +488,12 @@ export default function AISettings(props: AISettingsProps) {
                                 s.id === server.id ? { ...s, enabled: !s.enabled } : s
                               );
                               mcpServers.set(updated);
+                              configManager.setValue("ai.mcp.servers", updated);
                             }}
                             onRemove={() => {
-                              mcpServers.set(mcpServers.get().filter(s => s.id !== server.id));
+                              const updated = mcpServers.get().filter(s => s.id !== server.id);
+                              mcpServers.set(updated);
+                              configManager.setValue("ai.mcp.servers", updated);
                             }}
                           />
                         ))}
@@ -462,21 +513,17 @@ export default function AISettings(props: AISettingsProps) {
                   <label label="MCP Configuration" cssName="settings-subsection-title" halign={Gtk.Align.START} />
                   <SettingsSlider
                     label="Connection Timeout (seconds)"
-                    value={Variable(10)}
+                    value={connectionTimeout}
                     min={5}
                     max={60}
                     step={5}
+                    configPath="ai.mcp.connectionTimeout"
                   />
-                  <box cssClasses={["spacing-h-10"]}>
-                    <button
-                      cssName="settings-toggle"
-                      cssClasses={Variable(true).get() ? ["active"] : []}
-                      onClicked={() => { }}
-                    >
-                      <box cssClasses={["toggle-indicator"]} />
-                    </button>
-                    <label label="Auto-reconnect on failure" />
-                  </box>
+                  <SettingsToggle
+                    label="Auto-reconnect on failure"
+                    value={autoReconnect}
+                    configPath="ai.mcp.autoReconnect"
+                  />
                 </box>
               </box>
             </revealer>
@@ -495,43 +542,29 @@ export default function AISettings(props: AISettingsProps) {
             <box vertical cssClasses={["spacing-v-10"]}>
               <label label="Chat Configuration" cssName="settings-subsection-title" halign={Gtk.Align.START} />
 
-              <box cssClasses={["spacing-h-10"]}>
-                <button
-                  cssName="settings-toggle"
-                  cssClasses={bind(autoSaveChat).as(active => active ? ["active"] : [])}
-                  onClicked={() => autoSaveChat.set(!autoSaveChat.get())}
-                >
-                  <box cssClasses={["toggle-indicator"]} />
-                </button>
-                <label label="Auto-save chat history" />
-              </box>
+              <SettingsToggle
+                label="Auto-save chat history"
+                value={autoSaveChat}
+                configPath="ai.chat.autoSave"
+              />
 
-              <box cssClasses={["spacing-h-10"]}>
-                <button
-                  cssName="settings-toggle"
-                  cssClasses={bind(streamResponses).as(active => active ? ["active"] : [])}
-                  onClicked={() => streamResponses.set(!streamResponses.get())}
-                >
-                  <box cssClasses={["toggle-indicator"]} />
-                </button>
-                <label label="Stream responses" />
-              </box>
+              <SettingsToggle
+                label="Stream responses"
+                value={streamResponses}
+                configPath="ai.chat.streamResponses"
+              />
 
-              <box cssClasses={["spacing-h-10"]}>
-                <button
-                  cssName="settings-toggle"
-                  cssClasses={bind(enableLogging).as(active => active ? ["active"] : [])}
-                  onClicked={() => enableLogging.set(!enableLogging.get())}
-                >
-                  <box cssClasses={["toggle-indicator"]} />
-                </button>
-                <label label="Enable debug logging" />
-              </box>
+              <SettingsToggle
+                label="Enable debug logging"
+                value={enableLogging}
+                configPath="ai.chat.enableLogging"
+              />
 
               <SettingsInput
                 label="Chat Save Location"
                 value={saveLocation}
                 placeholder="~/.config/ags/chats"
+                configPath="ai.chat.saveLocation"
                 onChanged={(path) => {
                   log.debug("Save location updated:", path);
                 }}
@@ -541,8 +574,11 @@ export default function AISettings(props: AISettingsProps) {
                 label="Export Format"
                 options={["Markdown", "JSON", "Plain Text"]}
                 selected={exportFormat}
+                configPath="ai.chat.exportFormat"
                 onChanged={(idx) => {
-                  log.debug("Export format changed:", ["markdown", "json", "txt"][idx]);
+                  const formats = ["markdown", "json", "txt"] as const;
+                  configManager.setValue("ai.chat.exportFormat", formats[idx]);
+                  log.debug("Export format changed:", formats[idx]);
                 }}
               />
             </box>
@@ -557,6 +593,7 @@ export default function AISettings(props: AISettingsProps) {
                 min={2}
                 max={20}
                 step={1}
+                configPath="ai.chat.contextWindow"
                 onChanged={(val) => {
                   log.debug("Context window updated:", val);
                 }}
@@ -568,6 +605,7 @@ export default function AISettings(props: AISettingsProps) {
                 min={10}
                 max={120}
                 step={10}
+                configPath="ai.chat.responseTimeout"
                 onChanged={(val) => {
                   log.debug("Response timeout updated:", val);
                 }}
@@ -579,6 +617,7 @@ export default function AISettings(props: AISettingsProps) {
                 min={0}
                 max={5}
                 step={1}
+                configPath="ai.chat.retryAttempts"
                 onChanged={(val) => {
                   log.debug("Retry attempts updated:", val);
                 }}
@@ -591,10 +630,12 @@ export default function AISettings(props: AISettingsProps) {
 
               <SettingsDropdown
                 label="Default AI Provider"
-                options={providers.map(p => p.name)}
+                options={["Claude", "Gemini", "ChatGPT", "Ollama"]}
                 selected={defaultProvider}
                 onChanged={(idx) => {
-                  log.debug("Default provider changed:", providers[idx].name);
+                  const providerIds = ["claude", "gemini", "gpt", "ollama"];
+                  configManager.setValue("ai.defaultGPTProvider", providerIds[idx]);
+                  log.debug("Default provider changed:", providerIds[idx]);
                 }}
               />
             </box>

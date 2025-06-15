@@ -14,6 +14,7 @@ import { NumberInput } from "./components/number-input";
 import { TextInput } from "./components/text-input";
 import { Dropdown } from "./components/dropdown";
 import { KeybindInput } from "./components/keybind-input";
+import ThemeSelector from "./theme-selector";
 
 interface SettingsWindowProps extends Widget.WindowProps {
   gdkmonitor: Gdk.Monitor;
@@ -109,20 +110,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
             return (
               <SettingsSection title="Appearance">
                 {themeMatch && (
-                  <SettingRow
-                    label="Theme"
-                    description="Choose your color theme"
-                  >
-                    <Dropdown
-                      value={config.appearance.theme}
-                      options={[
-                        { label: "Rosé Pine", value: "rose-pine" },
-                        { label: "Dracula", value: "dracula" },
-                        { label: "Nord", value: "nord" }
-                      ]}
-                      onChanged={(value) => updateConfig("appearance.theme", value)}
-                    />
-                  </SettingRow>
+                  <ThemeSelector />
                 )}
 
                 {barModeMatch && (

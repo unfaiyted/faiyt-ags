@@ -13,6 +13,14 @@ export interface AIProvider {
   temperature?: number;
   maxTokens?: number;
   enabled?: boolean;
+  contextLength?: number;
+}
+
+export interface MCPServer {
+  id: string;
+  name: string;
+  url: string;
+  enabled: boolean;
 }
 
 // TODO: Maybe consider the idea of having a monitor group id or something, where we have specific settings for different monitor groups
@@ -50,16 +58,39 @@ export interface ConfigOptions {
     providers: {
       claude: AIProvider & {
         models?: string[];
+        selectedModel?: number;
         cycleModels?: boolean;
       };
       gemini: AIProvider & {
         models?: string[];
+        selectedModel?: number;
         cycleModels?: boolean;
       };
-      gpt: AIProvider;
+      gpt: AIProvider & {
+        models?: string[];
+        selectedModel?: number;
+      };
       ollama: AIProvider & {
+        models?: string[];
+        selectedModel?: number;
         localUrl?: string;
       };
+    };
+    mcp: {
+      enabled: boolean;
+      servers: MCPServer[];
+      connectionTimeout: number;
+      autoReconnect: boolean;
+    };
+    chat: {
+      autoSave: boolean;
+      streamResponses: boolean;
+      saveLocation: string;
+      exportFormat: "markdown" | "json" | "txt";
+      contextWindow: number;
+      responseTimeout: number;
+      retryAttempts: number;
+      enableLogging: boolean;
     };
   };
   animations: {

@@ -503,3 +503,111 @@ restart-button {
     transform: scale(0.95);
   }
 }
+
+// Theme Selector Styles
+.theme-selector {
+  padding: 0;
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: colors.c(text);
+}
+
+.theme-option {
+  background: colors.c(background-alt, 0.2);
+  border: 2px solid colors.c(border, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  width: 100%;
+  transition: all 200ms ease;
+
+  &:hover {
+    background: colors.c(background-alt, 0.3);
+    border-color: colors.c(border, 0.2);
+    box-shadow: 0 4px 12px colors.c(base, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.active {
+    background: colors.c(primary, 0.1);
+    border-color: colors.c(primary, 0.5);
+    box-shadow: 0 0 0 3px colors.c(primary, 0.1);
+  }
+}
+
+.theme-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: colors.c(text);
+}
+
+.theme-description {
+  font-size: 13px;
+  color: colors.c(text, 0.7);
+  margin-top: 2px;
+}
+
+.theme-active-icon {
+  color: colors.c(primary);
+}
+
+.theme-preview {
+  margin-top: 12px;
+  padding: 8px;
+  background: colors.c(background, 0.3);
+  border-radius: 8px;
+  justify-content: center;
+}
+
+.theme-color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid colors.c(border, 0.2);
+  
+  // Rose Pine theme swatches
+  &.theme-rose-pine-base { background: #191724; }
+  &.theme-rose-pine-surface { background: #1f1d2e; }
+  &.theme-rose-pine-overlay { background: #26233a; }
+  &.theme-rose-pine-primary { background: #c4a7e7; }
+  &.theme-rose-pine-accent { background: #eb6f92; }
+  &.theme-rose-pine-text { background: #e0def4; }
+  
+  // Rose Pine Moon theme swatches
+  &.theme-rose-pine-moon-base { background: #232136; }
+  &.theme-rose-pine-moon-surface { background: #2a273f; }
+  &.theme-rose-pine-moon-overlay { background: #393552; }
+  &.theme-rose-pine-moon-primary { background: #c4a7e7; }
+  &.theme-rose-pine-moon-accent { background: #eb6f92; }
+  &.theme-rose-pine-moon-text { background: #e0def4; }
+  
+  // Rose Pine Dawn theme swatches
+  &.theme-rose-pine-dawn-base { background: #faf4ed; }
+  &.theme-rose-pine-dawn-surface { background: #fffaf3; }
+  &.theme-rose-pine-dawn-overlay { background: #f2e9e1; }
+  &.theme-rose-pine-dawn-primary { background: #907aa9; }
+  &.theme-rose-pine-dawn-accent { background: #b4637a; }
+  &.theme-rose-pine-dawn-text { background: #575279; }
+}
+
+.theme-hint {
+  background: colors.c(background-alt, 0.15);
+  border: 1px solid colors.c(border, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 16px;
+}
+
+.hint-text {
+  font-size: 13px;
+  color: colors.c(text, 0.7);
+}

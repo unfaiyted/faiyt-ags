@@ -24,6 +24,7 @@ import configManager from "./services/config-manager"; // Initialize config mana
 import SettingsWindow from "./widget/settings";
 import MonitorsWindow from "./widget/settings/monitors";
 import { WallpaperThumbnailService } from "./services/wallpaper-thumbnail-service";
+import themeManager from "./services/theme-manager";
 
 // Set log level from environment or default to info
 import { GLib } from "astal";
@@ -31,6 +32,10 @@ import { GLib } from "astal";
 // Ensure ConfigManager is initialized
 log.info("Initializing ConfigManager");
 const configInstance = configManager; // This will trigger the singleton initialization
+
+// Initialize theme manager
+log.info("Initializing ThemeManager");
+const themeInstance = themeManager; // This will apply the saved theme
 
 setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.INFO);
 

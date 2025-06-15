@@ -1,166 +1,81 @@
 @use 'sass:map';
 @use 'sass:color';
+@use 'theme-variables';
+
 /* Rosé Pine Theme Colors */
-$current-theme: rose-pine;
+// This now uses CSS variables set by theme-manager
+$current-theme: dynamic;
 
 $themes: (
-  rose-pine: ( // Base Colors
-    base: #191724,
-    surface: #1f1d2e,
-    overlay: #26233a,
+  dynamic: ( // Dynamic theme using CSS variables
+    // Base Colors
+    base: var(--theme-base),
+    surface: var(--theme-surface),
+    overlay: var(--theme-overlay),
 
     // Text Colors
-    muted: #6e6a86,
-    subtle: #908caa,
-    text: #e0def4,
+    muted: var(--theme-muted),
+    subtle: var(--theme-subtle),
+    text: var(--theme-text),
 
     // Accent Colors
-    love: #eb6f92, // Pink/Red accent
-    gold: #f6c177, // Yellow/Orange accent
-    rose: #ebbcba, // Light pink accent
-    pine: #31748f, // Blue/Teal accent
-    foam: #9ccfd8, // Light blue/cyan accent
-    iris: #c4a7e7, // Purple accent
+    love: var(--theme-love),
+    gold: var(--theme-gold),
+    rose: var(--theme-rose),
+    pine: var(--theme-pine),
+    foam: var(--theme-foam),
+    iris: var(--theme-iris),
 
     // Semantic Color Roles
-    primary: #c4a7e7, // iris - primary brand color
-    secondary: #31748f, // pine - secondary accent
-    accent: #eb6f92, // love - attention/highlight
-    success: #9ccfd8, // foam - success states
-    warning: #f6c177, // gold - warnings
-    error: #eb6f92, // love - errors
-    info: #31748f, // pine - information
+    primary: var(--theme-primary),
+    secondary: var(--theme-secondary),
+    accent: var(--theme-accent),
+    success: var(--theme-success),
+    warning: var(--theme-warning),
+    error: var(--theme-error),
+    info: var(--theme-info),
 
     // UI Component Colors
-    background: #191724, // base - main background
-    background-alt: #1f1d2e, // surface - cards, modals
-    background-elevated: #26233a, // overlay - elevated surfaces
-
-    foreground: #e0def4, // text - primary text
-    foreground-alt: #908caa, // subtle - secondary text
-    foreground-muted: #6e6a86, // muted - disabled/placeholder text
-
-    border: #26233a, // overlay - borders
-    border-alt: #6e6a86, // muted - subtle borders
+    background: var(--theme-background),
+    background-alt: var(--theme-background-alt),
+    background-elevated: var(--theme-background-elevated),
+    foreground: var(--theme-foreground),
+    foreground-alt: var(--theme-foreground-alt),
+    foreground-muted: var(--theme-foreground-muted),
+    border: var(--theme-border),
+    border-alt: var(--theme-border-alt),
 
     // State Colors
-    hover: #26233a, // overlay - hover states
-    active: #393552, // slightly lighter overlay
-    focus: #c4a7e7, // iris - focus rings
-    disabled: #6e6a86, // muted - disabled elements
-  ),
-
-  rose-pine-moon: ( // Base Colors
-    base: #232136,
-    surface: #2a273f,
-    overlay: #393552,
-
-    // Text Colors
-    muted: #6e6a86,
-    subtle: #908caa,
-    text: #e0def4,
-
-    // Accent Colors
-    love: #eb6f92,
-    gold: #f6c177,
-    rose: #ea9a97, // Slightly different from base rose-pine
-    pine: #3e8fb0, // Slightly different from base rose-pine
-    foam: #9ccfd8,
-    iris: #c4a7e7,
-
-    // Semantic Color Roles
-    primary: #c4a7e7, // iris
-    secondary: #3e8fb0, // pine
-    accent: #eb6f92, // love
-    success: #9ccfd8, // foam
-    warning: #f6c177, // gold
-    error: #eb6f92, // love
-    info: #3e8fb0, // pine
-
-    // UI Component Colors
-    background: #232136, // base
-    background-alt: #2a273f, // surface
-    background-elevated: #393552, // overlay
-
-    foreground: #e0def4, // text
-    foreground-alt: #908caa, // subtle
-    foreground-muted: #6e6a86, // muted
-
-    border: #393552, // overlay
-    border-alt: #6e6a86, // muted
-
-    // State Colors
-    hover: #393552, // overlay
-    active: #44415a, // slightly lighter overlay
-    focus: #c4a7e7, // iris
-    disabled: #6e6a86, // muted
-  ),
-
-  rose-pine-dawn: ( // Base Colors
-    base: #faf4ed,
-    surface: #fffaf3,
-    overlay: #f2e9e1,
-
-    // Text Colors
-    muted: #9893a5,
-    subtle: #797593,
-    text: #575279,
-
-    // Accent Colors
-    love: #b4637a, // Darker for light theme
-    gold: #ea9d34, // Darker for light theme
-    rose: #d7827e, // Darker for light theme
-    pine: #286983, // Darker for light theme
-    foam: #56949f, // Darker for light theme
-    iris: #907aa9, // Darker for light theme
-
-    // Semantic Color Roles
-    primary: #907aa9, // iris
-    secondary: #286983, // pine
-    accent: #b4637a, // love
-    success: #56949f, // foam
-    warning: #ea9d34, // gold
-    error: #b4637a, // love
-    info: #286983, // pine
-
-    // UI Component Colors
-    background: #faf4ed, // base
-    background-alt: #fffaf3, // surface
-    background-elevated: #f2e9e1, // overlay
-
-    foreground: #575279, // text
-    foreground-alt: #797593, // subtle
-    foreground-muted: #9893a5, // muted
-
-    border: #f2e9e1, // overlay
-    border-alt: #9893a5, // muted
-
-    // State Colors
-    hover: #f2e9e1, // overlay
-    active: #ede4d3, // slightly darker overlay
-    focus: #907aa9, // iris
-    disabled: #9893a5, // muted
+    hover: var(--theme-hover),
+    active: var(--theme-active),
+    focus: var(--theme-focus),
+    disabled: var(--theme-disabled),
   ),
 );
 
 @function c($color, $opacity: 1) {
   $color-value: map.get(map.get($themes, $current-theme), $color);
 
-  @if $opacity ==1 {
+  @if $opacity == 1 {
     @return $color-value;
-  }
-
-  @else {
-    @return rgba($color-value, $opacity);
+  } @else {
+    // Use color-mix to handle transparency with CSS variables
+    $percentage: $opacity * 100%;
+    @return color-mix(in srgb, #{$color-value} #{$percentage}, transparent);
   }
 }
 
 @function darken($color, $amount) {
-  @return color.scale(c($color), $lightness: -($amount));
+  // Use color-mix to darken CSS variables
+  $color-value: c($color);
+  $percentage: 100% - $amount;
+  @return color-mix(in srgb, #{$color-value} #{$percentage}, black);
 }
 
 @function lighten($color, $amount) {
-  @return mix(white, c($color), $amount);
+  // Use color-mix to lighten CSS variables
+  $color-value: c($color);
+  @return color-mix(in srgb, #{$color-value} #{100% - $amount}, white #{$amount});
 }
 
 
