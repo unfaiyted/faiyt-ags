@@ -76,7 +76,6 @@ export interface ConfigOptions {
       to: string;
     };
     keyboardUseFlag: boolean;
-    barRoundCorners: number;
   };
   // Default apps to use for various actions
   apps: {
@@ -137,8 +136,6 @@ export interface ConfigOptions {
   //   wsNumMarginScale: number;
   // };
   sidebar: {
-    leftEnabled: boolean;
-    rightEnabled: boolean;
     left: {};
     right: {};
   };
@@ -264,6 +261,31 @@ export interface ConfigOptions {
   };
   launcher: {
     maxResults: number;
+  };
+  // Window enable/disable configuration
+  windows: {
+    bar: {
+      enabled: boolean;
+      corners: boolean;
+    };
+    launcher: {
+      enabled: boolean;
+    };
+    sidebar: {
+      leftEnabled: boolean;
+      rightEnabled: boolean;
+    };
+    overlays: {
+      enabled: boolean;
+      notifications: boolean;
+      indicators: boolean;
+      music: boolean;
+      wallpaper: boolean;
+    };
+    settings: {
+      enabled: boolean;
+      monitors: boolean;
+    };
   };
   dir: {
     scripts: string;

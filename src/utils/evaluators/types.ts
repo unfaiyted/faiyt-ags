@@ -63,6 +63,13 @@ export class EvaluatorManager {
   }
 
   /**
+   * Clear all registered evaluators
+   */
+  clear() {
+    this.evaluators = [];
+  }
+
+  /**
    * Evaluate input against all registered evaluators
    * Returns the first matching result
    */

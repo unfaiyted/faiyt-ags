@@ -191,6 +191,12 @@ setting-row {
   &:hover {
     background: colors.c(background-elevated, 0.3);
   }
+
+  &.indented {
+    margin-left: 20px;
+    padding-left: 12px;
+    border-left: 2px solid colors.c(border, 0.1);
+  }
 }
 
 setting-row-control {
@@ -459,4 +465,41 @@ keybind-info-title {
   font-weight: 500;
   color: colors.c(text, 0.9);
   margin-bottom: 8px;
+}
+
+// Window management restart notice
+window-restart-notice {
+  background: colors.c(warning, 0.1);
+  border: 1px solid colors.c(warning, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 16px;
+}
+
+notice-text {
+  font-size: 13px;
+  color: colors.c(warning);
+  font-weight: 500;
+}
+
+restart-button {
+  background: colors.c(warning, 0.2);
+  border: 1px solid colors.c(warning, 0.3);
+  border-radius: 6px;
+  padding: 6px 12px;
+  margin-top: 8px;
+  color: colors.c(text);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 150ms ease;
+
+  &:hover {
+    background: colors.c(warning, 0.3);
+    border-color: colors.c(warning, 0.4);
+    box-shadow: 0 2px 8px colors.c(warning, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }

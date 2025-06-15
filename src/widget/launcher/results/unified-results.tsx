@@ -89,6 +89,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
 
   // State for debounced search and results
   const debouncedSearchText = Variable("");
+  const isSearching = Variable(false);
   const searchResults = Variable<UnifiedResults>({
     apps: [],
     screenCaptures: [],
@@ -104,7 +105,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     total: 0
   });
   const MIN_SEARCH_LENGTH = 2;
-  const DEBOUNCE_DELAY = 175; // milliseconds
+  const DEBOUNCE_DELAY = 300; // milliseconds - wait 300ms after user stops typing
 
   let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -119,6 +120,11 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     // Clear previous timeout
     if (debounceTimeout !== null) {
       clearTimeout(debounceTimeout);
+    }
+    
+    // Mark as searching when user types
+    if (text.length > 0) {
+      isSearching.set(true);
     }
 
     // Reset selection when text changes
@@ -145,6 +151,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
     // Allow single character for potential prefixes
     if (text.length < 1) {
       debouncedSearchText.set("");
+      isSearching.set(false);
       searchResults.set({
         apps: [],
         screenCaptures: [],
@@ -183,6 +190,7 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         hasPrefix: parsed.hasPrefix
       });
       debouncedSearchText.set("");
+      isSearching.set(false);
       searchResults.set({
         apps: [],
         screenCaptures: [],
@@ -319,6 +327,9 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         stickers: [],
         total
       });
+      
+      // Mark search as complete
+      isSearching.set(false);
     }, DEBOUNCE_DELAY);
   });
 
@@ -541,7 +552,9 @@ export default function UnifiedResultsList(props: UnifiedResultsListProps) {
         ) : (
           <revealer
             transitionDuration={config.animations?.durationLarge || 300}
-            revealChild={bind(searchResults).as((l) => l.total > 0)}
+            revealChild={bind(Variable.derive([searchResults, isSearching], (results, searching) => 
+              results.total > 0 && !searching
+            ))}
             transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
             halign={Gtk.Align.START}
           >

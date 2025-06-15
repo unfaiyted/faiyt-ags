@@ -48,8 +48,8 @@ const SettingsWindow = (props: SettingsWindowProps) => {
   const renderSection = (
     sectionMatches: boolean,
     itemMatches: boolean[],
-    content: () => Widget.Box
-  ): Widget.Box => {
+    content: () => Gtk.Box
+  ): Gtk.Widget => {
     if (!sectionMatches || !itemMatches.some(match => match)) {
       return <box />;
     }
@@ -74,7 +74,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
             <label>✕</label>
           </button>
         </box>
-        
+
         {/* Search/Filter Bar */}
         <box cssName="settings-search-box" spacing={8}>
           <label>🔍</label>
@@ -98,14 +98,14 @@ const SettingsWindow = (props: SettingsWindowProps) => {
           {bind(searchQuery).as(q => {
             const hasAppearanceMatch = matchesSearch("appearance") || matchesSearch("theme") || matchesSearch("bar");
             if (!hasAppearanceMatch) return <box />;
-            
+
             const themeMatch = matchesSearch("theme");
             const barModeMatch = matchesSearch("bar mode");
             const cornerRadiusMatch = matchesSearch("corner radius");
-            
+
             // If section matches but no individual items match, don't show section
             if (!themeMatch && !barModeMatch && !cornerRadiusMatch) return <box />;
-            
+
             return (
               <SettingsSection title="Appearance">
                 {themeMatch && (
@@ -124,7 +124,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {barModeMatch && (
                   <SettingRow
                     label="Bar Mode"
@@ -141,20 +141,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
-                {cornerRadiusMatch && (
-                  <SettingRow
-                    label="Bar Corner Radius"
-                    description="Rounded corners for the bar"
-                  >
-                    <NumberInput
-                      value={config.appearance.barRoundCorners}
-                      min={0}
-                      max={30}
-                      onChanged={(value) => updateConfig("appearance.barRoundCorners", value)}
-                    />
-                  </SettingRow>
-                )}
+
               </SettingsSection>
             );
           })}
@@ -163,13 +150,13 @@ const SettingsWindow = (props: SettingsWindowProps) => {
           {bind(searchQuery).as(q => {
             const hasSectionMatch = matchesSearch("time") || matchesSearch("weather") || matchesSearch("clock");
             if (!hasSectionMatch) return <box />;
-            
+
             const timeFormatMatch = matchesSearch("time format");
             const weatherCityMatch = matchesSearch("weather city");
             const temperatureUnitMatch = matchesSearch("temperature unit");
-            
+
             if (!timeFormatMatch && !weatherCityMatch && !temperatureUnitMatch) return <box />;
-            
+
             return (
               <SettingsSection title="Time & Weather">
                 {timeFormatMatch && (
@@ -184,7 +171,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {weatherCityMatch && (
                   <SettingRow
                     label="Weather City"
@@ -197,7 +184,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {temperatureUnitMatch && (
                   <SettingRow
                     label="Temperature Unit"
@@ -221,7 +208,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
           {bind(searchQuery).as(q => {
             const hasSectionMatch = matchesSearch("search") || matchesSearch("launcher") || matchesSearch("results");
             if (!hasSectionMatch) return <box />;
-            
+
             const matches = {
               maxResults: matchesSearch("max results"),
               listPrefixes: matchesSearch("list prefixes"),
@@ -232,9 +219,9 @@ const SettingsWindow = (props: SettingsWindowProps) => {
               aiSearch: matchesSearch("ai search"),
               webSearch: matchesSearch("web search")
             };
-            
+
             if (!Object.values(matches).some(m => m)) return <box />;
-            
+
             return (
               <SettingsSection title="Search">
                 {matches.maxResults && (
@@ -251,7 +238,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.listPrefixes && (
                   <SettingRow
                     label="List Prefixes"
@@ -263,7 +250,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.actions && (
                   <SettingRow
                     label="Actions"
@@ -275,7 +262,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.commands && (
                   <SettingRow
                     label="Commands"
@@ -287,7 +274,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.math && (
                   <SettingRow
                     label="Math Results"
@@ -299,7 +286,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.directory && (
                   <SettingRow
                     label="Directory Search"
@@ -311,7 +298,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.aiSearch && (
                   <SettingRow
                     label="AI Search"
@@ -323,7 +310,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.webSearch && (
                   <SettingRow
                     label="Web Search"
@@ -343,7 +330,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
           {bind(searchQuery).as(q => {
             const hasSectionMatch = matchesSearch("evaluator") || matchesSearch("calculator") || matchesSearch("converter");
             if (!hasSectionMatch) return <box />;
-            
+
             const matches = {
               math: matchesSearch("math"),
               base: matchesSearch("base"),
@@ -353,9 +340,9 @@ const SettingsWindow = (props: SettingsWindowProps) => {
               time: matchesSearch("time"),
               unit: matchesSearch("unit")
             };
-            
+
             if (!hasAnyMatch(matches)) return <box />;
-            
+
             return (
               <SettingsSection title="Search Evaluators">
                 {matches.math && (
@@ -369,7 +356,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.base && (
                   <SettingRow
                     label="Base Converter"
@@ -381,7 +368,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.color && (
                   <SettingRow
                     label="Color Converter"
@@ -393,7 +380,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.date && (
                   <SettingRow
                     label="Date Calculator"
@@ -405,7 +392,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.percentage && (
                   <SettingRow
                     label="Percentage Calculator"
@@ -417,7 +404,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.time && (
                   <SettingRow
                     label="Time Calculator"
@@ -429,7 +416,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matches.unit && (
                   <SettingRow
                     label="Unit Converter"
@@ -446,7 +433,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
           })}
 
           {/* Battery Settings */}
-          {bind(searchQuery).as(q => 
+          {bind(searchQuery).as(q =>
             (matchesSearch("battery") || matchesSearch("power")) && (
               <SettingsSection title="Battery">
                 {matchesSearch("low battery") && (
@@ -463,7 +450,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matchesSearch("critical battery") && (
                   <SettingRow
                     label="Critical Battery"
@@ -482,7 +469,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
           )}
 
           {/* Animation Settings */}
-          {bind(searchQuery).as(q => 
+          {bind(searchQuery).as(q =>
             (matchesSearch("animation") || matchesSearch("duration") || matchesSearch("choreography")) && (
               <SettingsSection title="Animations">
                 {matchesSearch("animation duration") && (
@@ -499,7 +486,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matchesSearch("choreography delay") && (
                   <SettingRow
                     label="Choreography Delay"
@@ -518,39 +505,201 @@ const SettingsWindow = (props: SettingsWindowProps) => {
             )
           )}
 
-          {/* Sidebar Settings */}
-          {bind(searchQuery).as(q => 
-            (matchesSearch("sidebar") || matchesSearch("panel")) && (
-              <SettingsSection title="Sidebar">
-                {matchesSearch("left sidebar") && (
+
+          {/* Windows Management */}
+          {bind(searchQuery).as(q => {
+            const hasSectionMatch = matchesSearch("window") || matchesSearch("component") || matchesSearch("ui");
+            if (!hasSectionMatch) return <box />;
+
+            const matches = {
+              bar: matchesSearch("bar") && !matchesSearch("sidebar"),
+              barCorners: matchesSearch("bar corner"),
+              launcher: matchesSearch("launcher"),
+              leftSidebar: matchesSearch("left sidebar"),
+              rightSidebar: matchesSearch("right sidebar"),
+              overlays: matchesSearch("overlay"),
+              notifications: matchesSearch("notification"),
+              indicators: matchesSearch("indicator"),
+              music: matchesSearch("music"),
+              wallpaper: matchesSearch("wallpaper"),
+              settings: matchesSearch("settings"),
+              monitors: matchesSearch("monitor settings")
+            };
+
+            if (!Object.values(matches).some(m => m)) return <box />;
+
+            return (
+              <SettingsSection title="Windows & Components">
+                {matches.bar && (
+                  <SettingRow
+                    label="Top Bar"
+                    description="Enable the top status bar"
+                  >
+                    <ToggleSwitch
+                      value={config.windows?.bar?.enabled ?? true}
+                      onToggled={(value) => updateConfig("windows.bar.enabled", value)}
+                    />
+                  </SettingRow>
+                )}
+
+                {matches.barCorners && (
+                  <SettingRow
+                    label="Bar Corners"
+                    description="Enable decorative bar corners"
+                  >
+                    <ToggleSwitch
+                      value={config.windows?.bar?.corners ?? true}
+                      onToggled={(value) => updateConfig("windows.bar.corners", value)}
+                    />
+                  </SettingRow>
+                )}
+
+                {matches.launcher && (
+                  <SettingRow
+                    label="Launcher"
+                    description="Enable application launcher"
+                  >
+                    <ToggleSwitch
+                      value={config.windows?.launcher?.enabled ?? true}
+                      onToggled={(value) => updateConfig("windows.launcher.enabled", value)}
+                    />
+                  </SettingRow>
+                )}
+
+                {matches.leftSidebar && (
                   <SettingRow
                     label="Left Sidebar"
-                    description="Enable left sidebar"
+                    description="Enable left sidebar panel"
                   >
                     <ToggleSwitch
-                      value={config.sidebar.leftEnabled}
-                      onToggled={(value) => updateConfig("sidebar.leftEnabled", value)}
+                      value={config.windows?.sidebar?.leftEnabled ?? true}
+                      onToggled={(value) => updateConfig("windows.sidebar.leftEnabled", value)}
                     />
                   </SettingRow>
                 )}
-                
-                {matchesSearch("right sidebar") && (
+
+                {matches.rightSidebar && (
                   <SettingRow
                     label="Right Sidebar"
-                    description="Enable right sidebar"
+                    description="Enable right sidebar panel"
                   >
                     <ToggleSwitch
-                      value={config.sidebar.rightEnabled}
-                      onToggled={(value) => updateConfig("sidebar.rightEnabled", value)}
+                      value={config.windows?.sidebar?.rightEnabled ?? true}
+                      onToggled={(value) => updateConfig("windows.sidebar.rightEnabled", value)}
                     />
                   </SettingRow>
                 )}
+
+                {matches.overlays && (
+                  <SettingRow
+                    label="Overlay Windows"
+                    description="Enable overlay window system"
+                  >
+                    <ToggleSwitch
+                      value={config.windows?.overlays?.enabled ?? true}
+                      onToggled={(value) => updateConfig("windows.overlays.enabled", value)}
+                    />
+                  </SettingRow>
+                )}
+
+                {matches.notifications && config.windows?.overlays?.enabled && (
+                  <SettingRow
+                    label="Notifications"
+                    description="Show notification popups"
+                    indent
+                  >
+                    <ToggleSwitch
+                      value={config.windows?.overlays?.notifications ?? true}
+                      onToggled={(value) => updateConfig("windows.overlays.notifications", value)}
+                    />
+                  </SettingRow>
+                )}
+
+                {matches.indicators && config.windows?.overlays?.enabled && (
+                  <SettingRow
+                    label="Indicators"
+                    description="Show volume/brightness indicators"
+                    indent
+                  >
+                    <ToggleSwitch
+                      value={config.windows?.overlays?.indicators ?? true}
+                      onToggled={(value) => updateConfig("windows.overlays.indicators", value)}
+                    />
+                  </SettingRow>
+                )}
+
+                {matches.music && config.windows?.overlays?.enabled && (
+                  <SettingRow
+                    label="Music Widget"
+                    description="Show music player overlay"
+                    indent
+                  >
+                    <ToggleSwitch
+                      value={config.windows?.overlays?.music ?? true}
+                      onToggled={(value) => updateConfig("windows.overlays.music", value)}
+                    />
+                  </SettingRow>
+                )}
+
+                {matches.wallpaper && config.windows?.overlays?.enabled && (
+                  <SettingRow
+                    label="Wallpaper Picker"
+                    description="Show wallpaper selection overlay"
+                    indent
+                  >
+                    <ToggleSwitch
+                      value={config.windows?.overlays?.wallpaper ?? true}
+                      onToggled={(value) => updateConfig("windows.overlays.wallpaper", value)}
+                    />
+                  </SettingRow>
+                )}
+
+                {matches.settings && (
+                  <SettingRow
+                    label="Settings Window"
+                    description="Enable settings window"
+                  >
+                    <ToggleSwitch
+                      value={config.windows?.settings?.enabled ?? true}
+                      onToggled={(value) => updateConfig("windows.settings.enabled", value)}
+                    />
+                  </SettingRow>
+                )}
+
+                {matches.monitors && config.windows?.settings?.enabled && (
+                  <SettingRow
+                    label="Monitor Settings"
+                    description="Enable monitor configuration"
+                    indent
+                  >
+                    <ToggleSwitch
+                      value={config.windows?.settings?.monitors ?? true}
+                      onToggled={(value) => updateConfig("windows.settings.monitors", value)}
+                    />
+                  </SettingRow>
+                )}
+
+                <box cssName="window-restart-notice" vertical spacing={4}>
+                  <label cssName="notice-text" xalign={0}>
+                    Note: Window changes require a restart to take effect.
+                  </label>
+                  <button
+                    cssName="restart-button"
+                    onClicked={() => {
+                      log.info("Restarting AGS to apply window changes");
+                      App.quit();
+                      // The systemd service or launch script should restart AGS
+                    }}
+                  >
+                    <label>Restart AGS</label>
+                  </button>
+                </box>
               </SettingsSection>
-            )
-          )}
+            );
+          })}
 
           {/* Display & Monitor Settings */}
-          {bind(searchQuery).as(q => 
+          {bind(searchQuery).as(q =>
             (matchesSearch("display") || matchesSearch("monitor") || matchesSearch("screen")) && (
               <SettingsSection title="Display & Monitors">
                 {matchesSearch("monitor") && (
@@ -578,7 +727,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
           )}
 
           {/* Window Manager Settings */}
-          {bind(searchQuery).as(q => 
+          {bind(searchQuery).as(q =>
             (matchesSearch("window") || matchesSearch("screenshot") || matchesSearch("manager")) && (
               <SettingsSection title="Window Manager">
                 {matchesSearch("window manager") && (
@@ -592,7 +741,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matchesSearch("capture on focus") && (
                   <SettingRow
                     label="Capture on Focus"
@@ -604,7 +753,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matchesSearch("screenshot interval") && (
                   <SettingRow
                     label="Screenshot Interval"
@@ -619,7 +768,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     />
                   </SettingRow>
                 )}
-                
+
                 {matchesSearch("cleanup interval") && (
                   <SettingRow
                     label="Cleanup Interval"
@@ -639,14 +788,14 @@ const SettingsWindow = (props: SettingsWindowProps) => {
           )}
 
           {/* Keyboard Shortcuts */}
-          {bind(searchQuery).as(q => 
+          {bind(searchQuery).as(q =>
             (matchesSearch("keyboard") || matchesSearch("shortcut") || matchesSearch("keybind") || matchesSearch("hotkey")) && (
               <SettingsSection title="Keyboard Shortcuts">
                 {/* Launcher Keybinds */}
                 {(matchesSearch("launcher") || matchesSearch("keyboard") || matchesSearch("toggle")) && (
                   <box vertical spacing={8}>
                     <label cssName="keybind-category" xalign={0}>Launcher</label>
-                    
+
                     <SettingRow
                       label="Toggle Launcher"
                       description="Show/hide the application launcher"
@@ -656,7 +805,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                         onChanged={(value) => updateConfig("keybinds.launcher.toggleLauncher", value)}
                       />
                     </SettingRow>
-                    
+
                     <SettingRow
                       label="Next Result"
                       description="Navigate to next search result"
@@ -666,7 +815,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                         onChanged={(value) => updateConfig("keybinds.launcher.nextResult", value)}
                       />
                     </SettingRow>
-                    
+
                     <SettingRow
                       label="Previous Result"
                       description="Navigate to previous search result"
@@ -676,7 +825,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                         onChanged={(value) => updateConfig("keybinds.launcher.prevResult", value)}
                       />
                     </SettingRow>
-                    
+
                     <SettingRow
                       label="Focus Input"
                       description="Focus the search input field"
@@ -688,12 +837,12 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     </SettingRow>
                   </box>
                 )}
-                
+
                 {/* Sidebar Keybinds */}
                 {(matchesSearch("sidebar") || matchesSearch("keyboard") || matchesSearch("tab")) && (
                   <box vertical spacing={8}>
                     <label cssName="keybind-category" xalign={0}>Left Sidebar</label>
-                    
+
                     <SettingRow
                       label="Next Tab"
                       description="Switch to next tab"
@@ -703,7 +852,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                         onChanged={(value) => updateConfig("keybinds.sidebar.left.nextTab", value)}
                       />
                     </SettingRow>
-                    
+
                     <SettingRow
                       label="Previous Tab"
                       description="Switch to previous tab"
@@ -713,7 +862,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                         onChanged={(value) => updateConfig("keybinds.sidebar.left.prevTab", value)}
                       />
                     </SettingRow>
-                    
+
                     <SettingRow
                       label="Cycle Tabs"
                       description="Cycle through all tabs"
@@ -725,11 +874,11 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     </SettingRow>
                   </box>
                 )}
-                
+
                 {(matchesSearch("sidebar") || matchesSearch("keyboard") || matchesSearch("tab")) && (
                   <box vertical spacing={8}>
                     <label cssName="keybind-category" xalign={0}>Right Sidebar</label>
-                    
+
                     <SettingRow
                       label="Next Tab"
                       description="Switch to next tab"
@@ -739,7 +888,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                         onChanged={(value) => updateConfig("keybinds.sidebar.right.nextTab", value)}
                       />
                     </SettingRow>
-                    
+
                     <SettingRow
                       label="Previous Tab"
                       description="Switch to previous tab"
@@ -749,7 +898,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                         onChanged={(value) => updateConfig("keybinds.sidebar.right.prevTab", value)}
                       />
                     </SettingRow>
-                    
+
                     <SettingRow
                       label="Cycle Tabs"
                       description="Cycle through all tabs"
@@ -761,12 +910,12 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     </SettingRow>
                   </box>
                 )}
-                
+
                 {/* Other Keybinds */}
                 {(matchesSearch("bar") || matchesSearch("keyboard") || matchesSearch("focus")) && (
                   <box vertical spacing={8}>
                     <label cssName="keybind-category" xalign={0}>Other</label>
-                    
+
                     <SettingRow
                       label="Focus Top Bar"
                       description="Focus the top bar"
@@ -778,7 +927,7 @@ const SettingsWindow = (props: SettingsWindowProps) => {
                     </SettingRow>
                   </box>
                 )}
-                
+
                 {/* Global Shortcuts Info */}
                 <box cssName="keybind-info" vertical spacing={4}>
                   <label cssName="keybind-info-title" xalign={0}>Global Shortcuts (Non-configurable)</label>

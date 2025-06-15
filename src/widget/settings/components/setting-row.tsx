@@ -3,15 +3,17 @@ import { Widget, Gtk } from "astal/gtk4";
 interface SettingRowProps extends Widget.BoxProps {
   label: string;
   description?: string;
+  indent?: boolean;
 }
 
 export const SettingRow = ({
   label,
   description,
   children,
-  child
+  child,
+  indent = false
 }: SettingRowProps) => (
-  <box cssName="setting-row" spacing={12} hexpand>
+  <box cssName="setting-row" cssClasses={indent ? ["indented"] : []} spacing={12} hexpand>
     <box vertical hexpand>
       <label cssName="setting-label" halign={Gtk.Align.START}>
         {label}

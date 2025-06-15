@@ -83,7 +83,6 @@ export const defaultConfigOptions: ConfigOptions = {
       to: "6:10",
     },
     keyboardUseFlag: false, // Use flag emoji instead of abbreviation letters
-    barRoundCorners: 1, // 0: No, 1: Yes
   },
   apps: {
     bluetooth: "blueberry",
@@ -131,9 +130,32 @@ export const defaultConfigOptions: ConfigOptions = {
   launcher: {
     maxResults: 15,
   },
+  // Window enable/disable configuration
+  windows: {
+    bar: {
+      enabled: true,
+      corners: true, // Enable bar corner widgets
+    },
+    launcher: {
+      enabled: true,
+    },
+    sidebar: {
+      leftEnabled: true,
+      rightEnabled: true,
+    },
+    overlays: {
+      enabled: true,
+      notifications: true,
+      indicators: true,
+      music: true,
+      wallpaper: true,
+    },
+    settings: {
+      enabled: true,
+      monitors: true,
+    },
+  },
   sidebar: {
-    leftEnabled: true,
-    rightEnabled: true,
     left: {},
     right: {},
   },

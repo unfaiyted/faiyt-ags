@@ -32,7 +32,7 @@ import { GLib } from "astal";
 log.info("Initializing ConfigManager");
 const configInstance = configManager; // This will trigger the singleton initialization
 
-setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.ERROR);
+setLogLevel(GLib.getenv("LOG_LEVEL") || LogLevel.INFO);
 
 // Init shell modes for all active monitors
 initialMonitorShellModes();
@@ -69,28 +69,56 @@ App.start({
 
       try {
         // Top bars
-        Bar({ gdkmonitor: gdkmonitor, index, mode: BarMode.Normal });
-        BarCornerTopLeft({ gdkmonitor: gdkmonitor, index });
-        BarCornerTopRight({ gdkmonitor: gdkmonitor, index });
+        if (configManager.getValue("windows.bar.enabled")) {
+          Bar({ gdkmonitor: gdkmonitor, index, mode: BarMode.Normal });
+
+          // Bar corners if enabled
+          if (configManager.getValue("windows.bar.corners")) {
+            BarCornerTopLeft({ gdkmonitor: gdkmonitor, index });
+            BarCornerTopRight({ gdkmonitor: gdkmonitor, index });
+          }
+        }
 
         // Side windows
-        SideRight({ gdkmonitor: gdkmonitor, monitorIndex: index });
-        SideLeft({ gdkmonitor: gdkmonitor, monitorIndex: index });
+        if (configManager.getValue("windows.sidebar.rightEnabled")) {
+          SideRight({ gdkmonitor: gdkmonitor, monitorIndex: index });
+        }
+        if (configManager.getValue("windows.sidebar.leftEnabled")) {
+          SideLeft({ gdkmonitor: gdkmonitor, monitorIndex: index });
+        }
 
         // Launcher bar
-        LauncherBar({ gdkmonitor, monitorIndex: index });
+        if (configManager.getValue("windows.launcher.enabled")) {
+          LauncherBar({ gdkmonitor, monitorIndex: index });
+        }
 
         // Overlay windows
-        PopupNotificationsWindow({ gdkmonitor: gdkmonitor, monitor: index });
-        IndicatorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
-        MusicWindow({ gdkmonitor: gdkmonitor, monitor: index });
-        DesktopWallpaperWindow({ gdkmonitor: gdkmonitor, monitor: index });
+        if (configManager.getValue("windows.overlays.enabled")) {
+          if (configManager.getValue("windows.overlays.notifications")) {
+            PopupNotificationsWindow({
+              gdkmonitor: gdkmonitor,
+              monitor: index,
+            });
+          }
+          if (configManager.getValue("windows.overlays.indicators")) {
+            IndicatorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
+          }
+          if (configManager.getValue("windows.overlays.music")) {
+            MusicWindow({ gdkmonitor: gdkmonitor, monitor: index });
+          }
+          if (configManager.getValue("windows.overlays.wallpaper")) {
+            DesktopWallpaperWindow({ gdkmonitor: gdkmonitor, monitor: index });
+          }
+        }
 
-        // Settings window
-        SettingsWindow({ gdkmonitor: gdkmonitor, monitor: index });
+        // Settings windows
+        if (configManager.getValue("windows.settings.enabled")) {
+          SettingsWindow({ gdkmonitor: gdkmonitor, monitor: index });
 
-        // Monitors window
-        MonitorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
+          if (configManager.getValue("windows.settings.monitors")) {
+            MonitorsWindow({ gdkmonitor: gdkmonitor, monitor: index });
+          }
+        }
 
         log.info(`Monitor ${index} setup complete`);
       } catch (error) {

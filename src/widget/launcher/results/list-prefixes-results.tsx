@@ -4,6 +4,7 @@ import ListPrefixesButton, { PrefixInfo } from "../buttons/list-prefixes-button"
 import { Variable, Binding } from "astal";
 import { Gtk } from "astal/gtk4";
 import { launcherLogger as log } from "../../../utils/logger";
+import configManager from "../../../services/config-manager";
 
 export interface ListPrefixesResult extends PrefixInfo {
   id: string;
@@ -35,10 +36,31 @@ export default function getListPrefixesResults(
 ): ListPrefixesResult[] {
   log.debug("Getting list prefixes results", { query, maxResults });
 
+  // Get config for enabled features
+  const features = configManager.getValue("search.enableFeatures");
+  log.debug("Enabled features from config", { features });
+  
+  // Map SearchType to config feature names
+  const typeToFeature: Partial<Record<SearchType, keyof typeof features>> = {
+    [SearchType.COMMANDS]: "commands",
+    [SearchType.SYSTEM]: "actions",
+    [SearchType.EXTERNAL_SEARCH]: "webSearch",
+    [SearchType.DIRECTORY]: "directorySearch",
+    [SearchType.LIST_PREFIXES]: "listPrefixes",
+    [SearchType.STICKERS]: "stickers",
+  };
+
   // Group prefixes by SearchType
   const prefixesByType: Map<SearchType, string[]> = new Map();
 
   for (const [prefix, type] of Object.entries(SEARCH_PREFIXES)) {
+    // Check if this type is enabled in config
+    const featureName = typeToFeature[type];
+    if (featureName && features && !features[featureName]) {
+      // Skip disabled features
+      continue;
+    }
+    
     if (!prefixesByType.has(type)) {
       prefixesByType.set(type, []);
     }
@@ -85,7 +107,12 @@ export default function getListPrefixesResults(
 
   log.debug("List prefixes results", {
     totalResults: results.length,
-    results: results.slice(0, maxResults)
+    results: results.slice(0, maxResults),
+    prefixesByType: Array.from(prefixesByType.entries()).map(([type, prefixes]) => ({
+      type,
+      prefixes,
+      count: prefixes.length
+    }))
   });
 
   return results.slice(0, maxResults);

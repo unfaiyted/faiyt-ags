@@ -420,6 +420,43 @@ export class ConfigManager extends GObject.Object {
     this.setValue(`ai.providers.${provider}.apiKey`, apiKey);
   }
 
+  // Window management methods
+  toggleWindow(windowPath: string): void {
+    const currentValue = this.getValue(`windows.${windowPath}`);
+    this.setValue(`windows.${windowPath}`, !currentValue);
+    this.emit("window-toggled", windowPath, !currentValue);
+    log.info(`Window toggled: ${windowPath} = ${!currentValue}`);
+  }
+
+  setWindowEnabled(windowPath: string, enabled: boolean): void {
+    this.setValue(`windows.${windowPath}`, enabled);
+    this.emit("window-toggled", windowPath, enabled);
+    log.info(`Window state set: ${windowPath} = ${enabled}`);
+  }
+
+  isWindowEnabled(windowPath: string): boolean {
+    return this.getValue(`windows.${windowPath}`) || false;
+  }
+
+  // Get all window states
+  getWindowStates(): Record<string, boolean> {
+    const windows = this.getValue("windows") || {};
+    const states: Record<string, boolean> = {};
+    
+    const flatten = (obj: any, prefix = ""): void => {
+      for (const key in obj) {
+        if (typeof obj[key] === "boolean") {
+          states[prefix + key] = obj[key];
+        } else if (typeof obj[key] === "object") {
+          flatten(obj[key], prefix + key + ".");
+        }
+      }
+    };
+    
+    flatten(windows);
+    return states;
+  }
+
   // Debounced save to avoid excessive file writes
   private _saveTimeout: number | null = null;
   private debouncedSave(): void {
