@@ -6,8 +6,6 @@ A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Sh
 
 
 
-
-
 | | |
 |:---:|:---:|
 | ![launcher features](docs/launcher-features.gif) | ![wallpaper manager](docs/wallpaper-manager.gif) |
@@ -16,10 +14,6 @@ A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Sh
 | **Desktop Shell** - Clean desktop with wallpaper integration | **List Actions** - Quick launcher actions menu |
 | ![launcher stickers](docs/launcher-stickers.png) | ![side panels](docs/side-panels.png) |
 | **sticker integration** - signal stickers in launcher | **side panels** - system controls and utilities |
-
-
-
-
 
 
 ## Features
@@ -133,7 +127,8 @@ A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Sh
 - gtksourceview5
 - NetworkManager (for network indicators)
 - BlueZ (for Bluetooth support)
-- PulseAudio or PipeWire (for audio controls)
+- Wireplumber (for audio controls)
+
 
 # Optional dependencies
 - AI API Keys:
@@ -148,6 +143,39 @@ A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Sh
 
 ### Installation
 
+> **⚠️ BETA WARNING**: The automated setup script is currently in beta and needs further testing. If you encounter any issues, please open an issue on GitHub and I'll work to resolve them. Your feedback helps improve the installation experience for everyone!
+
+#### Automated Installation (Beta)
+
+I've created a `setup.sh` script that automates the installation of all dependencies:
+
+```bash
+# Clone the repository
+git clone <repository-url> ~/.config/ags
+cd ~/.config/ags
+
+# Run the setup script
+chmod +x setup.sh
+./setup.sh
+```
+
+The setup script will:
+- Detect your Linux distribution and package manager
+- Install all system dependencies (GTK4, GJS, layer-shell, etc.)
+- Install and build AGS/Astal with all required features
+- Install Bun and Node.js
+- Configure your environment with an AGS launcher wrapper
+- Build the project and prepare it for use
+
+**Supported distributions**:
+- Arch Linux (pacman)
+- Fedora (dnf)
+- Debian/Ubuntu (apt)
+
+#### Manual Installation
+
+If you prefer manual installation or the script doesn't work for your distribution:
+
 1. **Install AGS (Astal GTK Shell)**
    ```bash
    # Follow AGS installation guide at:
@@ -157,13 +185,16 @@ A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Sh
 2. **Install system dependencies**
    ```bash
    # Arch Linux
-   sudo pacman -S gtk4 gtk4-layer-shell gjs networkmanager bluez
+   sudo pacman -S gtk4 gtk4-layer-shell gjs networkmanager bluez \
+                  wireplumber pipewire libnotify
 
    # Fedora
-   sudo dnf install gtk4 gtk4-layer-shell gjs NetworkManager bluez
+   sudo dnf install gtk4 gtk4-layer-shell gjs NetworkManager bluez \
+                    wireplumber pipewire libnotify
 
    # Ubuntu/Debian
-   sudo apt install libgtk-4-1 gtk-layer-shell gjs network-manager bluez
+   sudo apt install libgtk-4-1 gtk-layer-shell gjs network-manager bluez \
+                    wireplumber pipewire libnotify-bin
    ```
 
 3. **Install Bun** (recommended) or use npm
@@ -182,6 +213,8 @@ A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Sh
    ```bash
    bun build:app
    bun start:app
+   # or use the launcher wrapper (if setup.sh was run)
+   ags-launcher
    ```
 
 ## Development
@@ -292,6 +325,9 @@ A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Sh
    - Install ffmpeg for recording support
    - Check audio permissions for recording with sound
    - Ensure sufficient disk space for recordings
+
+7. **Critical Error: SwayNotificationCenter**
+   - You can kill swaync using `pkill swaync` and then try running the application again.
 
 ### Debug Mode
 
