@@ -2,6 +2,8 @@
 
 A modern, feature-rich desktop shell configuration built with [AGS (Astal GTK Shell)](https://github.com/Aylur/ags) for Wayland environments. This configuration provides a complete desktop experience with a customizable bar, application launcher, sidebars, and system overlays.
 
+> **Note**: This repository is part of my complete dotfiles configuration. For the full Hyprland setup, additional configurations, and settings for other applications, please visit the main dotfiles repository at [github.com/unfaiyted/dots](https://github.com/unfaiyted/dots).
+
 
 
 
