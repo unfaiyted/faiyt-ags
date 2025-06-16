@@ -382,36 +382,18 @@ EOF
         fi
     fi
     
-    # Create AGS launcher script with environment variables
-    info "Creating AGS launcher wrapper..."
-    cat > "$HOME/.local/bin/ags-launcher" << 'LAUNCHER_EOF'
-#!/bin/bash
-# AGS launcher with specific environment variables
-# These are set only for AGS to avoid affecting other GTK apps
-
-export GSK_RENDERER=ngl
-export GDK_BACKEND=wayland
-export LAYER_SHELL_ENABLE=1
-
-# Pass through any AGS-specific environment variables
-export AGS_LOG_LEVEL="${AGS_LOG_LEVEL:-info}"
-export AGS_LOG_FORMAT="${AGS_LOG_FORMAT:-pretty}"
-export AGS_LOG_CONSOLE="${AGS_LOG_CONSOLE:-true}"
-
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# Check if running from the AGS config directory
-if [ -f "$SCRIPT_DIR/../../ags/app.js" ]; then
-    cd "$SCRIPT_DIR/../../ags"
-    exec ags "$@"
-else
-    # Otherwise, use the default AGS behavior
-    exec ags "$@"
-fi
-LAUNCHER_EOF
+    # Copy AGS launcher script
+    info "Installing AGS launcher wrapper..."
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
     
-    chmod +x "$HOME/.local/bin/ags-launcher"
+    if [ -f "$SCRIPT_DIR/ags-launcher.sh" ]; then
+        cp "$SCRIPT_DIR/ags-launcher.sh" "$HOME/.local/bin/ags-launcher"
+        chmod +x "$HOME/.local/bin/ags-launcher"
+        success "AGS launcher installed to ~/.local/bin/ags-launcher"
+    else
+        error "ags-launcher.sh not found in $SCRIPT_DIR"
+        warning "Please ensure ags-launcher.sh exists in the repository"
+    fi
     
     success "Environment setup complete"
 }

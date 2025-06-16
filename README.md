@@ -217,6 +217,44 @@ If you prefer manual installation or the script doesn't work for your distributi
    ags-launcher
    ```
 
+#### Post-Installation
+
+After running the setup script, you'll have access to the `ags-launcher` command which provides:
+
+```bash
+# Launch AGS with proper environment setup
+ags-launcher
+
+# Check if all requirements are satisfied
+ags-launcher --check-requirements
+# or
+ags-launcher -c
+
+# Show help
+ags-launcher --help
+```
+
+The launcher wrapper:
+- Sets GTK4-specific environment variables (GSK_RENDERER, GDK_BACKEND, etc.) only for AGS
+- Preloads the GTK4 layer shell library for proper Wayland support
+- Automatically detects and uses the correct app.js path
+- Prevents environment conflicts with other GTK applications
+
+**Checking Requirements:**
+The `--check-requirements` flag runs a comprehensive check for:
+- Core dependencies (AGS, GJS, GTK4)
+- System services (NetworkManager, Bluetooth)
+- Required libraries (layer-shell, gtksourceview)
+- Optional tools (screenshot, audio control, etc.)
+- Build environment (Bun/npm, project dependencies)
+
+The checker uses color-coded output:
+- ✓ Green = Found
+- ✗ Red = Missing (required)
+- ! Yellow = Missing (optional)
+
+If requirements are missing, run `./setup.sh` to install them.
+
 ## Development
 
 ### Available Scripts

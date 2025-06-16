@@ -2,6 +2,7 @@ import GLib from "gi://GLib";
 import Gio from "gi://Gio";
 import { Variable } from "astal";
 import { serviceLogger as logger } from "../utils/logger";
+import { exec } from "astal/process";
 
 export interface DesktopEntry {
   name: string;
@@ -17,6 +18,7 @@ export interface DesktopEntry {
 class DesktopScanner {
   private entries = Variable<DesktopEntry[]>([]);
   private appImageCache = new Map<string, DesktopEntry>();
+  private hasFlatpak: boolean = false;
 
   // Standard locations for desktop files
   private readonly DESKTOP_DIRS = [
@@ -25,16 +27,6 @@ class DesktopScanner {
     GLib.build_filenamev([
       GLib.get_home_dir(),
       ".local",
-      "share",
-      "applications",
-    ]),
-    "/var/lib/flatpak/exports/share/applications",
-    GLib.build_filenamev([
-      GLib.get_home_dir(),
-      ".local",
-      "share",
-      "flatpak",
-      "exports",
       "share",
       "applications",
     ]),
@@ -47,7 +39,25 @@ class DesktopScanner {
   ]);
 
   constructor() {
+    this.checkFlatpak();
     this.scan();
+  }
+
+  private checkFlatpak(): void {
+    try {
+      // Check if flatpak command exists
+      const result = exec("command -v flatpak");
+      this.hasFlatpak = result.trim().length > 0;
+      
+      if (this.hasFlatpak) {
+        logger.debug("Flatpak detected, will scan flatpak applications");
+      } else {
+        logger.debug("Flatpak not found, skipping flatpak directories");
+      }
+    } catch (error) {
+      this.hasFlatpak = false;
+      logger.debug("Flatpak check failed, assuming not installed");
+    }
   }
 
   get applications() {
@@ -140,11 +150,34 @@ class DesktopScanner {
     }
   }
 
+  private getDesktopDirs(): string[] {
+    const dirs = [...this.DESKTOP_DIRS];
+    
+    // Add flatpak directories only if flatpak is installed
+    if (this.hasFlatpak) {
+      dirs.push(
+        "/var/lib/flatpak/exports/share/applications",
+        GLib.build_filenamev([
+          GLib.get_home_dir(),
+          ".local",
+          "share",
+          "flatpak",
+          "exports",
+          "share",
+          "applications",
+        ])
+      );
+    }
+    
+    return dirs;
+  }
+
   private scanDesktopFiles(): DesktopEntry[] {
     const entries: DesktopEntry[] = [];
     const seen = new Set<string>();
+    const desktopDirs = this.getDesktopDirs();
 
-    for (const dirPath of this.DESKTOP_DIRS) {
+    for (const dirPath of desktopDirs) {
       try {
         const dir = Gio.File.new_for_path(dirPath);
         if (!dir.query_exists(null)) continue;
