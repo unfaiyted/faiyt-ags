@@ -178,9 +178,34 @@ If you prefer manual installation or the script doesn't work for your distributi
 
 1. **Install AGS (Astal GTK Shell)**
    ```bash
-   # Follow AGS installation guide at:
-   # https://github.com/Aylur/ags
+   # Clone and build Astal
+   git clone --recursive https://github.com/aylur/astal.git
+   cd astal
+   
+   # Build with all features enabled
+   meson setup build \
+     -Dtray=true \
+     -Dbluetooth=true \
+     -Dnetwork=true \
+     -Dbattery=true \
+     -Dwireplumber=true \
+     -Dhyprland=true \
+     -Dnotifd=true \
+     -Dmpris=true \
+     -Dpowerprofiles=true \
+     -Dapps=true
+   meson compile -C build
+   sudo meson install -C build
    ```
+
+   **Note**: Each Astal library has its own dependencies that must be installed first:
+   - **Battery**: Requires `libupower-glib-dev` (apt), `upower-devel` (dnf), `upower` (pacman)
+   - **Bluetooth**: Requires development headers installed with system packages below
+   - **Network**: Requires `libnm-dev` (apt), `NetworkManager-libnm-devel` (dnf), `libnm` (pacman)
+   - **Wireplumber**: Requires `libwireplumber-0.4-dev` (apt), `wireplumber-devel` (dnf)
+   - **Tray**: Requires `libayatana-appindicator3-dev` (apt), `libappindicator-gtk3-devel` (dnf)
+   
+   See the [Astal documentation](https://aylur.github.io/astal/guide/getting-started/introduction) for more details.
 
 2. **Install system dependencies**
    ```bash
