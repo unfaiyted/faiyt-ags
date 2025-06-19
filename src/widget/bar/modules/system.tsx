@@ -8,7 +8,8 @@ import CircularProgress from "../../utils/circular-progress";
 import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { execAsync } from "astal/process";
 import config from "../../../utils/config";
-import { theme } from "../../../utils/color";
+import { ThemeColor } from "../../../styles/themes";
+import themeManager from "../../../services/theme-manager";
 import { PhosphorIconStyle, PhosphorIcons } from "../../utils/icons/types";
 
 export enum BarResourceType {
@@ -67,7 +68,7 @@ const BarResource = (props: BarResourceProps) => {
       size={24}
       lineWidth={2}
       backgroundColor={`${props.iconColor}40`} // 25% opacity version of the icon color
-      foregroundColor={props.iconColor || theme.foreground}
+      foregroundColor={props.iconColor || themeManager.getColor('foreground')}
       valign={Gtk.Align.CENTER}
       halign={Gtk.Align.CENTER}
     />
@@ -87,7 +88,7 @@ const BarResource = (props: BarResourceProps) => {
           size={24}
           lineWidth={2}
           backgroundColor={`${props.iconColor}40`} // 25% opacity version of the icon color
-          foregroundColor={props.iconColor || theme.foreground}
+          foregroundColor={props.iconColor || themeManager.getColor('foreground')}
         />
 
         {/* Then add the icon centered on top */}
@@ -105,7 +106,7 @@ const BarResource = (props: BarResourceProps) => {
             iconName={props.icon}
             size={16}
             style={PhosphorIconStyle.Duotone}
-            color={props.iconColor || theme.foreground}
+            color={props.iconColor ? props.iconColor : ThemeColor.Foreground}
           />
         </box>
       </Fixed>
@@ -156,7 +157,7 @@ export default function SystemResources() {
           type={BarResourceType.RAM}
           icon={PhosphorIcons.Cpu}
           command={RESOURCE_COMMAND.RAM}
-          iconColor={theme.info}
+          iconColor={themeManager.getColor('info')}
         />
         <revealer
           revealChild={true}
@@ -168,13 +169,13 @@ export default function SystemResources() {
               type={BarResourceType.SWAP}
               icon={PhosphorIcons.ArrowsLeftRight}
               command={RESOURCE_COMMAND.SWAP}
-              iconColor={theme.success}
+              iconColor={themeManager.getColor('success')}
             />
             <BarResource
               type={BarResourceType.CPU}
               icon={PhosphorIcons.Gauge}
               command={RESOURCE_COMMAND.CPU}
-              iconColor={theme.warning}
+              iconColor={themeManager.getColor('warning')}
             />
           </box>
         </revealer>

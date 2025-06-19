@@ -139,6 +139,7 @@ install_system_packages() {
                 gjs \
                 gtksourceview5 \
                 gtk4-layer-shell \
+                aylurs-gtk-shell \ 
                 networkmanager \
                 libnm \
                 bluez \

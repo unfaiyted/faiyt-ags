@@ -5,7 +5,7 @@ import { PhosphorIcon } from "../../utils/icons/phosphor";
 import { PhosphorIconStyle } from "../../utils/icons/types";
 import BarGroup from "../utils/bar-group";
 
-import { theme } from "../../../utils/color";
+import { ThemeColor } from "../../../styles/themes";
 
 export interface WindowTitleProps extends Widget.BoxProps { }
 
@@ -124,7 +124,7 @@ export default function WindowTitle() {
                   iconName={iconName}
                   style={PhosphorIconStyle.Duotone}
                   size={16}
-                  color={theme.foreground}
+                  color={ThemeColor.Foreground}
                 />
               );
 

@@ -6,6 +6,8 @@ import { Binding, Variable } from "astal";
 import { PhosphorIcons, PhosphorIconStyle } from "./types";
 import { theme } from "../../../utils/color";
 import { createLogger } from "../../../utils/logger";
+import { ThemeColor } from "../../../styles/themes";
+import themeManager from "../../../services/theme-manager";
 
 const log = createLogger("PhosphorIcon");
 
@@ -19,7 +21,7 @@ export interface PhosphorIconProps extends Widget.ImageProps {
   // Size of the icon in pixels (width and height)
   size?: number;
   // Color of the icon (CSS color string)
-  color?: string | Binding<string>;
+  color?: ThemeColor | Binding<ThemeColor>;
 }
 
 /**
@@ -117,7 +119,8 @@ export function PhosphorIcon(props: PhosphorIconProps) {
   });
 
   const iconName = Variable(PhosphorIcons.QuestionMark);
-  const color = Variable(theme.foreground);
+  // Create a reactive variable for the color that updates with theme changes
+  const themeColor = Variable("");
 
   if (typeof propIconName === "string") {
     iconName.set(propIconName);
@@ -139,30 +142,61 @@ export function PhosphorIcon(props: PhosphorIconProps) {
 
     const getColor = () => {
       if (typeof propColor === "string") {
+        // If it's a ThemeColor enum value, get the actual color from theme manager
+        const themeColors = Object.values(ThemeColor);
+        if (themeColors.includes(propColor as ThemeColor)) {
+          return themeManager.getColor(propColor as any);
+        }
         return propColor;
       } else if (propColor && typeof propColor.get === "function") {
-        return propColor.get();
+        const colorValue = propColor.get();
+        // Check if it's a ThemeColor enum value
+        const themeColors = Object.values(ThemeColor);
+        if (themeColors.includes(colorValue as ThemeColor)) {
+          return themeManager.getColor(colorValue as any);
+        }
+        return colorValue;
       }
-      return theme.foreground; // default
+      // Default to foreground color from theme
+      return themeManager.getColor('foreground');
+    };
+
+    // Update color from theme
+    const updateColorFromTheme = () => {
+      const color = getColor();
+      themeColor.set(color);
+      loadIcon(image, getIconName(), color);
     };
 
     // Load icon initially
-    loadIcon(image, getIconName(), getColor());
+    updateColorFromTheme();
+
+    // Subscribe to theme changes
+    const themeChangedHandler = themeManager.connect('theme-changed', () => {
+      log.debug("Theme changed, updating icon color");
+      updateColorFromTheme();
+    });
 
     // Subscribe to changes if props are Variables/Bindings
     if (propIconName && typeof propIconName.subscribe === "function") {
       propIconName.subscribe((newIconName) => {
         log.debug("Icon name changed", { newIconName });
-        loadIcon(image, newIconName, getColor());
+        loadIcon(image, newIconName, themeColor.get());
       });
     }
 
     if (propColor && typeof propColor.subscribe === "function") {
-      propColor.subscribe((newColor) => {
-        loadIcon(image, getIconName(), newColor);
+      propColor.subscribe(() => {
+        updateColorFromTheme();
       });
     }
 
+    // Cleanup on destroy
+    image.connect('destroy', () => {
+      if (themeChangedHandler) {
+        themeManager.disconnect(themeChangedHandler);
+      }
+    });
 
     // If a custom setup function was provided, call it
     setup?.(image);

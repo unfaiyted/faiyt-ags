@@ -9,7 +9,8 @@ import { writeFile, readFile } from "astal/file";
 import GLib from "gi://GLib";
 import { WwoCode } from "./types";
 import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
-import { theme } from "../../../../utils/color";
+import { ThemeColor } from "../../../../styles/themes";
+import themeManager from "../../../../services/theme-manager";
 import { barLogger as log } from "../../../../utils/logger";
 
 const WEATHER_CACHE_FOLDER = `${GLib.get_user_cache_dir()}/ags/weather`;
@@ -41,47 +42,47 @@ const WEATHER_ICON_MAP: Record<string, PhosphorIcons> = {
 };
 
 // Get temperature-based color (blue for cold, red for warm) using Rosé Pine colors
-function getTempColor(temp: number): string {
-  if (temp <= 0) return theme.pine; // pine (cold blue)
-  if (temp <= 10) return theme.foam; // foam (cool blue)
-  if (temp <= 20) return theme.iris; // iris (cool purple)
-  if (temp <= 25) return theme.text; // text (neutral white)
-  if (temp <= 30) return theme.gold; // gold (warm yellow)
-  if (temp <= 35) return theme.rose; // rose (warm pink)
-  return theme.love; // love (hot red)
+function getTempColor(temp: number): ThemeColor {
+  if (temp <= 0) return ThemeColor.Pine; // pine (cold blue)
+  if (temp <= 10) return ThemeColor.Foam; // foam (cool blue)
+  if (temp <= 20) return ThemeColor.Iris; // iris (cool purple)
+  if (temp <= 25) return ThemeColor.Text; // text (neutral white)
+  if (temp <= 30) return ThemeColor.Gold; // gold (warm yellow)
+  if (temp <= 35) return ThemeColor.Rose; // rose (warm pink)
+  return ThemeColor.Love; // love (hot red)
 }
 
 // Get weather condition color using Rosé Pine colors
-function getWeatherColor(condition: string): string {
+function getWeatherColor(condition: string): ThemeColor {
   switch (condition.toUpperCase()) {
-    case "SUNNY": return theme.gold; // gold (bright sunny)
-    case "PARTLY_CLOUDY": return theme.subtle; // subtle (light clouds)
+    case "SUNNY": return ThemeColor.Gold; // gold (bright sunny)
+    case "PARTLY_CLOUDY": return ThemeColor.Subtle; // subtle (light clouds)
     case "CLOUDY":
-    case "VERY_CLOUDY": return theme.muted; // muted (heavy clouds)
-    case "FOG": return theme.overlay; // overlay (misty)
+    case "VERY_CLOUDY": return ThemeColor.Muted; // muted (heavy clouds)
+    case "FOG": return ThemeColor.Overlay; // overlay (misty)
     case "LIGHT_RAIN":
     case "LIGHT_SHOWERS":
     case "HEAVY_RAIN":
-    case "HEAVY_SHOWERS": return theme.pine; // pine (rain blue)
+    case "HEAVY_SHOWERS": return ThemeColor.Pine; // pine (rain blue)
     case "LIGHT_SNOW":
     case "HEAVY_SNOW":
     case "LIGHT_SNOW_SHOWERS":
-    case "HEAVY_SNOW_SHOWERS": return theme.foam; // foam (snow blue)
+    case "HEAVY_SNOW_SHOWERS": return ThemeColor.Foam; // foam (snow blue)
     case "THUNDERY_SHOWERS":
     case "THUNDERY_HEAVY_RAIN":
-    case "THUNDERY_SNOW_SHOWERS": return theme.iris; // iris (electric purple)
-    default: return theme.text; // text (default white)
+    case "THUNDERY_SNOW_SHOWERS": return ThemeColor.Iris; // iris (electric purple)
+    default: return ThemeColor.Text; // text (default white)
   }
 }
 
 export default function SideModule() {
   const weatherIcon = new Variable(PhosphorIcons.Thermometer);
-  const weatherIconColor = new Variable(theme.foreground);
+  const weatherIconColor = new Variable(ThemeColor.Foreground);
   const temperature = new Variable(0);
   const feelsLike = new Variable(0);
   const weatherDesc = new Variable(":/");
   const tooltipText = new Variable("");
-  const tempColor = new Variable(theme.foreground);
+  const tempColor = new Variable(ThemeColor.Foreground);
 
   const WEATHER_CACHE_PATH = WEATHER_CACHE_FOLDER + "/wttr.in.txt";
 
@@ -159,25 +160,25 @@ export default function SideModule() {
                 } catch (symbolErr) {
                   log.error("Weather symbol error", { error: symbolErr });
                   weatherIcon.set(PhosphorIcons.Thermometer);
-                  weatherIconColor.set(theme.foreground);
+                  weatherIconColor.set(ThemeColor.Foreground);
                   weatherDesc.set("Weather unavailable");
                 }
               } else {
                 // Fallback for missing temperature data
                 weatherIcon.set(PhosphorIcons.Thermometer);
-                weatherIconColor.set(theme.foreground);
+                weatherIconColor.set(ThemeColor.Foreground);
                 weatherDesc.set("Weather data incomplete");
               }
             } else {
               // Fallback for missing weather description
               weatherIcon.set(PhosphorIcons.Thermometer);
-              weatherIconColor.set(theme.foreground);
+              weatherIconColor.set(ThemeColor.Foreground);
               weatherDesc.set("Weather description unavailable");
             }
           } else {
             // Fallback for missing weather data structure
             weatherIcon.set(PhosphorIcons.Thermometer);
-            weatherIconColor.set(theme.foreground);
+            weatherIconColor.set(ThemeColor.Foreground);
             weatherDesc.set("Weather data unavailable");
           }
         } catch (err) {
@@ -192,7 +193,7 @@ export default function SideModule() {
             city
           });
           weatherIcon.set(PhosphorIcons.Thermometer);
-          weatherIconColor.set(theme.foreground);
+          weatherIconColor.set(ThemeColor.Foreground);
           weatherDesc.set("?");
         }
       })
@@ -250,32 +251,32 @@ export default function SideModule() {
                 } catch (symbolErr) {
                   log.error("Weather symbol error", { error: symbolErr });
                   weatherIcon.set(PhosphorIcons.Thermometer);
-                  weatherIconColor.set(theme.foreground);
+                  weatherIconColor.set(ThemeColor.Foreground);
                   weatherDesc.set("Weather unavailable");
                 }
               } else {
                 // Fallback for missing temperature data
                 weatherIcon.set(PhosphorIcons.Thermometer);
-                weatherIconColor.set(theme.foreground);
+                weatherIconColor.set(ThemeColor.Foreground);
                 weatherDesc.set("Weather data incomplete");
               }
             } else {
               // Fallback for missing weather description
               weatherIcon.set(PhosphorIcons.Thermometer);
-              weatherIconColor.set(theme.foreground);
+              weatherIconColor.set(ThemeColor.Foreground);
               weatherDesc.set("Weather description unavailable");
             }
           } else {
             // Fallback for missing weather data structure
             weatherIcon.set(PhosphorIcons.Thermometer);
-            weatherIconColor.set(theme.foreground);
+            weatherIconColor.set(ThemeColor.Foreground);
             weatherDesc.set("Weather data unavailable");
           }
         } catch (err) {
           // Fallback for JSON parsing errors or missing cache
           log.error("Failed to read weather cache", { error: err });
           weatherIcon.set(PhosphorIcons.Thermometer);
-          weatherIconColor.set(theme.foreground);
+          weatherIconColor.set(ThemeColor.Foreground);
           weatherDesc.set("Weather unavailable");
         }
       });
@@ -365,12 +366,17 @@ export default function SideModule() {
           marginEnd={6}
           label={bind(weatherDesc)}
           setup={(label) => {
-            tempColor.subscribe((color) => {
-              label.set_markup(`<span color="${color}">${weatherDesc.get()}</span>`);
-            });
-            weatherDesc.subscribe((text) => {
-              label.set_markup(`<span color="${tempColor.get()}">${text}</span>`);
-            });
+            const updateLabel = () => {
+              const colorEnum = tempColor.get();
+              const actualColor = themeManager.getColor(colorEnum as any);
+              label.set_markup(`<span color="${actualColor}">${weatherDesc.get()}</span>`);
+            };
+            
+            tempColor.subscribe(updateLabel);
+            weatherDesc.subscribe(updateLabel);
+            
+            // Update on theme change
+            themeManager.connect('theme-changed', updateLabel);
           }}
         />
       </box>

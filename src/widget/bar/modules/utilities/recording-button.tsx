@@ -3,7 +3,7 @@ import { Variable, bind } from "astal";
 import { setupCursorHover } from "../../../utils/buttons";
 import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import "./utililies-button.scss";
-import { theme } from "../../../../utils/color";
+import { ThemeColor } from "../../../../styles/themes";
 import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
 import { actions } from "../../../../utils/actions";
 import { interval } from "astal/time";
@@ -41,7 +41,7 @@ export default function RecordingButton(props: RecordingButtonProps) {
         iconName={bind(isRecording).as(recording => recording ? PhosphorIcons.Record : PhosphorIcons.VideoCamera)}
         style={PhosphorIconStyle.Duotone}
         size={18}
-        color={bind(isRecording).as(recording => recording ? "#ff0000" : theme.foreground)}
+        color={bind(isRecording).as(recording => recording ? ThemeColor.Error : ThemeColor.Foreground)}
       />
     </button>
   );

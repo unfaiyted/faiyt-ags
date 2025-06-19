@@ -5,7 +5,7 @@ import { ClockModuleProps } from "./types";
 import GLib from "gi://GLib";
 import BarGroup from "../../utils/bar-group";
 import { PhosphorIcon } from "../../../utils/icons/phosphor";
-import { theme } from "../../../../utils/color";
+import { ThemeColor } from "../../../../styles/themes";
 
 export default function ClockModule(props: ClockModuleProps) {
   const time = new Variable("").poll(
@@ -55,7 +55,7 @@ export default function ClockModule(props: ClockModuleProps) {
           iconName="clock"
           style="duotone"
           size={16}
-          color={theme.foreground}
+          color={ThemeColor.Foreground}
           marginEnd={6}
         />
         <label cssName="bar-time" label={bind(time)} />

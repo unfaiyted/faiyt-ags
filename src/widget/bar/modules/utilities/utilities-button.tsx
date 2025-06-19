@@ -2,7 +2,7 @@ import { Widget, Gtk, Gdk } from "astal/gtk4";
 import { setupCursorHover } from "../../../utils/buttons";
 import { PhosphorIcon } from "../../../utils/icons/phosphor";
 import "./utililies-button.scss";
-import { theme } from "../../../../utils/color";
+import { ThemeColor } from "../../../../styles/themes";
 import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
 
 export interface UtilitiesButtonProps extends Widget.ButtonProps {
@@ -32,7 +32,7 @@ export default function UtilitiesButton(props: UtilitiesButtonProps) {
         iconName={icon}
         style={PhosphorIconStyle.Duotone}
         size={18}
-        color={theme.foreground}
+        color={ThemeColor.Foreground}
       />
     </button>
   );

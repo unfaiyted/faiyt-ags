@@ -66,8 +66,13 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
 
       const widgetWidth = self.get_allocation().width;
       const wsId = Math.ceil((x * config.workspaces.shown) / widgetWidth);
+      
+      // Get current workspace group offset
+      const currentWs = hypr.get_focused_workspace().id;
+      const offset = Math.floor((currentWs - 1) / config.workspaces.shown) * config.workspaces.shown;
+      const targetWs = offset + wsId;
 
-      hypr.message_async(`dispatch workspace ${wsId}`, handleHyprResponse);
+      hypr.message_async(`dispatch workspace ${targetWs}`, handleHyprResponse);
     });
 
     // Handle click press events
@@ -82,8 +87,13 @@ export default function Workspaces(workspacesProps: BaseWorkspacesProps) {
 
         const wsClicked = Math.ceil((x) / wsWidth);
         print("Workspace clicked:", wsClicked);
+        
+        // Get current workspace group offset
+        const currentWs = hypr.get_focused_workspace().id;
+        const offset = Math.floor((currentWs - 1) / config.workspaces.shown) * config.workspaces.shown;
+        const targetWs = offset + wsClicked;
 
-        hypr.message_async(`dispatch workspace ${wsClicked - 1}`, handleHyprResponse);
+        hypr.message_async(`dispatch workspace ${targetWs}`, handleHyprResponse);
       } else if (button === Gdk.BUTTON_SECONDARY) {
         // hypr.message_async(
         //   `dispatch togglespecialworkspace`,

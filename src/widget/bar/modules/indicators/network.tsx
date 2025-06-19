@@ -4,7 +4,7 @@ import { Widget, Gtk } from "astal/gtk4";
 import { Variable, bind } from "astal";
 import PhosphorIcon from "../../../utils/icons/phosphor";
 import { PhosphorIcons, PhosphorIconStyle } from "../../../utils/icons/types";
-import { theme } from "../../../../utils/color"
+import { ThemeColor } from "../../../../styles/themes";
 const network = Network.get_default();
 import { barLogger as log } from "../../../../utils/logger";
 
@@ -45,7 +45,7 @@ const NetworkWiredIndicator = (props: Widget.StackProps) => {
         name={Network.Internet.CONNECTING.toString()}
         iconName={PhosphorIcons.Network}
         style={PhosphorIconStyle.Duotone}
-        color={theme.gold}
+        color={ThemeColor.Gold}
       />
       <SimpleNetworkIndicator name="simple" />
     </stack>

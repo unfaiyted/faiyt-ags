@@ -1,4 +1,4 @@
-import { Widget, Gtk } from "astal/gtk4";
+import { Gtk } from "astal/gtk4";
 import { Variable, bind } from "astal";
 
 import config from "../../../../../utils/config";
@@ -29,7 +29,7 @@ export default function WorkspacesModeContent(
     for (let i = 0; i < workspaces.length; i++) {
       const ws = workspaces[i];
       if (ws.id <= offset || ws.id > offset + shown) continue; // Out of range, ignore
-      if (workspaces[i].get_clients().length > 0) mask |= 1 << (ws.id - offset);
+      if (workspaces[i].get_clients().length > 0) mask |= 1 << (ws.id - offset - 1);
     }
     // console.log('Mask:', workspaceMask.toString(2));
     workspaceMask.set(mask);
@@ -55,19 +55,19 @@ export default function WorkspacesModeContent(
       // Fallback to globally focused workspace if no monitor specified
       return hypr.get_focused_workspace();
     }
-    
+
     // Get the monitor name from GDK monitor
     const monitorName = baseWorkspacesProps.gdkmonitor.get_connector();
-    
+
     // Find the Hyprland monitor that matches this GDK monitor
     const hyprMonitors = hypr.get_monitors();
     const hyprMonitor = hyprMonitors.find(m => m.name === monitorName);
-    
+
     if (hyprMonitor) {
       // Get the active workspace for this specific monitor
-      return hyprMonitor.get_focused_workspace();
+      return hyprMonitor.get_active_workspace();
     }
-    
+
     // Fallback to globally focused workspace
     return hypr.get_focused_workspace();
   };

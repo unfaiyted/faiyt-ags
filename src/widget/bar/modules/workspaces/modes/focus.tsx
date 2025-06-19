@@ -33,17 +33,26 @@ export default function FocusModeWorkspaces(
     setup?.(self);
 
     props.updateMask(self);
+    
+    // Set initial CSS value
+    self.set_css(`font-size: ${((workspace.get().id - 1) % shown) + 1}px;`);
+
+    // Subscribe to workspace changes
+    workspace.subscribe(() => {
+      immediateActiveWs = workspace.get().id;
+      self.set_css(`font-size: ${((workspace.get().id - 1) % shown) + 1}px;`);
+      
+      const previousGroup = workspaceGroup.get();
+      const currentGroup = Math.floor((workspace.get().id - 1) / shown);
+      if (currentGroup !== previousGroup) {
+        props.updateMask(self);
+        workspaceGroup.set(currentGroup);
+      }
+      
+      self.queue_draw();
+    });
 
     self
-      // .hook(workspace, (self) => {
-      //   self.set_css(`font-size: ${((workspace.get().id - 1) % shown) + 1}px;`);
-      //   const previousGroup = workspaceGroup.get();
-      //   const currentGroup = Math.floor((workspace.get().id - 1) / shown);
-      //   if (currentGroup !== previousGroup) {
-      //     props.updateMask(self);
-      //     workspaceGroup.set(currentGroup);
-      //   }
-      // })
       // .hook(
       //   Hyprland,
       //   (self) => self.attribute.updateMask(self),
@@ -101,6 +110,9 @@ export default function FocusModeWorkspaces(
         // const lastImmediateActiveWs = lastImmediateActiveWs;
         // const immediateActiveWs = immediateActiveWs;
 
+        // Adjust immediateActiveWs to be relative to the current group
+        const relativeActiveWs = ((workspace.get().id - 1) % shown) + 1;
+
         // Draw
         area.set_size_request(
           workspaceDiameter * WS_TAKEN_WIDTH_MULTIPLIER * (shown - 1) +
@@ -108,9 +120,9 @@ export default function FocusModeWorkspaces(
           -1,
         );
         for (let i = 1; i <= shown; i++) {
-          if (i == immediateActiveWs) continue;
+          if (i == relativeActiveWs) continue;
           let colors: RgbaColor = { red: 0, green: 0, blue: 0, alpha: 0 };
-          if (workspaceMask.get() & (1 << i)) colors = occupiedbg;
+          if (workspaceMask.get() & (1 << (i - 1))) colors = occupiedbg;
           else colors = wsbg;
 
           // if ((i == immediateActiveWs + 1 && immediateActiveWs < activeWs) ||
@@ -137,7 +149,7 @@ export default function FocusModeWorkspaces(
           cr.arc(centerX, height / 2, workspaceRadius, 0, 2 * Math.PI);
           cr.fill();
           // What if shrinking
-          if (i == floor(activeWs) && immediateActiveWs > activeWs) {
+          if (i == floor(activeWs) && relativeActiveWs > activeWs) {
             // To right
             const widthPercentage = 1 - (ceil(activeWs) - activeWs);
             const leftX = centerX;
@@ -159,7 +171,7 @@ export default function FocusModeWorkspaces(
               Math.PI * 2,
             );
             cr.fill();
-          } else if (i == ceil(activeWs) && immediateActiveWs < activeWs) {
+          } else if (i == ceil(activeWs) && relativeActiveWs < activeWs) {
             // To left
             const widthPercentage = activeWs - floor(activeWs);
             const rightX = centerX;
@@ -186,7 +198,7 @@ export default function FocusModeWorkspaces(
           activebg.blue,
           activebg.alpha,
         );
-        if (immediateActiveWs > activeWs) {
+        if (relativeActiveWs > activeWs) {
           // To right
           const immediateActiveWs = ceil(activeWs);
           widthPercentage = immediateActiveWs - activeWs;
