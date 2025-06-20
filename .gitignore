@@ -8,3 +8,4 @@ user-config.json
 logs/
 .goutputstream*
 ./src/output.css
+*.json

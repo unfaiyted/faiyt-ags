@@ -7,12 +7,14 @@ import Wifi from "./wifi";
 import Configuration from "./configuration";
 import Notifications from "./notifications";
 import Tools from "./tools";
+import Remote from "./remote";
 import { PhosphorIcons } from "../../utils/icons/types";
 import { TabContent } from "../../utils/containers/tabs";
 
 export enum SidebarModule {
   AIS = "ais",
   TOOLS = "tools",
+  REMOTE = "remote",
   AUDIO = "audio",
   BLUETOOTH = "bluetooth",
   WIFI = "wifi",
@@ -40,6 +42,11 @@ export const SidebarModules: Record<string, TabContent> = {
     name: SidebarModule.TOOLS,
     content: Tools,
     icon: PhosphorIcons.Toolbox,
+  },
+  [SidebarModule.REMOTE]: {
+    name: SidebarModule.REMOTE,
+    content: Remote,
+    icon: PhosphorIcons.GameController,
   },
   [SidebarModule.BLUETOOTH]: {
     name: SidebarModule.BLUETOOTH,

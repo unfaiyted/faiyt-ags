@@ -21,6 +21,7 @@ export default function LeftSideBar(sideBarProps: LeftSideBarProps) {
   const enabledTabs = [
     SidebarModule.AIS,
     SidebarModule.TOOLS,
+    SidebarModule.REMOTE,
   ];
 
   const sidebarTabs = getSidebarTabs().filter((tab) => {
