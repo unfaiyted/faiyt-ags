@@ -3,6 +3,7 @@ import { Widget, Gtk } from "astal/gtk4";
 import { PhosphorIcons } from "../../../utils/icons/types";
 import PhosphorIcon from "../../../utils/icons/phosphor";
 import { execAsync } from "astal/process";
+import AppleTVService from "../../../../services/apple-tv";
 
 interface AppleTV {
     name: string;
@@ -55,10 +56,18 @@ export default function Remote(props: Widget.BoxProps) {
         pairingInProgress: false
     });
 
-    const scriptPath = "/home/faiyt/.config/ags/scripts/remote-control/apple-tv.py";
+    const scriptPath = "/home/faiyt/.config/ags/scripts/remote-control/apple-tv-fast.py";
     
     // Store the pairing process
     let pairingProcess = null;
+    
+    // Get Apple TV service instance
+    const appleTVService = AppleTVService.getInstance();
+    
+    // Bind connection status
+    appleTVService.isConnected.subscribe((connected) => {
+        state.set({ ...state.get(), isConnected: connected });
+    });
 
     const executeCommand = async (command: string, args: string[] = []) => {
         try {
@@ -137,22 +146,20 @@ export default function Remote(props: Widget.BoxProps) {
     };
 
     const connectToDevice = async (device: AppleTV) => {
-        state.set({ ...state.get(), selectedDevice: device, error: "Connecting..." });
-        const result = await executeCommand("connect", [device.identifier]);
-        if (result?.connected) {
-            state.set({
-                ...state.get(),
-                selectedDevice: device,
-                isConnected: true,
-                error: null
-            });
+        state.set({ ...state.get(), selectedDevice: device, error: null, isLoading: true });
+        
+        // Use the persistent service for connection
+        const connected = await appleTVService.connect(device.identifier);
+        
+        state.set({
+            ...state.get(),
+            isLoading: false,
+            isConnected: connected,
+            error: connected ? null : "Failed to connect. Make sure Apple TV is on and reachable."
+        });
+        
+        if (connected) {
             await updateStatus();
-        } else {
-            state.set({
-                ...state.get(),
-                isConnected: false,
-                error: "Failed to connect. Make sure Apple TV is on and reachable."
-            });
         }
     };
 
@@ -163,20 +170,20 @@ export default function Remote(props: Widget.BoxProps) {
             return;
         }
 
-        // Don't check isConnected since we reconnect for each command
+        // Use the persistent service for instant response
         console.log(`Sending command: ${command}`);
-        const result = await executeCommand(command);
+        const success = await appleTVService.sendRemoteCommand(command);
 
-        if (result?.success) {
+        if (success) {
             state.set({ ...state.get(), error: null });
             if (command === "play" || command === "pause" || command === "play_pause") {
                 setTimeout(updateStatus, 500);
             }
-        } else if (result?.error) {
+        } else {
             // Only show error briefly, don't persist it
-            state.set({ ...state.get(), error: result.error });
+            state.set({ ...state.get(), error: "Command failed" });
             setTimeout(() => {
-                if (state.get().error === result.error) {
+                if (state.get().error === "Command failed") {
                     state.set({ ...state.get(), error: null });
                 }
             }, 3000);

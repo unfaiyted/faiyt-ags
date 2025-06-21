@@ -85,19 +85,38 @@ class AppleTVController:
                                     # Apply stored credentials
                                     for protocol_name, creds in stored_credentials[identifier].items():
                                         try:
-                                            protocol = pyatv.Protocol[protocol_name.upper()]
+                                            if protocol_name.lower() == 'companion':
+                                                protocol = pyatv.Protocol.Companion
+                                            elif protocol_name.lower() == 'airplay':
+                                                protocol = pyatv.Protocol.AirPlay
+                                            elif protocol_name.lower() == 'mrp':
+                                                protocol = pyatv.Protocol.MRP
+                                            elif protocol_name.lower() == 'raop':
+                                                protocol = pyatv.Protocol.RAOP
+                                            elif protocol_name.lower() == 'dmap':
+                                                protocol = pyatv.Protocol.DMAP
+                                            else:
+                                                print(f"Unknown protocol: {protocol_name}", file=sys.stderr)
+                                                continue
+                                            
                                             device.set_credentials(protocol, creds)
-                                            print(f"Applied {protocol_name} credentials", file=sys.stderr)
+                                            print(f"Applied {protocol_name} credentials for protocol {protocol}", file=sys.stderr)
                                         except Exception as e:
                                             print(f"Failed to apply {protocol_name} credentials: {e}", file=sys.stderr)
                         except Exception as e:
                             print(f"Failed to load credentials: {e}", file=sys.stderr)
                     
-                    print(f"Connecting to device with {len(device.services)} services", file=sys.stderr)
+                    print(f"Connecting to device {device.name} with {len(device.services)} services", file=sys.stderr)
+                    print(f"Services: {[s.protocol.name for s in device.services]}", file=sys.stderr)
+                    
                     self.atv = await pyatv.connect(device, loop)
-                    self.remote = self.atv.remote_control
-                    print(f"Connected, remote control available: {self.remote is not None}", file=sys.stderr)
-                    return True
+                    if self.atv:
+                        self.remote = self.atv.remote_control
+                        print(f"Connected! Remote control available: {self.remote is not None}", file=sys.stderr)
+                        return True
+                    else:
+                        print(f"Connection failed", file=sys.stderr)
+                        return False
             return False
         except Exception as e:
             print(f"Connection error: {e}", file=sys.stderr)
@@ -121,8 +140,8 @@ class AppleTVController:
         try:
             # Debug: Check what protocols are connected
             connected_protocols = []
-            if hasattr(self.atv, 'service'):
-                for service in self.atv.service:
+            if hasattr(self.atv, 'services'):
+                for service in self.atv.services:
                     connected_protocols.append(service.protocol.name)
             
             print(f"Connected protocols: {connected_protocols}", file=sys.stderr)
