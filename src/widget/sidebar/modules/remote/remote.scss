@@ -1,818 +1,599 @@
 @use "../../../../styles/colors";
 
 // Remote Module - Modern Glassmorphic Design
-.remote-module {
-    padding: 16px;
+remote-module {
+  padding: 16px;
 }
 
-// Device Selection Card
-.device-card {
-    background: linear-gradient(135deg, colors.c(background-elevated, 0.6), colors.c(background-elevated, 0.3));
-    backdrop-filter: blur(12px);
-    border: 1px solid colors.c(border, 0.3);
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 8px 32px colors.c(base, 0.2);
+// Device Selection Section
+remote-device-card {
+  background: linear-gradient(135deg, colors.c(background-elevated), colors.c(background));
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid colors.c(border);
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px colors.c(base, 0.2);
+  }
 }
 
-.device-header {
-    margin-bottom: 16px;
+remote-device-header {
+  margin-bottom: 12px;
 
-    PhosphorIcon {
-        color: colors.c(primary);
+  remote-device-icon-wrapper {
+    min-width: 48px;
+    min-height: 48px;
+    background: colors.c(primary, 0.1);
+    border-radius: 12px;
+
+    image {
+      color: colors.c(primary);
     }
-}
+  }
 
-.section-title {
+  remote-section-title {
     font-size: 16px;
     font-weight: 600;
     color: colors.c(foreground);
+  }
 }
 
-.header-actions {
-    margin-left: auto;
-}
-
-.icon-button {
-    background: colors.c(background, 0.3);
-    border: 1px solid colors.c(border, 0.2);
-    border-radius: 10px;
-    padding: 8px;
+remote-header-actions {
+  button {
+    padding: 6px;
+    background: colors.c(background, 0.5);
+    border-radius: 8px;
+    border: none;
     transition: all 0.2s ease;
 
     &:hover {
-        background: colors.c(background, 0.5);
-        border-color: colors.c(primary, 0.3);
-        transform: translateY(-1px);
+      background: colors.c(background, 0.8);
+      transform: translateY(-1px);
     }
 
-    &:active {
-        transform: translateY(0);
+    image {
+      color: colors.c(foreground-alt);
     }
 
-    PhosphorIcon {
-        color: colors.c(foreground-alt);
+    .spinning {
+      animation: spin 1s linear infinite;
     }
-
-    &:hover PhosphorIcon {
-        color: colors.c(primary);
-    }
-}
-
-// Device Content
-.device-content {
-    min-height: 120px;
-}
-
-.loading-state {
-    padding: 32px;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-
-    spinner {
-        color: colors.c(primary);
-    }
-
-    label {
-        color: colors.c(foreground-alt);
-        font-size: 14px;
-    }
-}
-
-.empty-state {
-    padding: 32px;
-    align-items: center;
-    gap: 8px;
-
-    PhosphorIcon {
-        color: colors.c(foreground-alt, 0.3);
-    }
-
-    label {
-        font-size: 14px;
-        color: colors.c(foreground-alt);
-        font-weight: 500;
-    }
-}
-
-.empty-hint {
-    font-size: 12px;
-    color: colors.c(foreground-alt, 0.6);
-}
-
-// Device Scroll Container
-.device-scroll {
-    min-height: 150px;
-    max-height: 200px;
-    background: colors.c(background, 0.2);
-    border-radius: 12px;
-    border: 1px solid colors.c(border, 0.2);
-
-    // Scrollbar styling
-    scrollbar {
-        width: 4px;
-        background: transparent;
-
-        slider {
-            background: colors.c(foreground-alt, 0.3);
-            border-radius: 2px;
-            min-width: 4px;
-
-            &:hover {
-                background: colors.c(foreground-alt, 0.5);
-            }
-        }
-    }
+  }
 }
 
 // Device List
-.device-list {
-    padding: 8px;
+remote-device-list {
+  background: transparent;
 }
 
-.device-item {
-    background: colors.c(background, 0.5);
-    border: 1px solid transparent;
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin: 0 0 8px 0;
-    transition: all 0.2s ease;
+remote-device-item {
+  background: colors.c(background, 0.5);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: colors.c(background, 0.8);
+    border-color: colors.c(border);
+    transform: translateY(-1px);
+  }
+
+  &.selected {
+    background: colors.c(primary, 0.1);
+    border-color: colors.c(primary, 0.3);
 
     &:hover {
-        background: colors.c(background, 0.5);
-        border-color: colors.c(border);
-        transform: translateX(4px);
+      background: colors.c(primary, 0.15);
+      border-color: colors.c(primary, 0.4);
     }
+  }
 
-    &.selected {
-        background: linear-gradient(135deg, colors.c(primary, 0.15), colors.c(primary, 0.1));
-        border-color: colors.c(primary, 0.3);
-
-        &:hover {
-            background: linear-gradient(135deg, colors.c(primary, 0.2), colors.c(primary, 0.15));
-            border-color: colors.c(primary, 0.4);
-        }
-    }
-}
-
-.device-icon {
+  remote-device-icon {
     min-width: 40px;
     min-height: 40px;
-    background: colors.c(background-elevated, 0.5);
-    border-radius: 12px;
-    padding: 8px;
-
-    PhosphorIcon {
-        color: colors.c(primary);
-    }
-}
-
-.device-name {
-    font-size: 15px;
-    font-weight: 600;
-    color: colors.c(foreground);
-}
-
-.device-address {
-    font-size: 12px;
-    color: colors.c(foreground-alt, 0.7);
-    margin-top: 2px;
-}
-
-.connected-indicator {
-    padding: 8px;
-    background: colors.c(success, 0.1);
-    border-radius: 8px;
-
-    PhosphorIcon {
-        color: colors.c(success);
-    }
-}
-
-// Manual Add Section
-.manual-add-section {
-    margin-top: 12px;
-    padding: 12px;
-    background: colors.c(background, 0.2);
-    border-radius: 12px;
-    border: 1px solid colors.c(border, 0.2);
-}
-
-.input-group {
-    display: flex;
-    gap: 8px;
-}
-
-.ip-input {
-    background: colors.c(background, 0.5);
-    border: 1px solid colors.c(border, 0.3);
+    background: colors.c(background-elevated);
     border-radius: 10px;
-    padding: 10px 14px;
+
+    image {
+      color: colors.c(foreground);
+    }
+  }
+
+  remote-device-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: colors.c(foreground);
+  }
+
+  remote-device-address {
+    font-size: 12px;
+    color: colors.c(foreground-alt);
+    margin-top: 2px;
+  }
+
+  remote-connected-indicator {
+    image {
+      color: colors.c(success);
+    }
+  }
+}
+
+// Loading/Empty States
+remote-loading-state {
+  padding: 48px 24px;
+
+  spinner {
+    color: colors.c(primary);
+  }
+
+  label {
+    font-size: 14px;
+    color: colors.c(foreground-alt);
+  }
+}
+
+remote-empty-state {
+  padding: 48px 24px;
+
+  image {
+    color: colors.c(foreground-alt, 0.3);
+  }
+
+  label {
+    font-size: 14px;
+    color: colors.c(foreground-alt);
+  }
+}
+
+// Manual IP Entry
+remote-manual-add {
+  background: colors.c(background-elevated);
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 8px;
+  border: 1px solid colors.c(border);
+
+  remote-ip-input {
+    background: colors.c(background, 0.5);
+    border: 1px solid colors.c(border, 0.5);
+    border-radius: 8px;
+    padding: 8px 12px;
     color: colors.c(foreground);
     font-size: 14px;
 
     &:focus {
-        border-color: colors.c(primary, 0.5);
-        background: colors.c(background, 0.7);
-        box-shadow: 0 0 0 3px colors.c(primary, 0.1);
+      border-color: colors.c(primary, 0.5);
+      box-shadow: 0 0 0 2px colors.c(primary, 0.1);
     }
-}
+  }
 
-.action-button {
-    background: linear-gradient(135deg, colors.c(primary, 0.8), colors.c(secondary, 0.8));
-    border: 1px solid colors.c(primary, 0.3);
-    border-radius: 10px;
-    padding: 10px 16px;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: linear-gradient(135deg, colors.c(primary, 0.9), colors.c(secondary, 0.9));
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px colors.c(primary, 0.3);
-    }
-
-    &:active {
-        transform: translateY(0);
-    }
-
-    &:disabled {
-        opacity: 0.5;
-    }
-
-    label {
-        color: white;
-        font-weight: 500;
-        font-size: 13px;
-    }
-
-    PhosphorIcon {
-        color: white;
-    }
-}
-
-// Remote Control Card
-.remote-card {
-    background: linear-gradient(135deg, colors.c(background-elevated, 0.6), colors.c(background-elevated, 0.3));
-    backdrop-filter: blur(12px);
-    border: 1px solid colors.c(border, 0.3);
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 8px 32px colors.c(base, 0.2);
-}
-
-// Connection Status
-.connection-status {
-    background: colors.c(background, 0.3);
-    border-radius: 10px;
-    padding: 8px 12px;
-    align-items: center;
-    justify-content: center;
-
-    PhosphorIcon {
-        color: colors.c(foreground-alt);
-    }
-}
-
-.status-connected {
-    color: colors.c(success);
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.status-disconnected {
-    color: colors.c(error);
-    font-size: 13px;
-    font-weight: 500;
-}
-
-// Now Playing
-.now-playing {
-    background: colors.c(background, 0.3);
-    border-radius: 12px;
-    padding: 16px;
-    border: 1px solid colors.c(border, 0.2);
-    margin-bottom: 8px;
-
-    PhosphorIcon {
-        color: colors.c(primary);
-    }
-}
-
-.now-playing-label {
-    font-size: 12px;
-    color: colors.c(foreground-alt);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.now-playing-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: colors.c(foreground);
-}
-
-.now-playing-artist {
-    font-size: 14px;
-    color: colors.c(foreground-alt);
-}
-
-// Navigation Section
-.navigation-section {
-    padding: 12px 0;
-}
-
-// D-Pad
-.dpad-wrapper {
-    margin: 0 auto;
-}
-
-.dpad-container {
-    width: 180px;
-    height: 180px;
-    position: relative;
-}
-
-.dpad-button {
-    position: absolute;
-    background: linear-gradient(135deg, colors.c(background, 0.6), colors.c(background, 0.4));
-    border: 1px solid colors.c(border, 0.3);
-    border-radius: 12px;
-    width: 50px;
-    height: 50px;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(8px);
-
-    &:hover:not(:disabled) {
-        background: linear-gradient(135deg, colors.c(primary, 0.2), colors.c(primary, 0.1));
-        border-color: colors.c(primary, 0.4);
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px colors.c(primary, 0.2);
-    }
-
-    &:active:not(:disabled) {
-        transform: scale(0.95);
-    }
-
-    &:disabled {
-        opacity: 0.3;
-    }
-
-    PhosphorIcon {
-        color: colors.c(foreground);
-    }
-
-    &:hover:not(:disabled) PhosphorIcon {
-        color: colors.c(primary);
-    }
-
-    &.dpad-up {
-        top: 0;
-        left: 65px;
-    }
-
-    &.dpad-down {
-        bottom: 0;
-        left: 65px;
-    }
-
-    &.dpad-left {
-        left: 0;
-        top: 65px;
-    }
-
-    &.dpad-right {
-        right: 0;
-        top: 65px;
-    }
-}
-
-.dpad-center {
-    position: absolute;
-    top: 60px;
-    left: 60px;
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, colors.c(primary, 0.8), colors.c(secondary, 0.8));
-    border: 2px solid colors.c(primary);
-    border-radius: 50%;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 16px colors.c(primary, 0.4);
-
-    &:hover:not(:disabled) {
-        background: linear-gradient(135deg, colors.c(primary, 0.9), colors.c(secondary, 0.9));
-        transform: scale(1.1);
-        box-shadow: 0 6px 20px colors.c(primary, 0.5);
-    }
-
-    &:active:not(:disabled) {
-        transform: scale(0.95);
-    }
-
-    &:disabled {
-        opacity: 0.3;
-    }
-
-    label {
-        color: white;
-        font-weight: 600;
-        font-size: 14px;
-    }
-}
-
-// Menu Controls
-.menu-controls {
-    margin-top: 20px;
-    justify-content: center;
-}
-
-// Control Buttons
-.control-button {
-    background: linear-gradient(135deg, colors.c(background, 0.6), colors.c(background, 0.4));
-    border: 1px solid colors.c(border, 0.3);
-    border-radius: 12px;
-    padding: 12px;
-    min-width: 52px;
-    min-height: 52px;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(8px);
-
-    &:hover:not(:disabled) {
-        background: linear-gradient(135deg, colors.c(background, 0.8), colors.c(background, 0.6));
-        border-color: colors.c(primary, 0.4);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px colors.c(base, 0.3);
-    }
-
-    &:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    &:disabled {
-        opacity: 0.3;
-    }
-
-    PhosphorIcon {
-        color: colors.c(foreground);
-    }
-
-    &:hover:not(:disabled) PhosphorIcon {
-        color: colors.c(primary);
-    }
-}
-
-.control-button-primary {
-    background: linear-gradient(135deg, colors.c(primary, 0.8), colors.c(secondary, 0.8));
-    border: 1px solid colors.c(primary);
-    border-radius: 50%;
-    padding: 14px;
-    min-width: 64px;
-    min-height: 64px;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 16px colors.c(primary, 0.4);
-
-    &:hover:not(:disabled) {
-        background: linear-gradient(135deg, colors.c(primary, 0.9), colors.c(secondary, 0.9));
-        transform: scale(1.05);
-        box-shadow: 0 6px 20px colors.c(primary, 0.5);
-    }
-
-    &:active:not(:disabled) {
-        transform: scale(0.95);
-    }
-
-    &:disabled {
-        opacity: 0.3;
-    }
-
-    PhosphorIcon {
-        color: white;
-    }
-}
-
-// Playback Section
-.playback-section {
-    padding: 16px 0;
-    border-top: 1px solid colors.c(border, 0.2);
-}
-
-.playback-controls {
-    justify-content: center;
-    margin-bottom: 16px;
-}
-
-// Volume Controls
-.volume-controls {
-    justify-content: center;
-    align-items: center;
-}
-
-.volume-label {
-    font-size: 13px;
-    color: colors.c(foreground-alt);
-    font-weight: 500;
-    margin: 0 16px;
-}
-
-// Power Controls
-.power-controls {
-    padding-top: 16px;
-    border-top: 1px solid colors.c(border, 0.2);
-}
-
-.power-button {
-    background: linear-gradient(135deg, colors.c(error, 0.1), colors.c(error, 0.05));
-    border: 1px solid colors.c(error, 0.3);
-    border-radius: 50%;
-    padding: 14px;
-    min-width: 56px;
-    min-height: 56px;
-    transition: all 0.2s ease;
-
-    &:hover:not(:disabled) {
-        background: linear-gradient(135deg, colors.c(error, 0.2), colors.c(error, 0.1));
-        border-color: colors.c(error, 0.5);
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px colors.c(error, 0.3);
-    }
-
-    &:active:not(:disabled) {
-        transform: scale(0.95);
-    }
-
-    &:disabled {
-        opacity: 0.3;
-    }
-
-    PhosphorIcon {
-        color: colors.c(error);
-    }
-}
-
-// Error Message
-.error-message {
-    background: colors.c(error, 0.1);
-    border: 1px solid colors.c(error, 0.2);
-    color: colors.c(error);
-    padding: 12px 16px;
-    border-radius: 12px;
-    margin-top: 8px;
-
-    > box:first-child {
-        align-items: center;
-    }
-
-    PhosphorIcon {
-        color: colors.c(error);
-    }
-
-    label {
-        font-size: 13px;
-    }
-}
-
-.retry-pairing-button {
-    background: linear-gradient(135deg, colors.c(error, 0.2), colors.c(error, 0.1));
-    border: 1px solid colors.c(error, 0.3);
-    border-radius: 8px;
+  button {
     padding: 8px 16px;
-    margin-top: 8px;
+    background: colors.c(primary, 0.8);
+    border: 1px solid colors.c(primary);
+    border-radius: 8px;
     transition: all 0.2s ease;
 
     &:hover {
-        background: linear-gradient(135deg, colors.c(error, 0.3), colors.c(error, 0.2));
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px colors.c(error, 0.2);
-    }
-
-    &:active {
-        transform: translateY(0);
+      background: colors.c(primary, 0.9);
     }
 
     label {
-        color: colors.c(foreground);
-        font-size: 12px;
-        font-weight: 500;
+      color: colors.c(background);
+      font-size: 13px;
+      font-weight: 500;
     }
 
-    PhosphorIcon {
-        color: colors.c(foreground);
+    image {
+      color: colors.c(background);
     }
+  }
+}
+
+// Remote Control Section
+remote-control-card {
+  background: colors.c(background-elevated);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid colors.c(border);
+}
+
+// Connection Status Bar
+remote-connection-status {
+  background: linear-gradient(135deg, colors.c(background, 0.5), colors.c(background, 0.3));
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid colors.c(border, 0.5);
+
+  image {
+    color: colors.c(foreground-alt);
+  }
+
+  &.connected image {
+    color: colors.c(success);
+  }
+
+  &.disconnected image {
+    color: colors.c(error);
+  }
+
+  label {
+    font-size: 14px;
+    color: colors.c(foreground);
+    font-weight: 500;
+  }
+}
+
+// Pairing Button
+remote-pair-button {
+  padding: 6px 12px;
+  background: colors.c(primary, 0.1);
+  border: 1px solid colors.c(primary, 0.3);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: colors.c(primary, 0.15);
+    border-color: colors.c(primary, 0.4);
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: colors.c(primary);
+  }
+
+  image {
+    color: colors.c(primary);
+  }
 }
 
 // Pairing UI
-.pair-button {
-    background: linear-gradient(135deg, colors.c(primary, 0.2), colors.c(secondary, 0.2));
-    border: 1px solid colors.c(primary, 0.3);
-    border-radius: 8px;
-    padding: 6px 12px;
-    transition: all 0.2s ease;
+remote-pairing-status {
+  background: colors.c(info, 0.1);
+  border: 1px solid colors.c(info, 0.2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
 
-    &:hover {
-        background: linear-gradient(135deg, colors.c(primary, 0.3), colors.c(secondary, 0.3));
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px colors.c(primary, 0.2);
-    }
+  spinner {
+    color: colors.c(info);
+  }
 
-    &:active {
-        transform: translateY(0);
-    }
-
-    &:disabled {
-        opacity: 0.5;
-    }
-
-    label {
-        color: colors.c(foreground);
-        font-size: 12px;
-        font-weight: 500;
-    }
-
-    PhosphorIcon {
-        color: colors.c(primary);
-    }
+  label {
+    color: colors.c(info);
+    font-size: 13px;
+  }
 }
 
-.pairing-status {
-    background: colors.c(background, 0.3);
-    border-radius: 10px;
-    padding: 10px 16px;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+remote-pin-entry {
+  background: colors.c(background, 0.5);
+  border: 1px solid colors.c(border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
 
-    spinner {
-        color: colors.c(primary);
-    }
-
-    label {
-        color: colors.c(foreground);
-        font-size: 13px;
-        margin-right: auto;
-    }
-}
-
-.cancel-pairing-button {
-    background: colors.c(background, 0.5);
-    border: 1px solid colors.c(border, 0.3);
-    border-radius: 6px;
-    padding: 4px;
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: colors.c(error, 0.1);
-        border-color: colors.c(error, 0.3);
-    }
-
-    PhosphorIcon {
-        color: colors.c(foreground-alt);
-    }
-
-    &:hover PhosphorIcon {
-        color: colors.c(error);
-    }
-}
-
-.pin-entry-section {
-    background: colors.c(background, 0.3);
-    border: 1px solid colors.c(border, 0.3);
-    border-radius: 12px;
-    padding: 16px;
-    margin: 8px 0;
-}
-
-.pin-instructions {
+  label {
     font-size: 14px;
     color: colors.c(foreground);
-    text-align: center;
-    font-weight: 500;
-}
+    margin-bottom: 12px;
+  }
 
-.pin-input-group {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.pin-input {
+  entry {
     background: colors.c(background, 0.5);
-    border: 2px solid colors.c(border, 0.3);
-    border-radius: 10px;
-    padding: 12px 16px;
+    border: 1px solid colors.c(border, 0.5);
+    border-radius: 8px;
+    padding: 10px 16px;
     color: colors.c(foreground);
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
+    letter-spacing: 4px;
     text-align: center;
-    letter-spacing: 8px;
-    max-width: 120px;
 
     &:focus {
-        border-color: colors.c(primary, 0.5);
-        background: colors.c(background, 0.7);
-        box-shadow: 0 0 0 3px colors.c(primary, 0.1);
+      border-color: colors.c(primary, 0.5);
+      box-shadow: 0 0 0 3px colors.c(primary, 0.1);
     }
-}
+  }
 
-.submit-pin-button {
-    background: linear-gradient(135deg, colors.c(success, 0.8), colors.c(success, 0.6));
-    border: 1px solid colors.c(success, 0.3);
-    border-radius: 10px;
-    padding: 12px 20px;
+  button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
     transition: all 0.2s ease;
 
-    &:hover {
-        background: linear-gradient(135deg, colors.c(success, 0.9), colors.c(success, 0.7));
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px colors.c(success, 0.3);
-    }
+    &.submit {
+      background: colors.c(primary, 0.8);
+      border: 1px solid colors.c(primary);
+      color: colors.c(background);
 
-    &:active {
-        transform: translateY(0);
-    }
+      &:hover {
+        background: colors.c(primary, 0.9);
+      }
 
-    &:disabled {
+      &:insensitive {
         opacity: 0.5;
+      }
     }
 
-    label {
-        color: white;
-        font-weight: 500;
-        font-size: 13px;
-    }
+    &.cancel {
+      background: colors.c(background, 0.3);
+      border: 1px solid colors.c(border, 0.3);
+      color: colors.c(foreground-alt);
 
-    PhosphorIcon {
-        color: white;
+      &:hover {
+        background: colors.c(background, 0.5);
+        border-color: colors.c(border, 0.5);
+        color: colors.c(foreground);
+      }
     }
+  }
 }
 
-.cancel-pin-button {
-    background: colors.c(background, 0.3);
-    border: 1px solid colors.c(border, 0.3);
-    border-radius: 10px;
-    padding: 12px;
-    transition: all 0.2s ease;
+// Now Playing Info
+remote-now-playing {
+  background: colors.c(background, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid colors.c(border, 0.3);
 
-    &:hover {
-        background: colors.c(error, 0.1);
-        border-color: colors.c(error, 0.3);
+  image {
+    color: colors.c(primary);
+  }
+
+  remote-now-playing-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: colors.c(foreground);
+  }
+
+  remote-now-playing-artist {
+    font-size: 13px;
+    color: colors.c(foreground-alt);
+    margin-top: 2px;
+  }
+}
+
+// D-Pad Navigation
+remote-dpad {
+  width: 160px;
+  height: 160px;
+  position: relative;
+  margin: 0 auto 20px;
+}
+
+.dpad-button {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  background: colors.c(background, 0.5);
+  border: 1px solid colors.c(border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+
+  &:hover:not(:insensitive) {
+    background: colors.c(background, 0.8);
+    border-color: colors.c(primary, 0.3);
+    transform: scale(1.05);
+  }
+
+  &:active:not(:insensitive) {
+    background: colors.c(primary, 0.1);
+    transform: scale(0.95);
+  }
+
+  &:insensitive {
+    opacity: 0.3;
+  }
+
+  image {
+    color: colors.c(foreground);
+  }
+
+  &.up {
+    top: 0;
+    left: 58px;
+  }
+
+  &.down {
+    bottom: 0;
+    left: 58px;
+  }
+
+  &.left {
+    left: 0;
+    top: 58px;
+  }
+
+  &.right {
+    right: 0;
+    top: 58px;
+  }
+}
+
+.dpad-center {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  width: 60px;
+  height: 60px;
+  background: colors.c(primary, 0.8);
+  border: 1px solid colors.c(primary);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+
+  &:hover:not(:insensitive) {
+    background: colors.c(primary, 0.9);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px colors.c(primary, 0.4);
+  }
+
+  &:active:not(:insensitive) {
+    transform: scale(0.95);
+  }
+
+  label {
+    color: colors.c(background);
+    font-weight: 600;
+    font-size: 14px;
+  }
+}
+
+// Control Buttons
+remote-control-button {
+  background: colors.c(background, 0.5);
+  border: 1px solid colors.c(border);
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 48px;
+  min-height: 48px;
+  transition: all 0.2s ease;
+
+  &:hover:not(:insensitive) {
+    background: colors.c(background, 0.8);
+    border-color: colors.c(primary, 0.3);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:insensitive) {
+    background: colors.c(primary, 0.1);
+    transform: translateY(0);
+  }
+
+  &.primary {
+    background: colors.c(primary, 0.8);
+    border-color: colors.c(primary);
+    min-width: 56px;
+    min-height: 56px;
+
+    &:hover:not(:insensitive) {
+      background: colors.c(primary, 0.9);
+      box-shadow: 0 4px 12px colors.c(primary, 0.3);
     }
 
-    PhosphorIcon {
-        color: colors.c(foreground-alt);
+    image {
+      color: colors.c(background);
+    }
+  }
+
+  &.power {
+    background: colors.c(error, 0.1);
+    border-color: colors.c(error, 0.3);
+
+    &:hover:not(:insensitive) {
+      background: colors.c(error, 0.2);
+      border-color: colors.c(error, 0.4);
     }
 
-    &:hover PhosphorIcon {
-        color: colors.c(error);
+    image {
+      color: colors.c(error);
     }
+  }
+
+  image {
+    color: colors.c(foreground);
+  }
+
+  &.processing {
+    animation: pulse 0.5s ease;
+    opacity: 0.7;
+  }
+}
+
+// Error States
+remote-error {
+  background: colors.c(error, 0.1);
+  border: 1px solid colors.c(error, 0.2);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+
+  image {
+    color: colors.c(error);
+  }
+
+  label {
+    font-size: 13px;
+    color: colors.c(error);
+  }
 }
 
 // Help Section
-.help-section {
-    background: colors.c(background, 0.2);
-    border: 1px solid colors.c(border, 0.2);
-    border-radius: 12px;
-    padding: 16px;
-    margin-top: 12px;
-}
+remote-help {
+  background: colors.c(background, 0.3);
+  border: 1px solid colors.c(border, 0.3);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 12px;
 
-.help-title {
+  remote-help-title {
     font-size: 14px;
     font-weight: 600;
     color: colors.c(foreground);
-    margin-bottom: 4px;
-}
+    margin-bottom: 8px;
+  }
 
-.help-text {
+  remote-help-text {
     font-size: 13px;
     color: colors.c(foreground-alt);
-    margin-bottom: 8px;
-}
+    line-height: 1.5;
+  }
 
-.help-steps {
-    padding-left: 16px;
-
-    label {
-        font-size: 12px;
-        color: colors.c(foreground-alt, 0.8);
-        line-height: 1.5;
-        margin: 2px 0;
-    }
-}
-
-.help-step-title {
-    font-weight: 600;
-    color: colors.c(foreground) !important;
-    margin-top: 12px !important;
-    margin-bottom: 4px !important;
-}
-
-.help-code {
+  remote-help-code {
     font-family: monospace;
-    background: colors.c(background, 0.5);
-    padding: 4px 8px;
-    border-radius: 6px;
-    color: colors.c(primary) !important;
-    font-size: 11px;
-    user-select: text;
-    margin: 4px 0;
+    background: colors.c(base, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: colors.c(primary);
+  }
+}
+
+// Animations
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+}
+
+// Smooth transitions for state changes
+remote-module {
+  * {
+    animation-duration: 0.3s;
+    animation-timing-function: ease-out;
+  }
+
+  .fade-in {
+    animation-name: fadeIn;
+  }
 }

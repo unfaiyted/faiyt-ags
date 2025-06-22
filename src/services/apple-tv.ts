@@ -1,4 +1,4 @@
-import { subprocess } from "astal";
+import { subprocess, execAsync } from "astal";
 import { Variable } from "astal";
 
 interface AppleTVCommand {
@@ -43,6 +43,15 @@ class AppleTVService {
         console.log("Starting Apple TV service...");
         this.connectionStatus.set("Starting service...");
         
+        // Kill any existing Python processes first
+        try {
+            await execAsync(["pkill", "-f", "apple-tv.*\\.py"]);
+            console.log("Killed existing Apple TV Python processes");
+            await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (e) {
+            // Ignore errors if no processes to kill
+        }
+        
         try {
             this.process = subprocess(
                 ["python3", "/home/faiyt/.config/ags/scripts/remote-control/apple-tv-service.py"],
@@ -67,15 +76,23 @@ class AppleTVService {
             );
             
             // Set up process exit handler
-            this.process.connect("exit", () => {
-                console.log("Apple TV service exited");
+            this.process.connect("exit", (code: number) => {
+                console.log(`Apple TV service exited with code ${code}`);
                 this.ready = false;
                 this.isConnected.set(false);
                 this.connectionStatus.set("Service stopped");
                 this.process = null;
                 
+                // Clear any pending commands
+                while (this.commandQueue.length > 0) {
+                    const cmd = this.commandQueue.shift();
+                    if (cmd) {
+                        cmd.reject(new Error("Service stopped"));
+                    }
+                }
+                
                 // Restart after a delay
-                setTimeout(() => this.startService(), 5000);
+                setTimeout(() => this.startService(), 3000);
             });
             
         } catch (error) {
@@ -84,21 +101,22 @@ class AppleTVService {
         }
     }
     
+    private blockedErrorCount = 0;
+    private lastBlockedTime = 0;
+    
     private handleResponse(response: AppleTVResponse) {
+        // Handle debug messages
+        if ('debug' in response) {
+            console.log("[AppleTV Debug]", response.debug);
+        }
+        
         // Handle ready signal
         if (response.ready) {
             this.ready = true;
             this.connecting = false;
             this.isConnected.set(response.connected || false);
             this.connectionStatus.set(response.connected ? "Connected" : "Ready");
-            
-            // Process queued commands
-            while (this.commandQueue.length > 0 && this.ready) {
-                const cmd = this.commandQueue.shift();
-                if (cmd) {
-                    this.sendCommand(cmd.command).then(cmd.resolve).catch(cmd.reject);
-                }
-            }
+            this.blockedErrorCount = 0; // Reset error count on successful ready
             return;
         }
         
@@ -107,6 +125,17 @@ class AppleTVService {
             this.isConnected.set(response.connected || false);
             this.connectionStatus.set(response.connected ? "Connected" : "Disconnected");
             this.connecting = false;
+            if (response.connected) {
+                this.blockedErrorCount = 0; // Reset error count on successful connection
+            }
+        }
+        
+        // Handle reconnection success
+        if (response.success && 'reconnected' in response && response.reconnected) {
+            console.log("[AppleTV] Successfully reconnected and executed command");
+            this.isConnected.set(true);
+            this.connectionStatus.set("Connected");
+            this.blockedErrorCount = 0; // Reset error count
         }
         
         // Resolve the oldest pending command
@@ -114,12 +143,45 @@ class AppleTVService {
             const cmd = this.commandQueue.shift();
             if (cmd) {
                 if (response.error) {
+                    // Check for blocked errors
+                    if (response.error.includes("is blocked")) {
+                        const now = Date.now();
+                        // Count blocked errors within a 10 second window
+                        if (now - this.lastBlockedTime < 10000) {
+                            this.blockedErrorCount++;
+                        } else {
+                            this.blockedErrorCount = 1;
+                        }
+                        this.lastBlockedTime = now;
+                        
+                        console.error(`[AppleTV] Blocked error #${this.blockedErrorCount}: ${response.error}`);
+                        
+                        // If we get too many blocked errors, restart the service
+                        if (this.blockedErrorCount >= 3) {
+                            console.error("[AppleTV] Too many blocked errors, restarting service...");
+                            this.restart();
+                        }
+                    }
+                    // Check if it's a connection error
+                    else if (response.error.includes("Connection lost") || response.error.includes("Not connected")) {
+                        this.isConnected.set(false);
+                        this.connectionStatus.set("Disconnected");
+                    }
                     cmd.reject(new Error(response.error));
                 } else {
                     cmd.resolve(response);
+                    // Reset error count on successful command
+                    if (response.success) {
+                        this.blockedErrorCount = 0;
+                    }
                 }
             }
         }
+    }
+    
+    private async processQueuedCommands() {
+        // This method is no longer needed - commands are processed through the queue
+        // The queue is handled by handleResponse when responses come back
     }
     
     private async sendCommand(command: AppleTVCommand): Promise<AppleTVResponse> {
@@ -130,10 +192,11 @@ class AppleTVService {
         }
         
         if (!this.ready && command.command !== 'connect') {
-            // Queue command if not ready
-            return new Promise((resolve, reject) => {
-                this.commandQueue.push({ command, resolve, reject });
-            });
+            // Wait for ready state instead of queuing
+            await new Promise(resolve => setTimeout(resolve, 500));
+            if (!this.ready) {
+                throw new Error("Service not ready");
+            }
         }
         
         return new Promise((resolve, reject) => {
@@ -144,14 +207,20 @@ class AppleTVService {
                 // Add to queue to handle response
                 this.commandQueue.push({ command, resolve, reject });
                 
-                // Shorter timeout for better responsiveness
-                setTimeout(() => {
+                // Reasonable timeout with automatic retry
+                const timeoutId = setTimeout(() => {
                     const index = this.commandQueue.findIndex(c => c.command === command);
                     if (index >= 0) {
                         this.commandQueue.splice(index, 1);
-                        reject(new Error("Command timeout"));
+                        // For connection commands, use longer timeout
+                        if (command.command === 'connect') {
+                            reject(new Error("Connection timeout"));
+                        } else {
+                            // For regular commands, could retry once
+                            reject(new Error("Command timeout"));
+                        }
                     }
-                }, 2000);
+                }, command.command === 'connect' ? 10000 : 5000);
             } catch (error) {
                 reject(error);
             }
@@ -184,6 +253,18 @@ class AppleTVService {
             return response.success || false;
         } catch (error) {
             console.error(`Failed to send command ${command}:`, error);
+            
+            // If it's a timeout, try once more
+            if (error.message === "Command timeout") {
+                console.log(`Retrying command ${command}...`);
+                try {
+                    const response = await this.sendCommand({ command });
+                    return response.success || false;
+                } catch (retryError) {
+                    console.error(`Retry failed for ${command}:`, retryError);
+                }
+            }
+            
             return false;
         }
     }
@@ -194,6 +275,13 @@ class AppleTVService {
         } catch (error) {
             console.error("Failed to disconnect:", error);
         }
+    }
+    
+    async restart() {
+        console.log("Restarting Apple TV service...");
+        this.destroy();
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await this.startService();
     }
     
     destroy() {

@@ -1,9 +1,12 @@
 import { Variable, bind } from "astal";
+import Astal from "gi://AstalIO";
 import { Widget, Gtk } from "astal/gtk4";
 import { PhosphorIcons } from "../../../utils/icons/types";
 import PhosphorIcon from "../../../utils/icons/phosphor";
 import { execAsync } from "astal/process";
 import AppleTVService from "../../../../services/apple-tv";
+import { setupCursorHover } from "../../../utils/buttons";
+import { sidebarLogger as log } from "../../../../utils/logger";
 
 interface AppleTV {
     name: string;
@@ -40,6 +43,50 @@ interface RemoteState {
     pairingInProgress: boolean;
 }
 
+// Separate component for manual IP entry to avoid re-render issues
+const ManualIPEntry = ({ onScan, isLoading }: { onScan: (ip: string) => void, isLoading: boolean }) => {
+    const ipText = Variable("");
+    
+    return (
+        <box cssName="remote-manual-add" vertical spacing={8}>
+            <box spacing={8}>
+                <entry
+                    cssName="remote-ip-input"
+                    placeholderText="192.168.1.100"
+                    onNotifyText={(self) => {
+                        ipText.set(self.text);
+                    }}
+                    onActivate={(self) => {
+                        if (self.text.trim()) {
+                            onScan(self.text);
+                        }
+                    }}
+                    hexpand
+                    setup={(self) => {
+                        // Focus the entry when shown
+                        setTimeout(() => self.grab_focus(), 50);
+                    }}
+                />
+                <button
+                    setup={setupCursorHover}
+                    onClicked={() => {
+                        const ip = ipText.get().trim();
+                        if (ip) {
+                            onScan(ip);
+                        }
+                    }}
+                    disabled={bind(ipText).as(ip => isLoading || !ip.trim())}
+                >
+                    <box spacing={6}>
+                        <PhosphorIcon iconName={PhosphorIcons.MagnifyingGlass} size={16} />
+                        <label>Scan</label>
+                    </box>
+                </button>
+            </box>
+        </box>
+    );
+};
+
 export default function Remote(props: Widget.BoxProps) {
     const state = Variable<RemoteState>({
         devices: [],
@@ -56,14 +103,18 @@ export default function Remote(props: Widget.BoxProps) {
         pairingInProgress: false
     });
 
-    const scriptPath = "/home/faiyt/.config/ags/scripts/remote-control/apple-tv-fast.py";
-    
+    // Separate variable for showManualAdd to avoid re-rendering the input
+    const showManualAdd = Variable(false);
+
+    const scriptPath = "/home/faiyt/.config/ags/scripts/remote-control/apple-tv.py";
+    const fastScriptPath = "/home/faiyt/.config/ags/scripts/remote-control/apple-tv-fast.py";
+
     // Store the pairing process
-    let pairingProcess = null;
-    
+    let pairingProcess: Astal.Process | null = null;
+
     // Get Apple TV service instance
     const appleTVService = AppleTVService.getInstance();
-    
+
     // Bind connection status
     appleTVService.isConnected.subscribe((connected) => {
         state.set({ ...state.get(), isConnected: connected });
@@ -73,23 +124,26 @@ export default function Remote(props: Widget.BoxProps) {
         try {
             state.set({ ...state.get(), isLoading: true, error: null });
 
+            // Determine which script to use based on command
+            const isRemoteCommand = ["up", "down", "left", "right", "select", "menu", "home",
+                                   "play", "pause", "play_pause", "skip_forward", "skip_backward",
+                                   "volume_up", "volume_down", "suspend", "tv"].includes(command);
+            
+            const script = isRemoteCommand ? fastScriptPath : scriptPath;
+
             // Check if script exists
             try {
-                await execAsync(["test", "-f", scriptPath]);
+                await execAsync(["test", "-f", script]);
             } catch {
                 state.set({ ...state.get(), isLoading: false, error: "Python script not found" });
                 return null;
             }
 
-            // Log the command being executed
-            console.log(`Executing: python3 ${scriptPath} ${command} ${args.join(' ')}`);
-
             // Execute the command
-            const result = await execAsync(["python3", scriptPath, command, ...args]);
+            const result = await execAsync(["python3", script, command, ...args]);
 
-            // Try to parse JSON response - handle multiple JSON objects
+            // Try to parse JSON response
             try {
-                // Split by newlines and parse each line as JSON
                 const lines = result.trim().split('\n');
                 let lastValidData = null;
 
@@ -97,10 +151,8 @@ export default function Remote(props: Widget.BoxProps) {
                     if (line.trim()) {
                         try {
                             const data = JSON.parse(line);
-                            console.log(`Parsed JSON:`, data);
                             lastValidData = data;
 
-                            // For pairing, return immediately on waiting_for_pin
                             if (data.pairing === "waiting_for_pin" || data.requires_pin) {
                                 state.set({ ...state.get(), isLoading: false });
                                 return data;
@@ -122,14 +174,11 @@ export default function Remote(props: Widget.BoxProps) {
 
                 throw new Error("No valid JSON found");
             } catch (parseError) {
-                // If JSON parsing fails, show the raw output as error
-                console.error("Parse error:", parseError);
                 state.set({ ...state.get(), isLoading: false, error: `Invalid response: ${result}` });
                 return null;
             }
         } catch (error) {
-            const errorMsg = error.toString();
-            // Extract meaningful error message
+            const errorMsg = (error as Error).toString();
             const cleanError = errorMsg.includes("GError") ?
                 "Failed to execute command. Check Python installation." :
                 errorMsg;
@@ -141,51 +190,93 @@ export default function Remote(props: Widget.BoxProps) {
     const discoverDevices = async () => {
         const result = await executeCommand("discover");
         if (result?.devices) {
-            state.set({ ...state.get(), devices: result.devices });
+            state.set({ ...state.get(), devices: result.devices, error: null });
         }
     };
 
     const connectToDevice = async (device: AppleTV) => {
         state.set({ ...state.get(), selectedDevice: device, error: null, isLoading: true });
-        
+
         // Use the persistent service for connection
         const connected = await appleTVService.connect(device.identifier);
-        
+
         state.set({
             ...state.get(),
             isLoading: false,
             isConnected: connected,
             error: connected ? null : "Failed to connect. Make sure Apple TV is on and reachable."
         });
-        
+
         if (connected) {
             await updateStatus();
         }
     };
 
+    // Track last command time for debouncing
+    let lastCommandTime = 0;
+    const COMMAND_DEBOUNCE_MS = 200; // Minimum time between commands
+
     const sendRemoteCommand = async (command: string) => {
+        // Debounce rapid commands
+        const now = Date.now();
+        if (now - lastCommandTime < COMMAND_DEBOUNCE_MS) {
+            log.debug("Command debounced", { command, timeSince: now - lastCommandTime });
+            return;
+        }
+        lastCommandTime = now;
+
         const currentState = state.get();
         if (!currentState.selectedDevice) {
             state.set({ ...currentState, error: "No device selected" });
             return;
         }
 
-        // Use the persistent service for instant response
-        console.log(`Sending command: ${command}`);
-        const success = await appleTVService.sendRemoteCommand(command);
+        // Don't show loading for quick commands to keep UI responsive
+        // state.set({ ...state.get(), isLoading: true });
 
-        if (success) {
-            state.set({ ...state.get(), error: null });
-            if (command === "play" || command === "pause" || command === "play_pause") {
-                setTimeout(updateStatus, 500);
-            }
-        } else {
-            // Only show error briefly, don't persist it
-            state.set({ ...state.get(), error: "Command failed" });
-            setTimeout(() => {
-                if (state.get().error === "Command failed") {
-                    state.set({ ...state.get(), error: null });
+        try {
+            // Use the persistent service for instant response
+            const success = await appleTVService.sendRemoteCommand(command);
+
+            if (!success) {
+                // Check connection status
+                if (!appleTVService.isConnected.get()) {
+                    state.set({ ...state.get(), error: "Connection lost. Please reconnect." });
+                } else {
+                    state.set({ ...state.get(), error: "Command failed. Apple TV may be busy." });
                 }
+                
+                setTimeout(() => {
+                    state.set({ ...state.get(), error: null });
+                }, 3000);
+            }
+        } catch (error) {
+            const errorMsg = error.message || "Command failed";
+            
+            // Handle specific error types
+            if (errorMsg.includes("is blocked")) {
+                state.set({ 
+                    ...state.get(), 
+                    error: "Apple TV is not responding. It may be asleep or in a menu." 
+                });
+            } else if (errorMsg.includes("not supported")) {
+                state.set({ 
+                    ...state.get(), 
+                    error: "This command is not available right now." 
+                });
+            } else if (errorMsg.includes("timeout")) {
+                state.set({ 
+                    ...state.get(), 
+                    error: "Command timed out. Checking connection..." 
+                });
+                // Try to update status
+                updateStatus();
+            } else {
+                state.set({ ...state.get(), error: errorMsg });
+            }
+            
+            setTimeout(() => {
+                state.set({ ...state.get(), error: null });
             }, 3000);
         }
     };
@@ -197,66 +288,61 @@ export default function Remote(props: Widget.BoxProps) {
         }
     };
 
-    const scanIP = async () => {
-        const ip = state.get().manualIP.trim();
-        if (!ip) {
+    const scanIP = async (ip?: string) => {
+        const ipToScan = ip || state.get().manualIP.trim();
+        if (!ipToScan) {
             state.set({ ...state.get(), error: "Please enter an IP address" });
             return;
         }
 
-        const result = await executeCommand("scan-ip", [ip]);
+        const result = await executeCommand("scan-ip", [ipToScan]);
         if (result?.device) {
-            // Add the device to the list
             const currentDevices = state.get().devices;
             const exists = currentDevices.some(d => d.identifier === result.device.identifier);
             if (!exists) {
                 state.set({
                     ...state.get(),
                     devices: [...currentDevices, result.device],
-                    showManualAdd: false,
-                    manualIP: ""
+                    manualIP: "",
+                    error: null
                 });
+                showManualAdd.set(false);
             }
         }
     };
 
-    // Track if pairing was cancelled
-    let pairingCancelled = false;
+    const startPairing = async () => {
+        const device = state.get().selectedDevice;
+        if (!device) {
+            state.set({ ...state.get(), error: "No device selected" });
+            return;
+        }
 
-    // Import Subprocess for handling the pairing process
-    const startPairingWithProcess = async (device: AppleTV) => {
         try {
             if (pairingProcess) {
-                console.log("Killing existing pairing process");
                 pairingProcess.kill();
                 pairingProcess = null;
             }
 
-            // Use Astal's subprocess API
             const { subprocess } = await import("astal");
-            
-            console.log("Starting pairing subprocess for device:", device.identifier);
-            
-            // Set initial state
+
             state.set({
                 ...state.get(),
                 pairingStatus: "Starting pairing process...",
                 error: null,
                 pairingInProgress: true
             });
-            
+
             pairingProcess = subprocess(
                 ["python3", scriptPath, "pair", device.identifier],
                 (stdout, stderr) => {
                     if (stdout) {
-                        // Parse each line of output
                         const lines = stdout.trim().split('\n');
                         for (const line of lines) {
                             if (line.trim()) {
                                 try {
                                     const data = JSON.parse(line);
-                                    console.log("Pairing output:", data);
-                                    
+
                                     if (data.pairing === "started") {
                                         state.set({
                                             ...state.get(),
@@ -274,41 +360,24 @@ export default function Remote(props: Widget.BoxProps) {
                                     } else if (data.pairing === "complete") {
                                         state.set({
                                             ...state.get(),
-                                            pairingStatus: "Pairing successful! Verifying...",
+                                            pairingStatus: "Pairing successful!",
                                             showPinEntry: false,
                                             pairingPin: "",
                                             error: null,
-                                            pairingInProgress: false
+                                            pairingInProgress: false,
+                                            isConnected: true
                                         });
-                                        // Verify pairing
-                                        setTimeout(async () => {
-                                            const verifyResult = await executeCommand("verify-pairing");
-                                            if (verifyResult?.paired) {
-                                                state.set({
-                                                    ...state.get(),
-                                                    pairingStatus: "Pairing successful! Remote is ready.",
-                                                    isConnected: true,
-                                                    error: null
-                                                });
-                                                setTimeout(() => {
-                                                    state.set({ ...state.get(), pairingStatus: null });
-                                                }, 3000);
-                                            } else {
-                                                state.set({
-                                                    ...state.get(),
-                                                    pairingStatus: null,
-                                                    isConnected: false,
-                                                    error: "Pairing verification failed. Please try again."
-                                                });
-                                            }
-                                        }, 1000);
+                                        setTimeout(() => {
+                                            state.set({ ...state.get(), pairingStatus: null });
+                                        }, 3000);
                                         pairingProcess = null;
                                     } else if (data.error) {
                                         state.set({
                                             ...state.get(),
                                             error: data.error,
                                             pairingStatus: null,
-                                            pairingInProgress: false
+                                            pairingInProgress: false,
+                                            showPinEntry: false
                                         });
                                         pairingProcess = null;
                                     }
@@ -318,14 +387,9 @@ export default function Remote(props: Widget.BoxProps) {
                             }
                         }
                     }
-                    
-                    if (stderr) {
-                        console.error("Pairing stderr:", stderr);
-                    }
                 }
             );
         } catch (error) {
-            console.error("Failed to start pairing process:", error);
             state.set({
                 ...state.get(),
                 error: "Failed to start pairing process",
@@ -334,46 +398,11 @@ export default function Remote(props: Widget.BoxProps) {
         }
     };
 
-    const startPairing = async () => {
-        const device = state.get().selectedDevice;
-        if (!device) {
-            state.set({ ...state.get(), error: "No device selected" });
-            return;
-        }
-
-        // Use the new process-based pairing
-        pairingCancelled = false;
-        await startPairingWithProcess(device);
-    };
-
-    const cancelPairing = () => {
-        pairingCancelled = true;
-        if (pairingProcess) {
-            console.log("Killing pairing process");
-            pairingProcess.kill();
-            pairingProcess = null;
-        }
-        state.set({
-            ...state.get(),
-            pairingInProgress: false,
-            pairingStatus: null,
-            error: "Pairing cancelled"
-        });
-    };
-
     const submitPin = async () => {
-        const device = state.get().selectedDevice;
         const pin = state.get().pairingPin.trim();
 
-        console.log("Submit PIN clicked - Device:", device?.name, "PIN length:", pin.length);
-
-        if (!device || !pin) {
-            state.set({ ...state.get(), error: "Please enter the PIN" });
-            return;
-        }
-
-        if (pin.length !== 4) {
-            state.set({ ...state.get(), error: "PIN must be exactly 4 digits" });
+        if (!pin || pin.length !== 4) {
+            state.set({ ...state.get(), error: "Please enter a 4-digit PIN" });
             return;
         }
 
@@ -382,16 +411,11 @@ export default function Remote(props: Widget.BoxProps) {
             return;
         }
 
-        console.log("Submitting PIN to pairing process:", pin);
         state.set({ ...state.get(), pairingStatus: "Completing pairing...", error: null });
-        
+
         try {
-            // Send the PIN to the pairing process via stdin
-            console.log("Writing PIN to process stdin");
             pairingProcess.write(pin + "\n");
-            console.log("PIN sent to process");
         } catch (error) {
-            console.error("Failed to send PIN:", error);
             state.set({
                 ...state.get(),
                 error: "Failed to submit PIN. Please try again.",
@@ -400,91 +424,145 @@ export default function Remote(props: Widget.BoxProps) {
         }
     };
 
+    const cancelPairing = () => {
+        if (pairingProcess) {
+            pairingProcess.kill();
+            pairingProcess = null;
+        }
+        state.set({
+            ...state.get(),
+            pairingInProgress: false,
+            pairingStatus: null,
+            showPinEntry: false,
+            pairingPin: "",
+            error: null
+        });
+    };
+
     // Initial device discovery
     discoverDevices();
 
-    const ControlButton = ({ icon, command, size = 28, primary = false }: {
+    const ControlButton = ({ icon, command, size = 24, primary = false, power = false }: {
         icon: PhosphorIcons,
         command: string,
         size?: number,
-        primary?: boolean
-    }) => (
-        <button
-            cssName={primary ? "control-button-primary" : "control-button"}
-            disabled={bind(state).as(s => !s.selectedDevice || s.isLoading)}
-            onClicked={() => sendRemoteCommand(command)}
-        >
-            <PhosphorIcon iconName={icon} size={size} />
-        </button>
-    );
+        primary?: boolean,
+        power?: boolean
+    }) => {
+        const isProcessing = Variable(false);
+        
+        return (
+            <button
+                cssName="remote-control-button"
+                cssClasses={bind(isProcessing).as(processing => {
+                    const classes = [];
+                    if (primary) classes.push("primary");
+                    if (power) classes.push("power");
+                    if (processing) classes.push("processing");
+                    return classes;
+                })}
+                disabled={bind(state).as(s => !s.isConnected)}
+                onClicked={async () => {
+                    if (isProcessing.get()) return;
+                    
+                    isProcessing.set(true);
+                    await sendRemoteCommand(command);
+                    
+                    // Keep processing state for a moment for visual feedback
+                    setTimeout(() => isProcessing.set(false), 150);
+                }}
+                setup={setupCursorHover}
+            >
+                <PhosphorIcon iconName={icon} size={size} />
+            </button>
+        );
+    };
 
     return (
         <box {...props} cssName="remote-module" vertical spacing={16}>
             {/* Device Selection Card */}
-            <box cssName="device-card" vertical>
-                <box cssName="device-header" spacing={12}>
-                    <PhosphorIcon iconName={PhosphorIcons.Television} size={20} />
-                    <label cssName="section-title">Apple TV Devices</label>
+            <box cssName="remote-device-card" vertical>
+                <box cssName="remote-device-header" spacing={12}>
+                    <box cssName="remote-device-icon-wrapper">
+                        <PhosphorIcon iconName={PhosphorIcons.Television} size={24} />
+                    </box>
+                    <label cssName="remote-section-title">Apple TV Devices</label>
                     <box hexpand />
-                    <box cssName="header-actions" spacing={8}>
+                    <box cssName="remote-header-actions" spacing={8}>
                         <button
-                            cssName="icon-button"
+                            setup={setupCursorHover}
                             onClicked={discoverDevices}
                             disabled={bind(state).as(s => s.isLoading)}
-                            tooltip-text="Search network"
+                            tooltip_text="Search for devices"
                         >
-                            <PhosphorIcon iconName={PhosphorIcons.MagnifyingGlass} size={18} />
+                            <PhosphorIcon
+                                iconName={PhosphorIcons.MagnifyingGlass}
+                                size={16}
+                                cssClasses={bind(state).as(s => s.isLoading ? ["spinning"] : [])}
+                            />
                         </button>
                         <button
-                            cssName="icon-button"
-                            onClicked={() => state.set({ ...state.get(), showManualAdd: !state.get().showManualAdd })}
-                            tooltip-text="Add by IP"
+                            setup={setupCursorHover}
+                            onClicked={() => showManualAdd.set(!showManualAdd.get())}
+                            tooltip_text="Add by IP address"
                         >
-                            <PhosphorIcon iconName={PhosphorIcons.Plus} size={18} />
+                            <PhosphorIcon iconName={PhosphorIcons.Plus} size={16} />
+                        </button>
+                        <button
+                            setup={setupCursorHover}
+                            onClicked={async () => {
+                                state.set({ ...state.get(), isLoading: true, error: null });
+                                await appleTVService.restart();
+                                state.set({ ...state.get(), isLoading: false });
+                                
+                                // Re-discover devices after restart
+                                setTimeout(() => discoverDevices(), 1000);
+                            }}
+                            tooltip_text="Restart Apple TV service"
+                        >
+                            <PhosphorIcon iconName={PhosphorIcons.ArrowClockwise} size={16} />
                         </button>
                     </box>
                 </box>
 
-                <box cssName="device-content" vertical spacing={12}>
+                <box cssName="remote-device-list" vertical spacing={4}>
                     {bind(state).as(s =>
-                        s.isLoading ? (
-                            <box cssName="loading-state">
+                        s.isLoading && s.devices.length === 0 ? (
+                            <box cssName="remote-loading-state" vertical>
                                 <Gtk.Spinner spinning={true} />
                                 <label>Searching for devices...</label>
                             </box>
                         ) : s.devices.length === 0 ? (
-                            <box cssName="empty-state" vertical>
+                            <box cssName="remote-empty-state" vertical>
                                 <PhosphorIcon iconName={PhosphorIcons.WifiSlash} size={48} />
-                                <label>No devices found</label>
-                                <label cssName="empty-hint">Click search or add manually</label>
+                                <label>No Apple TV devices found</label>
                             </box>
                         ) : (
                             <Gtk.ScrolledWindow
-                                cssName="device-scroll"
-                                vexpand={false}
-                                heightRequest={150}
                                 hscrollbarPolicy={Gtk.PolicyType.NEVER}
                                 vscrollbarPolicy={Gtk.PolicyType.AUTOMATIC}
+                                heightRequest={Math.min(200, s.devices.length * 70)}
                             >
-                                <box cssName="device-list" vertical spacing={8} heightRequest={150}>
+                                <box vertical spacing={4}>
                                     {s.devices.map(device => (
                                         <button
-                                            cssName="device-item"
+                                            cssName="remote-device-item"
                                             cssClasses={s.selectedDevice?.identifier === device.identifier ? ["selected"] : []}
                                             onClicked={() => connectToDevice(device)}
+                                            setup={setupCursorHover}
                                         >
                                             <box spacing={12}>
-                                                <box cssName="device-icon">
-                                                    <PhosphorIcon iconName={PhosphorIcons.Television} size={24} />
+                                                <box cssName="remote-device-icon">
+                                                    <PhosphorIcon iconName={PhosphorIcons.Television} size={20} />
                                                 </box>
                                                 <box vertical>
-                                                    <label cssName="device-name">{device.name}</label>
-                                                    <label cssName="device-address">{device.address}</label>
+                                                    <label cssName="remote-device-name">{device.name}</label>
+                                                    <label cssName="remote-device-address">{device.address}</label>
                                                 </box>
                                                 <box hexpand />
                                                 {s.selectedDevice?.identifier === device.identifier && s.isConnected && (
-                                                    <box cssName="connected-indicator">
-                                                        <PhosphorIcon iconName={PhosphorIcons.WifiHigh} size={16} />
+                                                    <box cssName="remote-connected-indicator">
+                                                        <PhosphorIcon iconName={PhosphorIcons.CheckCircle} size={20} />
                                                     </box>
                                                 )}
                                             </box>
@@ -496,106 +574,91 @@ export default function Remote(props: Widget.BoxProps) {
                     )}
 
                     {/* Manual IP Add */}
-                    {bind(state).as(s => s.showManualAdd && (
-                        <box cssName="manual-add-section" vertical spacing={8}>
-                            <box cssName="input-group" spacing={8}>
-                                <entry
-                                    cssName="ip-input"
-                                    placeholderText="192.168.1.100"
-                                    text={bind(state).as(s => s.manualIP)}
-                                    onChanged={(self) => state.set({ ...state.get(), manualIP: self.text })}
-                                    hexpand
-                                />
-                                <button
-                                    cssName="action-button"
-                                    onClicked={scanIP}
-                                    disabled={bind(state).as(s => s.isLoading || !s.manualIP.trim())}
-                                >
-                                    <box spacing={6}>
-                                        <PhosphorIcon iconName={PhosphorIcons.MagnifyingGlass} size={16} />
-                                        <label>Scan</label>
-                                    </box>
-                                </button>
-                            </box>
-                        </box>
-                    ))}
+                    {bind(showManualAdd).as(show => show ? (
+                        <ManualIPEntry 
+                            onScan={scanIP} 
+                            isLoading={state.get().isLoading}
+                        />
+                    ) : <box />)}
                 </box>
             </box>
 
             {/* Remote Control */}
-            {bind(state).as(s => s.selectedDevice && (
-                <box cssName="remote-card" vertical spacing={20}>
+            {bind(state).as(s => s.selectedDevice ? (
+                <box cssName="remote-control-card" vertical spacing={16}>
                     {/* Connection Status */}
-                    <box cssName="connection-status" spacing={8}>
+                    <box
+                        cssName="remote-connection-status"
+                        cssClasses={[s.isConnected ? "connected" : "disconnected"]}
+                        spacing={8}
+                    >
                         <PhosphorIcon
                             iconName={s.isConnected ? PhosphorIcons.WifiHigh : PhosphorIcons.WifiSlash}
                             size={16}
                         />
-                        <label cssName={s.selectedDevice ? "status-connected" : "status-disconnected"}>
-                            {s.selectedDevice ? `Selected: ${s.selectedDevice.name}` : "No Device Selected"}
-                        </label>
+                        <label>{s.selectedDevice.name}</label>
                         <box hexpand />
-                        {!s.isConnected && !s.pairingInProgress && (
+                        {!s.isConnected && !s.pairingInProgress ? (
                             <button
-                                cssName="pair-button"
-                                onClicked={() => {
-                                    // Clear any previous errors when starting new pairing
-                                    state.set({ ...state.get(), error: null });
-                                    startPairing(0);
-                                }}
-                                disabled={s.isLoading || s.showPinEntry}
-                                tooltip-text="Pair with Apple TV"
+                                cssName="remote-pair-button"
+                                onClicked={() => startPairing()}
+                                disabled={s.isLoading}
+                                setup={setupCursorHover}
                             >
                                 <box spacing={6}>
                                     <PhosphorIcon iconName={PhosphorIcons.Link} size={14} />
                                     <label>Pair</label>
                                 </box>
                             </button>
-                        )}
+                        ) : <box />}
                     </box>
 
                     {/* Pairing Status */}
-                    {s.pairingStatus && (
-                        <box cssName="pairing-status" spacing={8}>
+                    {s.pairingStatus ? (
+                        <box cssName="remote-pairing-status" spacing={8}>
                             <Gtk.Spinner spinning={true} />
                             <label>{s.pairingStatus}</label>
-                            {s.pairingInProgress && (
+                            {s.pairingInProgress ? (
+                                <box hexpand />
+                            ) : <box />}
+                            {s.pairingInProgress ? (
                                 <button
-                                    cssName="cancel-pairing-button"
                                     onClicked={cancelPairing}
-                                    tooltip-text="Cancel pairing"
+                                    setup={setupCursorHover}
                                 >
                                     <PhosphorIcon iconName={PhosphorIcons.X} size={14} />
                                 </button>
-                            )}
+                            ) : <box />}
                         </box>
-                    )}
+                    ) : <box />}
 
                     {/* PIN Entry */}
-                    {s.showPinEntry && (
-                        <box cssName="pin-entry-section" vertical spacing={12}>
-                            <label cssName="pin-instructions">Enter the PIN shown on your Apple TV</label>
-                            <box cssName="pin-input-group" spacing={8}>
+                    {s.showPinEntry ? (
+                        <box cssName="remote-pin-entry" vertical spacing={12}>
+                            <label>Enter the PIN shown on your Apple TV</label>
+                            <box spacing={8}>
                                 <entry
-                                    cssName="pin-input"
-                                    placeholderText="Enter 4-digit PIN"
-                                    text={s.pairingPin}
+                                    placeholderText="0000"
+                                    onNotifyText={(self) => {
+                                        state.set({ ...state.get(), pairingPin: self.text });
+                                    }}
+                                    onActivate={(self) => {
+                                        if (self.text.length === 4) {
+                                            submitPin();
+                                        }
+                                    }}
                                     setup={(self) => {
-                                        self.connect("changed", () => {
-                                            state.set({ ...state.get(), pairingPin: self.text });
-                                        });
-                                        self.connect("activate", () => {
-                                            if (self.text.length === 4) {
-                                                submitPin();
-                                            }
-                                        });
+                                        // Set initial value
+                                        self.text = state.get().pairingPin;
+                                        setTimeout(() => self.grab_focus(), 100);
                                     }}
                                     hexpand
                                 />
                                 <button
-                                    cssName="submit-pin-button"
+                                    cssClasses={["submit"]}
                                     onClicked={submitPin}
-                                    disabled={s.isLoading || s.pairingPin.length !== 4}
+                                    disabled={s.pairingPin.length !== 4}
+                                    setup={setupCursorHover}
                                 >
                                     <box spacing={6}>
                                         <PhosphorIcon iconName={PhosphorIcons.Check} size={16} />
@@ -603,158 +666,118 @@ export default function Remote(props: Widget.BoxProps) {
                                     </box>
                                 </button>
                                 <button
-                                    cssName="cancel-pin-button"
-                                    onClicked={() => state.set({ ...state.get(), showPinEntry: false, pairingPin: "", pairingStatus: null })}
+                                    cssClasses={["cancel"]}
+                                    onClicked={() => state.set({ ...state.get(), showPinEntry: false, pairingPin: "" })}
+                                    setup={setupCursorHover}
                                 >
                                     <PhosphorIcon iconName={PhosphorIcons.X} size={16} />
                                 </button>
                             </box>
                         </box>
-                    )}
+                    ) : <box />}
 
                     {/* Now Playing */}
-                    {s.playingInfo && (
-                        <box cssName="now-playing" vertical spacing={8}>
+                    {s.playingInfo && s.isConnected ? (
+                        <box cssName="remote-now-playing" vertical spacing={4}>
                             <box spacing={8}>
                                 <PhosphorIcon iconName={PhosphorIcons.MusicNote} size={16} />
-                                <label cssName="now-playing-label">Now Playing</label>
+                                <label cssName="remote-now-playing-title">{s.playingInfo.title}</label>
                             </box>
-                            <label cssName="now-playing-title">{s.playingInfo.title}</label>
-                            {s.playingInfo.artist && (
-                                <label cssName="now-playing-artist">{s.playingInfo.artist}</label>
-                            )}
+                            {s.playingInfo.artist ? (
+                                <label cssName="remote-now-playing-artist">{s.playingInfo.artist}</label>
+                            ) : <box />}
                         </box>
-                    )}
+                    ) : <box />}
 
-                    {/* Navigation */}
-                    <box cssName="navigation-section" vertical spacing={16}>
-                        {/* D-Pad */}
-                        <box cssName="dpad-wrapper" halign={Gtk.Align.CENTER}>
-                            <box cssName="dpad-container">
-                                <button
-                                    cssName="dpad-button dpad-up"
-                                    onClicked={() => sendRemoteCommand("up")}
-                                    disabled={!s.selectedDevice || s.isLoading}
-                                >
-                                    <PhosphorIcon iconName={PhosphorIcons.CaretUp} size={24} />
-                                </button>
-                                <button
-                                    cssName="dpad-button dpad-down"
-                                    onClicked={() => sendRemoteCommand("down")}
-                                    disabled={!s.selectedDevice || s.isLoading}
-                                >
-                                    <PhosphorIcon iconName={PhosphorIcons.CaretDown} size={24} />
-                                </button>
-                                <button
-                                    cssName="dpad-button dpad-left"
-                                    onClicked={() => sendRemoteCommand("left")}
-                                    disabled={!s.selectedDevice || s.isLoading}
-                                >
-                                    <PhosphorIcon iconName={PhosphorIcons.CaretLeft} size={24} />
-                                </button>
-                                <button
-                                    cssName="dpad-button dpad-right"
-                                    onClicked={() => sendRemoteCommand("right")}
-                                    disabled={!s.selectedDevice || s.isLoading}
-                                >
-                                    <PhosphorIcon iconName={PhosphorIcons.CaretRight} size={24} />
-                                </button>
-                                <button
-                                    cssName="dpad-center"
-                                    disabled={!s.selectedDevice || s.isLoading}
-                                    onClicked={() => sendRemoteCommand("select")}
-                                >
-                                    <label>OK</label>
-                                </button>
-                            </box>
-                        </box>
+                    {/* D-Pad Navigation */}
+                    <box cssName="remote-dpad">
+                        <button
+                            cssClasses={["dpad-button", "up"]}
+                            onClicked={() => sendRemoteCommand("up")}
+                            // disabled={!s.isConnected || s.isLoading}
+                            setup={setupCursorHover}
+                        >
+                            <PhosphorIcon iconName={PhosphorIcons.CaretUp} size={20} />
+                        </button>
+                        <button
+                            cssClasses={["dpad-button", "down"]}
+                            onClicked={() => sendRemoteCommand("down")}
+                            // disabled={!s.isConnected || s.isLoading}
+                            setup={setupCursorHover}
+                        >
+                            <PhosphorIcon iconName={PhosphorIcons.CaretDown} size={20} />
+                        </button>
+                        <button
+                            cssClasses={["dpad-button", "left"]}
+                            onClicked={() => sendRemoteCommand("left")}
+                            // disabled={!s.isConnected || s.isLoading}
+                            setup={setupCursorHover}
+                        >
+                            <PhosphorIcon iconName={PhosphorIcons.CaretLeft} size={20} />
+                        </button>
+                        <button
+                            cssClasses={["dpad-button", "right"]}
+                            onClicked={() => sendRemoteCommand("right")}
+                            // disabled={!s.isConnected || s.isLoading}
+                            setup={setupCursorHover}
+                        >
+                            <PhosphorIcon iconName={PhosphorIcons.CaretRight} size={20} />
+                        </button>
+                        <button
+                            cssClasses={["dpad-center"]}
+                            // disabled={!s.isConnected || s.isLoading}
+                            onClicked={() => sendRemoteCommand("select")}
+                            setup={setupCursorHover}
+                        >
+                            <label>OK</label>
+                        </button>
+                    </box>
 
-                        {/* Menu Controls */}
-                        <box cssName="menu-controls" spacing={12} halign={Gtk.Align.CENTER}>
-                            <ControlButton icon={PhosphorIcons.ArrowLeft} command="menu" />
-                            <ControlButton icon={PhosphorIcons.House} command="home" size={32} />
-                            <ControlButton icon={PhosphorIcons.Television} command="tv" />
-                        </box>
+                    {/* Menu Controls */}
+                    <box spacing={12} halign={Gtk.Align.CENTER}>
+                        <ControlButton icon={PhosphorIcons.ArrowLeft} command="menu" />
+                        <ControlButton icon={PhosphorIcons.House} command="home" size={28} />
+                        <ControlButton icon={PhosphorIcons.Television} command="tv" />
                     </box>
 
                     {/* Playback Controls */}
-                    <box cssName="playback-section" vertical spacing={12}>
-                        <box cssName="playback-controls" spacing={8} halign={Gtk.Align.CENTER}>
+                    <box vertical spacing={12}>
+                        <box spacing={8} halign={Gtk.Align.CENTER}>
                             <ControlButton icon={PhosphorIcons.SkipBack} command="skip_backward" />
-                            <ControlButton icon={PhosphorIcons.Play} command="play_pause" size={36} primary={true} />
+                            <ControlButton icon={PhosphorIcons.PlayPause} command="play_pause" size={32} primary={true} />
                             <ControlButton icon={PhosphorIcons.SkipForward} command="skip_forward" />
                         </box>
 
                         {/* Volume */}
-                        <box cssName="volume-controls" spacing={12} halign={Gtk.Align.CENTER}>
+                        <box spacing={12} halign={Gtk.Align.CENTER}>
                             <ControlButton icon={PhosphorIcons.SpeakerSimpleLow} command="volume_down" />
-                            <label cssName="volume-label">Volume</label>
+                            <label>Volume</label>
                             <ControlButton icon={PhosphorIcons.SpeakerSimpleHigh} command="volume_up" />
                         </box>
                     </box>
 
                     {/* Power */}
-                    <box cssName="power-controls" halign={Gtk.Align.CENTER}>
-                        <button
-                            cssName="power-button"
-                            disabled={bind(state).as(s => !s.selectedDevice || s.isLoading)}
-                            onClicked={() => sendRemoteCommand("suspend")}
-                            tooltip-text="Power"
-                        >
-                            <PhosphorIcon iconName={PhosphorIcons.Power} size={24} />
-                        </button>
+                    <box halign={Gtk.Align.CENTER}>
+                        <ControlButton icon={PhosphorIcons.Power} command="suspend" power={true} />
                     </box>
                 </box>
-            ))}
+            ) : <box />)}
 
             {/* Error Display */}
-            {bind(state).as(s => s.error && (
-                <box cssName="error-message" vertical spacing={12}>
-                    <box spacing={8}>
-                        <PhosphorIcon iconName={PhosphorIcons.Warning} size={16} />
-                        <label>{s.error}</label>
-                    </box>
-                    {s.error.includes("failed after multiple attempts") && s.selectedDevice && (
-                        <button
-                            cssName="retry-pairing-button"
-                            onClicked={() => {
-                                state.set({ ...state.get(), error: null });
-                                startPairing(0);
-                            }}
-                        >
-                            <box spacing={6}>
-                                <PhosphorIcon iconName={PhosphorIcons.ArrowClockwise} size={16} />
-                                <label>Retry Pairing</label>
-                            </box>
-                        </button>
-                    )}
+            {bind(state).as(s => s.error ? (
+                <box cssName="remote-error" spacing={8}>
+                    <PhosphorIcon iconName={PhosphorIcons.Warning} size={16} />
+                    <label>{s.error}</label>
                 </box>
-            ))}
+            ) : <box />)}
 
             {/* Help Text */}
-            {bind(state).as(s => s.selectedDevice && !s.isConnected && (
-                <box cssName="help-section" vertical spacing={8}>
-                    <label cssName="help-title">Pairing Required</label>
-                    <label cssName="help-text">To use the remote, you need to pair with your Apple TV:</label>
-                    <box cssName="help-steps" vertical spacing={4}>
-                        <label cssName="help-step-title">Option 1: Quick Pairing (Recommended)</label>
-                        <label>1. Open terminal and run:</label>
-                        <label cssName="help-code">atvremote --id {s.selectedDevice.identifier} pair</label>
-                        <label>2. Enter the PIN when prompted</label>
-                        <label>3. Return here and the remote will work</label>
-                        
-                        <label cssName="help-step-title">Option 2: UI Pairing</label>
-                        <label>1. Click the "Pair" button above</label>
-                        <label>2. Quickly enter the PIN that appears on TV</label>
-                        <label>3. Note: The PIN expires very quickly!</label>
-                        
-                        <label cssName="help-step-title">Option 3: Apple TV Settings</label>
-                        <label>1. Go to Settings → Remotes and Devices</label>
-                        <label>2. Select "Remote App and Devices"</label>
-                        <label>3. Your computer should appear there</label>
-                    </box>
+            {bind(state).as(s => s.selectedDevice && !s.isConnected && !s.pairingInProgress ? (
+                <box cssName="remote-help" vertical spacing={8}>
+                    <label cssName="remote-help-title">Pairing Required</label>
+                    <label cssName="remote-help-text">Click the "Pair" button above to connect to your Apple TV. You'll need to enter the PIN that appears on your TV screen.</label>
                 </box>
-            ))}
+            ) : <box />)}
         </box>
     );
 }

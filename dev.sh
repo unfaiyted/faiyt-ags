@@ -60,16 +60,51 @@ echo "Running tailwind-patch..."
     exit 1
 }
 
-# Kills swaync which prevents ags from starting a lot 
+# Kill all existing AGS/GJS processes to ensure clean start
+echo "Killing existing AGS/GJS processes..."
+
+# Kill AGS processes
+killall -9 ags 2>/dev/null || true
+
+# Kill GJS processes
+killall -9 gjs 2>/dev/null || true
+
+# Kill any python processes related to Apple TV scripts
+pkill -f "apple-tv.*\.py" 2>/dev/null || true
+
+# Kill swaync which prevents ags from starting
 killall swaync 2>/dev/null || true
+
+# Wait a moment for processes to fully terminate
+sleep 1
+
+# Double-check and force kill any remaining AGS-related processes
+for pid in $(pgrep -f "ags.*app\.ts"); do
+    kill -9 $pid 2>/dev/null || true
+done
+
+# Kill any remaining gjs processes that might be AGS-related
+for pid in $(pgrep -f "gjs.*ags"); do
+    kill -9 $pid 2>/dev/null || true
+done
+
+echo "Cleanup complete"
 
 # Applys the mouse and other cursor themes
 nwg-look -a 
 
 
 echo "Starting AGS..."
+
+# Trap to cleanup on script exit
+trap 'echo "Dev script interrupted, cleaning up..."; killall -9 ags 2>/dev/null; killall -9 gjs 2>/dev/null; pkill -f "apple-tv.*\.py" 2>/dev/null' EXIT INT TERM
+
 ~/go/bin/ags run --gtk4 ./src/app.ts || {
     echo "AGS failed to start"
+    # Clean up any processes that might have been started
+    killall -9 ags 2>/dev/null || true
+    killall -9 gjs 2>/dev/null || true
+    pkill -f "apple-tv.*\.py" 2>/dev/null || true
     swaync 
     notify-send "AGS Error" "AGS failed to start"
     exit 1

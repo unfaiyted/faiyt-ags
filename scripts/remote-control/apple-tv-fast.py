@@ -22,7 +22,7 @@ import pyatv
 
 # Global connection cache
 _connection_cache = {}
-_cache_timeout = 60  # seconds
+_cache_timeout = 300  # 5 minutes - connections should stay alive longer
 
 class FastAppleTVController:
     @staticmethod
@@ -57,25 +57,33 @@ class FastAppleTVController:
             # Check if connection is still fresh
             if time.time() - timestamp < _cache_timeout:
                 try:
-                    # Quick check if connection is alive
-                    if conn and hasattr(conn, 'close'):
+                    # Quick check if connection is alive by checking remote_control
+                    if conn and hasattr(conn, 'remote_control') and conn.remote_control:
+                        # Update timestamp on successful use
+                        _connection_cache[device_id] = (conn, time.time())
                         return conn
                 except:
                     pass
-            else:
-                # Connection is stale, close it
-                try:
-                    conn.close()
-                except:
-                    pass
-                del _connection_cache[device_id]
+            
+            # Connection is stale or broken, close it
+            try:
+                conn.close()
+            except:
+                pass
+            del _connection_cache[device_id]
         
         # Create new connection
         loop = asyncio.get_running_loop()
+        
+        # Try quick scan with identifier first
         devices = await pyatv.scan(loop, identifier=device_id, timeout=2)
         
         if not devices:
-            return None
+            # Fallback to full scan
+            all_devices = await pyatv.scan(loop, timeout=3)
+            devices = [d for d in all_devices if str(d.identifier) == device_id]
+            if not devices:
+                return None
         
         device = devices[0]
         
@@ -119,13 +127,26 @@ class FastAppleTVController:
                 return {"error": f"Command '{command}' not available"}
                 
         except Exception as e:
-            # On error, remove from cache
-            if device_id in _connection_cache:
+            error_str = str(e).lower()
+            # Check if it's a connection error
+            if any(phrase in error_str for phrase in ["connection lost", "not connected", "broken pipe"]):
+                # Remove from cache and try once more
+                if device_id in _connection_cache:
+                    try:
+                        _connection_cache[device_id][0].close()
+                    except:
+                        pass
+                    del _connection_cache[device_id]
+                
+                # Try to reconnect once
                 try:
-                    _connection_cache[device_id][0].close()
+                    atv = await FastAppleTVController.get_connection(device_id)
+                    if atv and atv.remote_control:
+                        method = getattr(atv.remote_control, command)
+                        await method()
+                        return {"success": True, "command": command, "reconnected": True}
                 except:
                     pass
-                del _connection_cache[device_id]
             
             return {"error": str(e)}
 

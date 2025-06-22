@@ -52,6 +52,11 @@ else
     echo "Layer shell functionality may not work correctly"
 fi
 
+# Kill any existing AGS processes for clean start
+killall -9 ags 2>/dev/null || true
+killall -9 gjs 2>/dev/null || true
+pkill -f "apple-tv.*\.py" 2>/dev/null || true
+
 # Pass through any AGS-specific environment variables
 export AGS_LOG_LEVEL="${AGS_LOG_LEVEL:-info}"
 export AGS_LOG_FORMAT="${AGS_LOG_FORMAT:-pretty}"
@@ -81,6 +86,9 @@ elif [ -d "$HOME/.config/ags" ]; then
         APP_JS="src/app.js"
     fi
 fi
+
+# Set up cleanup trap
+trap 'echo "AGS launcher interrupted, cleaning up..."; killall -9 ags 2>/dev/null; killall -9 gjs 2>/dev/null; pkill -f "apple-tv.*\.py" 2>/dev/null' EXIT INT TERM
 
 # Launch AGS with the appropriate arguments
 if [ -n "$APP_JS" ]; then
