@@ -12,7 +12,7 @@ export default function NowPlaying({ playingInfo, isConnected, ...props }: NowPl
     if (!playingInfo || !isConnected) return <box />;
 
     return (
-        <box {...props} cssName="remote-now-playing" vertical spacing={4}>
+        <box {...props} cssName="remote-now-playing" vertical >
             <box spacing={8}>
                 <PhosphorIcon iconName={PhosphorIcons.MusicNote} size={16} />
                 <label cssName="remote-now-playing-title">{playingInfo.title}</label>

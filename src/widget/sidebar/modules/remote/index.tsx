@@ -449,16 +449,22 @@ export default function Remote(props: Widget.BoxProps) {
                         onSubmitPin={submitPin}
                     />
 
+                    <box
+                        halign={Gtk.Align.CENTER}
+                        valign={Gtk.Align.CENTER}
+                    >
+                        <RemoteControl
+                            isConnected={s.isConnected}
+                            isLoading={s.isLoading}
+                            onCommand={sendRemoteCommand}
+                        />
+                    </box>
                     <NowPlaying
                         playingInfo={s.playingInfo}
                         isConnected={s.isConnected}
                     />
 
-                    <RemoteControl
-                        isConnected={s.isConnected}
-                        isLoading={s.isLoading}
-                        onCommand={sendRemoteCommand}
-                    />
+
                 </>
             ) : <box />)}
 

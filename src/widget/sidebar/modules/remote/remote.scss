@@ -194,12 +194,15 @@ remote-manual-add {
   }
 }
 
-// Remote Control Section
+// Remote Control Section - Apple TV Style
 remote-control-card {
-  background: colors.c(background-elevated);
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid colors.c(border);
+  background: linear-gradient(145deg, colors.c(background-elevated), colors.c(background, 0.9));
+  border-radius: 20px;
+  padding: 12px 10px;
+  border: 1px solid colors.c(border, 0.3);
+  box-shadow: 0 4px 16px colors.c(base, 0.5);
+  min-width: 200px;
+  margin: 0 auto;
 }
 
 // Connection Status Bar
@@ -361,31 +364,40 @@ remote-now-playing {
   }
 }
 
-// D-Pad Navigation
-remote-dpad {
-  width: 160px;
-  height: 160px;
+// Apple TV Style D-Pad Navigation
+apple-remote-dpad {
+  min-width: 120px;
+  min-height: 120px;
   position: relative;
   margin: 0 auto 20px;
+  background: colors.c(background, 0.5);
+  border-radius: 50%;
+  border: 1px solid colors.c(border-alt, 0.2);
+  box-shadow: inset 0 2px 4px colors.c(base, 0.1);
 }
 
-.dpad-button {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  background: colors.c(background, 0.5);
-  border: 1px solid colors.c(border);
-  border-radius: 10px;
+.apple-dpad-button {
+  width: 16px;
+  height: 16px;
+  background: transparent;
+  border: none;
+  // border: 1px solid colors.c(border, 0.3);
+  border-radius: 50%;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  &:hover:not(:insensitive) {
-    background: colors.c(background, 0.8);
-    border-color: colors.c(primary, 0.3);
-    transform: scale(1.05);
+  &:hover {
+    // background: colors.c(primary, 0.1);
+    // border-color: colors.c(primary, 0.3);
+    background: none;
+    border: none;
+    transform: scale(1.1);
   }
 
-  &:active:not(:insensitive) {
-    background: colors.c(primary, 0.1);
+  &:active {
+    background: colors.c(primary, 0.2);
     transform: scale(0.95);
   }
 
@@ -397,52 +409,226 @@ remote-dpad {
     color: colors.c(foreground);
   }
 
-  &.up {
-    top: 0;
-    left: 58px;
-  }
+  // Position buttons in a perfect circle around the center
+  &.up {}
 
-  &.down {
-    bottom: 0;
-    left: 58px;
-  }
+  &.down {}
 
   &.left {
-    left: 0;
-    top: 58px;
+    // padding-right: 4px;
+
   }
 
   &.right {
-    right: 0;
-    top: 58px;
+    // padding-left: 4px;
+  }
+
+  // Adjust hover/active transforms to work with centering
+  &.up:hover:not(:insensitive) {
+    transform: translateX(-50%) scale(1.1);
+  }
+
+  &.up:active:not(:insensitive) {
+    transform: translateX(-50%) scale(0.95);
+  }
+
+  &.down:hover:not(:insensitive) {
+    transform: translateX(-50%) scale(1.1);
+  }
+
+  &.down:active:not(:insensitive) {
+    transform: translateX(-50%) scale(0.95);
+  }
+
+  &.left:hover:not(:insensitive) {
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  &.left:active:not(:insensitive) {
+    transform: translateY(-50%) scale(0.95);
+  }
+
+  &.right:hover:not(:insensitive) {
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  &.right:active:not(:insensitive) {
+    transform: translateY(-50%) scale(0.95);
   }
 }
 
-.dpad-center {
+.apple-dpad-center {
   position: absolute;
-  top: 50px;
-  left: 50px;
-  width: 60px;
-  height: 60px;
-  background: colors.c(primary, 0.8);
-  border: 1px solid colors.c(primary);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 90px;
+  min-height: 90px;
+  background: colors.c(background, 0.3);
+  border: 2px solid colors.c(border-alt, 0.4);
   border-radius: 50%;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: colors.c(primary, 0.1);
+    border-color: colors.c(primary, 0.4);
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow: 0 2px 8px colors.c(primary, 0.2);
+  }
+
+  &:active {
+    background: colors.c(primary, 0.2);
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+
+  image {
+    color: colors.c(foreground);
+  }
+}
+
+// Apple TV Style Remote Buttons
+.apple-remote-button {
+  background: colors.c(background, 0.6);
+  border: 1px solid colors.c(border, 0.4);
+  border-radius: 50%;
+  padding: 14px;
+  min-width: 48px;
+  min-height: 48px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px colors.c(base, 0.1);
 
   &:hover:not(:insensitive) {
-    background: colors.c(primary, 0.9);
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px colors.c(primary, 0.4);
+    background: colors.c(background, 0.8);
+    border-color: colors.c(primary, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px colors.c(base, 0.2);
   }
 
   &:active:not(:insensitive) {
-    transform: scale(0.95);
+    background: colors.c(primary, 0.1);
+    transform: translateY(0);
+    box-shadow: 0 1px 3px colors.c(base, 0.1);
   }
 
-  label {
-    color: colors.c(background);
-    font-weight: 600;
-    font-size: 14px;
+  &.power-button {
+    background: colors.c(error, 0.1);
+    border-color: colors.c(error, 0.3);
+    min-width: 24px;
+    min-height: 24px;
+    padding: 10px;
+
+    &:hover:not(:insensitive) {
+      background: colors.c(error, 0.2);
+      border-color: colors.c(error, 0.5);
+      box-shadow: 0 2px 8px colors.c(error, 0.2);
+    }
+
+    image {
+      color: colors.c(error);
+    }
+  }
+
+  &.play-pause-button {
+    background: colors.c(primary, 0.8);
+    border-color: colors.c(primary);
+    min-width: 32px;
+    min-height: 32px;
+    padding: 16px;
+
+    &:hover:not(:insensitive) {
+      background: colors.c(primary, 0.9);
+      box-shadow: 0 6px 16px colors.c(primary, 0.3);
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    &:active:not(:insensitive) {
+      transform: translateY(0) scale(0.98);
+    }
+
+    image {
+      color: colors.c(background);
+    }
+  }
+
+  &.back-button,
+  &.home-button {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 12px;
+  }
+
+  &.mute-button {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 10px;
+  }
+
+  image {
+    color: colors.c(foreground);
+  }
+
+  &:insensitive {
+    opacity: 0.3;
+  }
+}
+
+// Apple Volume Control
+apple-volume-control {
+  background: colors.c(background, 0.6);
+
+  border: 1px solid colors.c(border, 0.4);
+  border-radius: 30px;
+  // padding: 6px;
+  box-shadow: inset 0 1px 3px colors.c(base, 0.1);
+
+  &.apple-volume-button {
+    background: none;
+    border: none;
+  }
+
+
+  .apple-volume-button {
+    // background: colors.c(background, 0.6);
+    // border: 1px solid colors.c(border, 0.4);
+    background: transparent;
+    border: transparent;
+    border-radius: 50%;
+    padding: 10px;
+    min-width: 36px;
+    min-height: 36px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      // background: colors.c(background, 0.8);
+      // border-color: colors.c(primary, 0.4);
+      border-color: transparent;
+      transform: scale(1.08);
+      box-shadow: 0 2px 6px colors.c(base, 0.2);
+    }
+
+    &:active {
+      // background: colors.c(primary, 0.1);
+      transform: scale(0.95);
+    }
+
+    &:insensitive {
+      opacity: 0.3;
+    }
+
+    image {
+      color: colors.c(foreground);
+    }
+
+    &.volume-up {
+      margin-bottom: 3px;
+    }
+
+    &.volume-down {
+      margin-top: 3px;
+    }
   }
 }
 
@@ -450,19 +636,26 @@ remote-dpad {
 remote-control-button {
   background: colors.c(background, 0.5);
   border: 1px solid colors.c(border);
-  border-radius: 10px;
+  border-radius: 50%;
   padding: 10px;
-  min-width: 48px;
-  min-height: 48px;
+  min-width: 32px;
+  min-height: 32px;
   transition: all 0.2s ease;
 
-  &:hover:not(:insensitive) {
+  &.small {
+    min-width: 16x;
+    min-height: 16px;
+    padding: 0px;
+
+  }
+
+  &:hover {
     background: colors.c(background, 0.8);
     border-color: colors.c(primary, 0.3);
     transform: translateY(-1px);
   }
 
-  &:active:not(:insensitive) {
+  &:active {
     background: colors.c(primary, 0.1);
     transform: translateY(0);
   }
@@ -470,10 +663,10 @@ remote-control-button {
   &.primary {
     background: colors.c(primary, 0.8);
     border-color: colors.c(primary);
-    min-width: 56px;
-    min-height: 56px;
+    min-width: 32px;
+    min-height: 32px;
 
-    &:hover:not(:insensitive) {
+    &:hover {
       background: colors.c(primary, 0.9);
       box-shadow: 0 4px 12px colors.c(primary, 0.3);
     }
@@ -486,8 +679,11 @@ remote-control-button {
   &.power {
     background: colors.c(error, 0.1);
     border-color: colors.c(error, 0.3);
+    min-width: 18px;
+    min-height: 18px;
+    padding: 4px;
 
-    &:hover:not(:insensitive) {
+    &:hover {
       background: colors.c(error, 0.2);
       border-color: colors.c(error, 0.4);
     }
@@ -561,6 +757,7 @@ remote-help {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -571,6 +768,7 @@ remote-help {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -578,9 +776,12 @@ remote-help {
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(0.95);
   }

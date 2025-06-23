@@ -33,7 +33,7 @@ export default function PairingDialog({
     if (!selectedDevice) return <box />;
 
     return (
-        <box {...props} vertical spacing={16}>
+        <box {...props} vertical>
             {/* Connection Status */}
             <box
                 cssName="remote-connection-status"

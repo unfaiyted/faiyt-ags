@@ -19,7 +19,7 @@ interface DeviceListProps extends Widget.BoxProps {
 // Separate component for manual IP entry to avoid re-render issues
 const ManualIPEntry = ({ onScan, isLoading }: { onScan: (ip: string) => void, isLoading: boolean }) => {
     const ipText = Variable("");
-    
+
     return (
         <box cssName="remote-manual-add" vertical spacing={8}>
             <box spacing={8}>
@@ -77,8 +77,10 @@ export default function DeviceList({
     return (
         <box {...props} cssName="remote-device-card" vertical>
             <box cssName="remote-device-header" spacing={12}>
-                <box cssName="remote-device-icon-wrapper">
-                    <PhosphorIcon iconName={PhosphorIcons.Television} size={24} />
+                <box cssName="remote-device-icon-wrapper" >
+                    <PhosphorIcon
+                        marginStart={12}
+                        iconName={PhosphorIcons.Television} size={24} />
                 </box>
                 <label cssName="remote-section-title">Apple TV Devices</label>
                 <box hexpand />
@@ -127,7 +129,7 @@ export default function DeviceList({
                     <Gtk.ScrolledWindow
                         hscrollbarPolicy={Gtk.PolicyType.NEVER}
                         vscrollbarPolicy={Gtk.PolicyType.AUTOMATIC}
-                        heightRequest={Math.min(200, devices.length * 70)}
+                        heightRequest={Math.min(200, devices.length * 75)}
                     >
                         <box vertical spacing={4}>
                             {devices.map(device => (
@@ -139,7 +141,9 @@ export default function DeviceList({
                                 >
                                     <box spacing={12}>
                                         <box cssName="remote-device-icon">
-                                            <PhosphorIcon iconName={PhosphorIcons.Television} size={20} />
+                                            <PhosphorIcon
+                                                marginStart={9}
+                                                iconName={PhosphorIcons.Television} size={20} />
                                         </box>
                                         <box vertical>
                                             <label cssName="remote-device-name">{device.name}</label>
@@ -160,8 +164,8 @@ export default function DeviceList({
 
                 {/* Manual IP Add */}
                 {bind(showManualAdd).as(show => show ? (
-                    <ManualIPEntry 
-                        onScan={onScanIP} 
+                    <ManualIPEntry
+                        onScan={onScanIP}
                         isLoading={isLoading}
                     />
                 ) : <box />)}
