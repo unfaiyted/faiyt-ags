@@ -9,3 +9,5 @@ logs/
 .goutputstream*
 ./src/output.css
 *.json
+appletv-config.json
+appletv-credentials.json
