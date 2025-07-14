@@ -1,8 +1,9 @@
 import { Widget, Gtk, Astal } from "astal/gtk4";
+import { bind } from "astal";
 import { BrightnessIndicator } from "./indicators/brightness";
 import { KBBacklightBrightnessIndicator } from "./indicators/kb-backlight-brightness";
 import { VolumeIndicator } from "./indicators/volume";
-import Indicators from "./indicators/index";
+import Indicators, { indicatorVisibility } from "./indicators/index";
 import { createLogger } from "../../utils/logger";
 
 const log = createLogger("IndicatorsWindow");
@@ -19,7 +20,7 @@ export const IndicatorsWindow = (props: IndicatorsWindowProps) => {
       gdkmonitor={props.gdkmonitor}
       layer={Astal.Layer.OVERLAY}
       cssName="indicators-window"
-      visible
+      visible={bind(indicatorVisibility)}
       anchor={Astal.WindowAnchor.BOTTOM}
     >
       <box halign={Gtk.Align.CENTER} valign={Gtk.Align.END}>
